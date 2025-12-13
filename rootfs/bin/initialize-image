@@ -1,14 +1,24 @@
 #!/bin/sh
 set -e
-VERSION="$1"
+VERSION="${1:-3.22.0.64}"
+
+version() { echo "$@" | awk -F. '{ printf("%d%04d%04d%04d\n", $1,$2,$3,$4); }'; }
+version_test() {
+  # shellcheck disable=SC1072,SC1073
+  [ "$(version "$1")" "$2" "$(version "$3")" ]
+}
+
 mkdir -p /cache
 image="/cache/$VERSION.img"
 if ! [ -f "$image" ]; then
+  echo "Downloading update image..." >/dev/stderr
   download=$(mktemp -d)
   codexctl download --hardware rm2 --out "$download" "$VERSION"
+  echo "Extracting image..." >/dev/stderr
   codexctl extract --out "$image" "$download"/*
   rm -r "$download"
 fi
+echo "Creating rootfs image..." >/dev/stderr
 qemu-img create \
   --format qcow2 \
   --backing /base.qcow2 \
@@ -16,22 +26,19 @@ qemu-img create \
   --options compression_type=zstd \
   /data/rootfs.qcow2 \
   8G
+echo "Initializing image..." >/dev/stderr
 guestfish --rw --blocksize=512 --add /data/rootfs.qcow2 <<EOF
 run
 upload "$image" /dev/sda2
 upload "$image" /dev/sda3
-mount /dev/sda4 /
-mkdir-p /root/.local/bin
-mkdir-p /root/.config
-upload /opkg.conf /root/.config/opkg.conf
-upload /rm2display.ipk /root/rm2display.ipk
-upload /opkg /root/.local/bin/opkg
-chmod 0755 /root/.local/bin/opkg
 EOF
-for dev in sda2 sda3; do
+for dev in 2 3; do
+  echo "Setting up mmcblk2p$dev partition..." >/dev/stderr
   guestfish --rw --blocksize=512 --add /data/rootfs.qcow2 <<EOF
     run
-    mount /dev/$dev /
+    mount /dev/sda$dev /
+    upload /rm2fb.tar.gz /rm2fb.tar.gz
+    ln-s /lib/systemd/system/rm2fb.socket /etc/systemd/system/sockets.target.wants/rm2fb.socket
     ln-s /dev/null /etc/systemd/system/remarkable-fail.service
     ln-s /dev/null /etc/systemd/system/system-hardening.service
     ln-s /dev/null /etc/systemd/system/wacom_flash.service
@@ -43,31 +50,55 @@ for dev in sda2 sda3; do
     ln-s /dev/null /etc/systemd/system/swupdate.socket
     ln-sf /dev/null /etc/systemd/system/update-engine.service
     ln-s /dev/null /etc/systemd/system/prepare_wifi.service
+    ln-s /dev/null /etc/systemd/system/dropbear-wlan.socket
+    ln-s /dev/null /etc/systemd/system/dropbear-wlan@.service
+    ln-s /dev/null /etc/systemd/system/dropbear-usb0.socket
+    ln-s /dev/null /etc/systemd/system/dropbear-usb0@.service
+    ln-s /dev/null /etc/systemd/system/dropbear-usb1.socket
+    ln-s /dev/null /etc/systemd/system/dropbear-usb1.service
+    ln-s /dev/null /etc/systemd/system/xochitl.service
     download /etc/fstab /tmp/fstab
-    ! sed -i 's|/dev/unknown|/dev/mmcblk2p4|' /tmp/fstab
+    ! sed -i 's|/dev/unknown|#/dev/mmcblk2p4|' /tmp/fstab
     upload /tmp/fstab /etc/fstab
+    mkdir-p /etc/systemd/system/xochitl.service.d
+    upload /rm2fb.conf /etc/systemd/system/xochitl.service.d/rm2fb.conf
 EOF
+  if version_test "$VERSION" -ge 3.22.0.0; then
+    echo "Adding dropbear.socket..." >/dev/stderr
+    guestfish --rw --blocksize=512 --add /data/rootfs.qcow2 <<EOF
+      run
+      mount /dev/sda$dev /
+      upload /dropbear.socket /lib/systemd/system/dropbear.socket
+      ln-s /lib/systemd/system/dropbear.socket /etc/systemd/system/sockets.target.wants/dropbear.socket
+EOF
+  elif ! version_test "$VERSION" -ge 3.13.0.0; then
+    echo "Patching dhcpcd.service..." >/dev/stderr
+    guestfish --rw --blocksize=512 --add /data/rootfs.qcow2 <<EOF
+      run
+      mount /dev/sda$dev /
+      download /lib/systemd/system/dhcpcd.service /tmp/dhcpcd.service
+      ! sed -i 's/wlan/eth/' /tmp/dhcpcd.service
+      upload /tmp/dhcpcd.service /lib/systemd/system/dhcpcd.service
+EOF
+  fi
 done
 rm-start --detached --wait
 rm-exec <<EOT
   set -e
-  mount /home
-  export PATH
-  PATH="/home/root/.local/bin:\$PATH)"
-  cd /home/root
-  mkdir -p /opt/tmp
-  opkg install \
-    --conf /home/root/.config/opkg.conf \
-    --force-depends \
-    --nodeps \
-    rm2display.ipk \
-  || true
-  rm rm2display.ipk
-  mkdir -p /etc/systemd/system/xochitl.service.d/
-  echo "[Service]" > /etc/systemd/system/xochitl.service.d/rm2display.conf
-  echo "Environment=LD_PRELOAD=/opt/lib/librm2fb_client.so" >> /etc/systemd/system/xochitl.service.d/rm2display.conf
+  echo "Finalizing mmcblk2p2..." >/dev/stderr
+  tar xzhf /rm2fb.tar.gz -C /
+  sed -i 's|#/dev/mmcblk2p4|/dev/mmcblk2p4|' /etc/fstab
+  rm /etc/systemd/system/xochitl.service
+
+  echo "Finalizing mmcblk2p3..." >/dev/stderr
+  mount /dev/mmcblk2p3 /mnt
+  sed -i 's|#/dev/mmcblk2p4|/dev/mmcblk2p4|' /mnt/etc/fstab
+  rm /mnt/etc/systemd/system/xochitl.service
+  tar xzhf /rm2fb.tar.gz -C /mnt
+  umount /mnt
+
+  echo "Setting up mmcblk2p4 partition..." >/dev/stderr
+  mkfs.ext4 -E nodiscard /dev/mmcblk2p4
 EOT
 rm-stop --wait
-shrink-image /data/rootfs.qcow2 \
-  --backing /base.qcow2 \
-  --backing-format qcow2
+shrink-image /data/rootfs.qcow2

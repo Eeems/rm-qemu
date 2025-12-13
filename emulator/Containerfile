@@ -2,5 +2,7 @@ FROM rm-qemu:rootfs
 
 COPY bin/* /usr/local/bin
 
-ONBUILD ARG VERSION
-ONBUILD RUN initialize-image ${VERSION}
+ENTRYPOINT ["/usr/local/bin/entrypoint"]
+
+# ONBUILD ARG VERSION
+# ONBUILD RUN initialize-image ${VERSION}

@@ -26,11 +26,11 @@ case "$1" in
     -daemonize \
     "$args"
   if [[ "$2" == "--wait" ]]; then
-    echo "Waiting for ssh to start..."
+    echo "Waiting for ssh to start..." >/dev/stderr
     while ! rm-exec true >/dev/null 2>&1; do
       sleep 1
     done
-    echo "Waiting for time to sync..."
+    echo "Waiting for time to sync..." >/dev/stderr
     rm-exec 'while ! timedatectl status | grep -q "synchronized: yes"; do sleep 1; done'
   fi
   ;;
@@ -44,12 +44,13 @@ case "$1" in
     -dtb /qemu.dtb \
     -drive if=sd,file=/data/rootfs.qcow2,format=qcow2,index=2 \
     -append "console=ttymxc0,115200 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init" \
+    -nic user,hostfwd=tcp::22-:22,hostfwd=tcp::8888-:8888 \
     -monitor unix:/run/rm/monitor,server=on,wait=off \
     -serial mon:stdio \
     -nographic \
     "$args"
   ;;
 *)
-  echo "Usage: rm-start [-D|--detached] [--wait]"
+  echo "Usage: rm-start [-D|--detached] [--wait]" >/dev/stderr
   ;;
 esac

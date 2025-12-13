@@ -1,16 +1,17 @@
 #!/bin/bash
 set -e
 IMAGE="$1"
-shift
+args=$(qemu-img info "$IMAGE" | awk '/backing file:/{print "--backing",$3} /backing file format:/{print "--backing-format",$4}' | xargs)
 BAK=$(mktemp -d)
 BEFORE=$(du -hs "$IMAGE" | awk '{print $1}')
 mv "$IMAGE" "$BAK"
+# shellcheck disable=SC2086
 qemu-img convert \
   --source-format qcow2 \
   -O qcow2 \
   -c \
   -o compression_type=zstd \
-  "$@" \
+  $args \
   "$BAK"/* \
   "$IMAGE"
 rm -r "$BAK"

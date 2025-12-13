@@ -1,0 +1,18 @@
+#!/bin/bash
+if ! [ -f /data/rootfs.qcow2 ]; then
+    initialize-image "$VERSION"
+fi
+rm-ensure-ssh
+if [ "$#" -eq 0 ]; then
+    exec rm-start
+elif [ "$#" -eq 1 ] && [[ "$1" == "--display" ]]; then
+    rm-start --detached --wait
+    rm2fb-emu 127.0.0.1 8888
+    rm-stop --wait
+    shrink-image /data/rootfs.qcow2
+else
+    rm-start --detached --wait
+    rm-exec "$@"
+    rm-stop --wait
+    shrink-image /data/rootfs.qcow2
+fi

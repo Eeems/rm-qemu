@@ -5,7 +5,11 @@ case "$1" in
   rm-serial >/dev/null
   ;;
 "") ;;
-*)
+--help)
   echo "Usage: rm-start [-D|--detached]"
+  ;;
+*)
+  "$0" --help
+  exit 1
   ;;
 esac
