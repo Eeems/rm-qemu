@@ -11,7 +11,7 @@ emulator: rootfs $(shell find emulator -type f)
 
 .data/rootfs.qcow2: $(shell find rootfs -type f)
 	mkdir -p .cache .data
-	podman run --rm -it -v .data:/data -v .cache:/cache localhost/rm-qemu:rootfs initialize-image 3.3.2.1666
+	podman run --rm -it -v .data:/data -v .cache:/cache localhost/rm-qemu:rootfs initialize-image 3.18.1.1
 
 run: emulator .data/rootfs.qcow2
 	podman run --rm -it -v .data:/data -v .cache:/cache localhost/rm-qemu:emulator
