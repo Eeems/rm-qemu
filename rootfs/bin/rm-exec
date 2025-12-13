@@ -1,6 +1,13 @@
 #!/bin/bash
 if [ "$#" -ne 0 ]; then
-  exec ssh -o StrictHostKeyChecking=no root@localhost /bin/sh -lc "'$*'"
+  exec ssh \
+    -o PasswordAuthentication=no \
+    -o StrictHostKeyChecking=no \
+    root@localhost \
+    /bin/sh -lc "'$*'"
 else
-  exec ssh -o StrictHostKeyChecking=no root@localhost /bin/sh -l
+  exec ssh \
+    -o PasswordAuthentication=no \
+    -o StrictHostKeyChecking=no \
+    root@localhost
 fi

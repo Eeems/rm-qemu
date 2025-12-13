@@ -4,12 +4,20 @@ if ! [ -f /data/rootfs.qcow2 ]; then
 fi
 rm-ensure-ssh
 if [ "$#" -eq 0 ]; then
-    exec rm-start
+    rm-start --detached --wait
+    echo "Started!" >/dev/stderr
+    rm-exec
+    echo "Stopping..." >/dev/stderr
+    rm-stop --wait
+    shrink-image /data/rootfs.qcow2
 elif [ "$#" -eq 1 ] && [[ "$1" == "--display" ]]; then
     rm-start --detached --wait
     rm2fb-emu 127.0.0.1 8888
+    echo "Stopping..." >/dev/stderr
     rm-stop --wait
     shrink-image /data/rootfs.qcow2
+elif [ "$#" -eq 1 ] && [[ "$1" == "--serial" ]]; then
+    exec rm-start
 else
     rm-start --detached --wait
     rm-exec "$@"

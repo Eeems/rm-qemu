@@ -30,8 +30,6 @@ case "$1" in
     while ! rm-exec true >/dev/null 2>&1; do
       sleep 1
     done
-    echo "Waiting for time to sync..." >/dev/stderr
-    rm-exec 'while ! timedatectl status | grep -q "synchronized: yes"; do sleep 1; done'
   fi
   ;;
 "")

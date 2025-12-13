@@ -83,7 +83,7 @@ EOF
   fi
 done
 rm-start --detached --wait
-rm-exec <<EOT
+exec ssh -o StrictHostKeyChecking=no root@localhost /bin/sh -l <<EOT
   set -e
   echo "Finalizing mmcblk2p2..." >/dev/stderr
   tar xzhf /rm2fb.tar.gz -C /
