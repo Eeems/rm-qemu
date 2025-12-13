@@ -1,0 +1,11 @@
+#!/bin/bash
+rm-exec poweroff
+case "$1" in
+-w | --wait)
+  rm-serial >/dev/null
+  ;;
+"") ;;
+*)
+  echo "Usage: rm-start [-D|--detached]"
+  ;;
+esac

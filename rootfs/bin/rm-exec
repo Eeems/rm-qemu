@@ -1,0 +1,6 @@
+#!/bin/bash
+if [ "$#" -ne 0 ]; then
+  exec ssh -o StrictHostKeyChecking=no root@localhost /bin/sh -lc "'$*'"
+else
+  exec ssh -o StrictHostKeyChecking=no root@localhost /bin/sh -l
+fi

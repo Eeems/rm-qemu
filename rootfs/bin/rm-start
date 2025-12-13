@@ -1,0 +1,55 @@
+#!/bin/bash
+mkdir -p /run/rm
+
+args=""
+if qemu-img snapshot -l /data/rootfs.qcow2 | grep -q rm; then
+  args="-loadvm rm"
+fi
+
+case "$1" in
+-D | --detached)
+  qemu-system-arm \
+    -machine mcimx7d-sabre \
+    -cpu cortex-a9 \
+    -smp 2 \
+    -m 2048 \
+    -kernel /zImage \
+    -dtb /qemu.dtb \
+    -drive if=sd,file=/data/rootfs.qcow2,format=qcow2,index=2 \
+    -append "console=ttymxc0 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init" \
+    -nic user,hostfwd=tcp::22-:22,hostfwd=tcp::8888-:8888 \
+    -monitor unix:/run/rm/monitor,server=on,wait=off \
+    -chardev socket,id=serial0,path=/run/rm/serial,server=on,wait=off \
+    -serial chardev:serial0 \
+    -parallel null \
+    -display none \
+    -daemonize \
+    "$args"
+  if [[ "$2" == "--wait" ]]; then
+    echo "Waiting for ssh to start..."
+    while ! rm-exec true >/dev/null 2>&1; do
+      sleep 1
+    done
+    echo "Waiting for time to sync..."
+    rm-exec 'while ! timedatectl status | grep -q "synchronized: yes"; do sleep 1; done'
+  fi
+  ;;
+"")
+  qemu-system-arm \
+    -machine mcimx7d-sabre \
+    -cpu cortex-a9 \
+    -smp 2 \
+    -m 2048 \
+    -kernel /zImage \
+    -dtb /qemu.dtb \
+    -drive if=sd,file=/data/rootfs.qcow2,format=qcow2,index=2 \
+    -append "console=ttymxc0,115200 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init" \
+    -monitor unix:/run/rm/monitor,server=on,wait=off \
+    -serial mon:stdio \
+    -nographic \
+    "$args"
+  ;;
+*)
+  echo "Usage: rm-start [-D|--detached] [--wait]"
+  ;;
+esac

@@ -1,0 +1,46 @@
+FROM eeems/remarkable-toolchain:4.3.98-rm2 AS builder
+
+RUN bash -e <<EOT
+  export DEBIAN_FRONTEND="noninteractive"
+  apt-get update
+  apt-get dist-upgrade -y
+  apt-get install -y --no-install-recommends \
+    libyaml-dev \
+    pkg-config
+  apt-get clean
+  rm -rf /var/lib/apt/lists/*
+EOT
+
+# RUN git clone \
+#   --branch=RM1XX_5.4.70_v1.6.2 \
+#   --depth=1 \
+#   https://github.com/reMarkable/linux.git \
+#   /linux
+
+RUN <<EOT
+  set -e
+  curl https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.8.18.tar.xz \
+  | tar -xJf - -C /
+  mv /linux-5.8.18 /linux
+EOT
+
+WORKDIR /linux
+
+RUN --mount=target=/host bash -e <<EOT
+  source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
+  mv arch/arm/boot/dts/imx7d-cl-som-imx7{,-factory}.dts
+  cp /host/qemu.dts arch/arm/boot/dts/imx7d-cl-som-imx7.dts
+  make imx_v6_v7_defconfig
+  sed -i 's/# CONFIG_INPUT_UINPUT is not set/CONFIG_INPUT_UINPUT=y/' .config
+  sed -i 's/=m/=n/' .config
+EOT
+
+RUN bash -e <<EOT
+  source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
+  make -j $(nproc)
+EOT
+
+FROM scratch
+
+COPY --from=builder /linux/arch/arm/boot/zImage /
+COPY --from=builder /linux/arch/arm/boot/dts/imx7d-cl-som-imx7.dtb /qemu.dtb

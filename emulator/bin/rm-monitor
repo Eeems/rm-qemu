@@ -1,0 +1,2 @@
+#!/bin/sh
+exec serial-client /run/rm/monitor "$@"

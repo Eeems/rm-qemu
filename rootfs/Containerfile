@@ -1,0 +1,84 @@
+FROM alpine:latest AS codexctl
+
+RUN <<EOT
+  wget https://github.com/Jayy001/codexctl/releases/download/1765093380/ubuntu-latest.zip
+  unzip ubuntu-latest.zip
+  rm ubuntu-latest.zip
+  chmod +x codexctl
+EOT
+
+FROM alpine:latest AS rm2display
+
+RUN wget https://github.com/timower/rM2-stuff/releases/download/v0.1.3/rm2display.ipk
+
+
+FROM alpine:latest AS opkg
+
+RUN <<EOT
+  set -e
+  wget https://bin.entware.net/armv7sf-k3.2/installer/opkg
+EOT
+
+FROM alpine:latest AS wget
+
+RUN <<EOT
+  set -e
+  wget_remote=http://toltec-dev.org/thirdparty/bin/wget-v1.21.1-3
+  wget_checksum=3130886a020a56b7471ed60f3742db26acdced4b27fed5be22f9892b77589bc5
+  wget_path=/home/root/.local/bin/wget
+  wget -q "$wget_remote" --output-document "$wget_path"
+  sha256sum -c <(echo "$wget_checksum  $wget_path")
+EOT
+
+FROM linuxkit/guestfs:8efdfac678bd6c621d3ccf916d70707ae09470f9 AS base
+
+COPY bin/shrink-image /usr/local/bin/
+
+RUN <<EOT
+  set -e
+  qemu-img create \
+    --format qcow2 \
+    --options compression_type=zstd \
+    /base.qcow2 \
+    8G
+  guestfish --rw --blocksize=512 --add /base.qcow2 <<EOF
+  run
+
+  part-init /dev/sda mbr
+  part-add /dev/sda p 2048    43007
+  part-add /dev/sda p 43008   595967
+  part-add /dev/sda p 595968  1148927
+  part-add /dev/sda p 1148928 14942207
+
+  mkfs vfat /dev/sda1
+  mkfs ext4 /dev/sda2
+  mkfs ext4 /dev/sda3
+  mkfs ext4 /dev/sda4
+EOF
+  shrink-image /base.qcow2
+EOT
+
+FROM linuxkit/guestfs:8efdfac678bd6c621d3ccf916d70707ae09470f9
+
+RUN <<EOT
+  set -e
+  export DEBIAN_FRONTEND="noninteractive"
+  apt-get update
+  apt-get dist-upgrade -y
+  apt-get install -y --no-install-recommends \
+    qemu-system-arm \
+    qemu-utils \
+    ssh \
+    netcat-openbsd
+  apt-get clean
+  rm -rf /var/lib/apt/lists/*
+EOT
+
+COPY --from=rm-qemu:kernel zImage qemu.dtb /
+COPY --from=base /base.qcow2 /
+COPY --from=codexctl codexctl /usr/local/bin
+COPY --from=rm2display rm2display.ipk /
+COPY --from=opkg opkg /
+COPY bin/* /usr/local/bin/
+COPY opkg.conf /
+

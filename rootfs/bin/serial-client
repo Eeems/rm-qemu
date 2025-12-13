@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+socket="$1"
+shift
+if [ "$#" -ne 0 ]; then
+  echo "$@" | nc -NU "$socket"
+else
+  nc -NU "$socket"
+fi

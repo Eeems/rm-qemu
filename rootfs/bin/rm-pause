@@ -1,0 +1,3 @@
+#!/bin/sh
+rm-monitor savevm rm
+rm-monitor quit

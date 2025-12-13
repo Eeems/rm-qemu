@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+IMAGE="$1"
+shift
+BAK=$(mktemp -d)
+BEFORE=$(du -hs "$IMAGE" | awk '{print $1}')
+mv "$IMAGE" "$BAK"
+qemu-img convert \
+  --source-format qcow2 \
+  -O qcow2 \
+  -c \
+  -o compression_type=zstd \
+  "$@" \
+  "$BAK"/* \
+  "$IMAGE"
+rm -r "$BAK"
+AFTER=$(du -hs "$IMAGE" | awk '{print $1}')
+echo "Shrunk $IMAGE: $BEFORE -> $AFTER"
