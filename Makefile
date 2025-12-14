@@ -18,6 +18,7 @@ kernel_${KERNEL}: $(shell find kernel -type f)
 	local=$$(find kernel/ -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1); \
 	image=$$(podman inspect $$tag --format='{{ .Labels.hash }}' 2>/dev/null || skopeo inspect docker://$$tag --format='{{ .Labels.hash }}'); \
 	if [[ "$$image" != "$$local" ]];then \
+	  echo "$$local != $$image"; \
 	  podman build \
 	    --tag=$$tag \
 	    --build-arg=VERSION=${KERNEL} \
@@ -33,6 +34,7 @@ rootfs_${KERNEL}: kernel_${KERNEL} $(shell find rootfs -type f)
 	local=$$(find rootfs/ -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1); \
 	image=$$(podman inspect $$tag --format='{{ .Labels.hash }}' 2>/dev/null || skopeo inspect docker://$$tag --format='{{ .Labels.hash }}'); \
 	if [[ "$$local" != "$$image" ]];then \
+	  echo "$$local != $$image"; \
 	  podman build \
 	    --tag=$$tag \
 	    --build-arg=KERNEL=${KERNEL} \
@@ -48,6 +50,7 @@ emulator_${KERNEL}: rootfs_${KERNEL} $(shell find emulator -type f)
 	local=$$(find emulator/ -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1); \
 	image=$$(podman inspect $$tag --format='{{ .Labels.hash }}' 2>/dev/null || skopeo inspect docker://$$tag --format='{{ .Labels.hash }}'); \
 	if [[ "$$local" != "$$image" ]];then \
+	  echo "$$local != $$image"; \
 	  podman build \
 	    --tag=$$tag \
 	    "--build-arg=HASH=$$local" \
