@@ -17,11 +17,13 @@ EOT
 #   https://github.com/reMarkable/linux.git \
 #   /linux
 
+ARG VERSION
+
 RUN <<EOT
   set -e
-  curl https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.8.18.tar.xz \
+  curl https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${VERSION}.tar.xz \
   | tar -xJf - -C /
-  mv /linux-5.8.18 /linux
+  mv /linux-${VERSION} /linux
 EOT
 
 WORKDIR /linux

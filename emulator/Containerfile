@@ -1,4 +1,4 @@
-FROM rm-qemu:rootfs
+FROM ghcr.io/eeems/rm-qemu-rootfs:kernel-5.8.18
 
 COPY bin/* /usr/local/bin
 

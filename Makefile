@@ -1,26 +1,46 @@
 all: emulator
 
-kernel: $(shell find kernel -type f)
-	podman build -t localhost/rm-qemu:kernel kernel
+KERNEL := 5.8.18
 
-rootfs: kernel $(shell find rootfs -type f)
-	podman build -t localhost/rm-qemu:rootfs rootfs
+kernel: kernel_${KERNEL}
 
-emulator: rootfs $(shell find emulator -type f)
-	podman build -t localhost/rm-qemu:emulator emulator
+rootfs: rootfs_${KERNEL}
+
+emulator: emulator_${KERNEL}
+
+kernel_${KERNEL}: $(shell find kernel -type f)
+	podman build \
+	  --tag="ghcr.io/eeems/rm-qemu-kernel:${KERNEL}" \
+	  --build-arg=VERSION=${KERNEL} \
+	  kernel
+
+rootfs_${KERNEL}: kernel_${KERNEL} $(shell find rootfs -type f)
+	podman build \
+	  --tag="ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL}" \
+	  --build-arg=KERNEL=${KERNEL} \
+	  rootfs
+
+emulator_${KERNEL}: rootfs_${KERNEL} $(shell find emulator -type f)
+	podman build \
+	  --tag="ghcr.io/eeems/rm-qemu:kernel-${KERNEL}" \
+	  emulator
 
 .data/rootfs.qcow2: $(shell find rootfs -type f)
-	mkdir -p .data .cache
-	podman run --rm -it -v .data:/data -v .cache:/cache localhost/rm-qemu:rootfs initialize-image
-
-run: emulator .data/rootfs.qcow2
 	mkdir -p .data .cache
 	podman run --rm -it \
 	  --volume=.data:/data \
 	  --volume=.cache:/cache \
-	  localhost/rm-qemu:emulator
+	  "ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL}" \
+	  initialize-image
 
-run-display: emulator .data/rootfs.qcow2
+run: emulator_${KERNEL} .data/rootfs.qcow2
+	mkdir -p .data .cache
+	podman run --rm -it \
+	  --volume=.data:/data \
+	  --volume=.cache:/cache \
+	  "ghcr.io/eeems/rm-qemu:kernel-${KERNEL}"
+
+run-display: emulator_${KERNEL} .data/rootfs.qcow2
 	mkdir -p .data .cache
 	xhost +local:$(shell hostnamectl hostname); \
 	podman run --rm -it \
@@ -29,7 +49,7 @@ run-display: emulator .data/rootfs.qcow2
 	  --hostname="$(shell hostnamectl hostname)" \
 	  --volume=.data:/data \
 	  --volume=.cache:/cache \
-	  localhost/rm-qemu:emulator \
+	  ghcr.io/eeems/rm-qemu:emulator \
 	  --display
 
 clean:
