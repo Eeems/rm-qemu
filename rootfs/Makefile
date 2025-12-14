@@ -1,17 +1,18 @@
 SHELL := /bin/bash
+MAKEFLAGS += --no-print-directory
 
 ifndef KERNEL
 $(error KERNEL is not set)
 endif
 
 TAG := ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL}
-OBJ := $(shell find . -type f -print0 | sort -z | xargs  -d"\0")
+OBJ := $(shell { git ls-files --other --exclude-standard;git ls-files --no-others --exclude-standard; } | uniq | sort)
 
 all:
 	@set -e;\
 	tag=${TAG}; \
 	echo "Checking $$tag"; \
-	local=$$(echo ${OBJ} | xargs sha256sum | sha256sum | cut -d' ' -f1); \
+	local=$$($(MAKE) KERNEL=${KERNEL} hash); \
 	image=$$(podman inspect $$tag --format='{{ .Labels.hash }}' 2>/dev/null || skopeo inspect docker://$$tag --format='{{ .Labels.hash }}'); \
 	if [[ "$$local" != "$$image" ]];then \
 	  echo "$$local != $$image"; \
@@ -27,6 +28,17 @@ all:
 tag:
 	@echo ${TAG}
 
+hash:
+	@{ \
+	  echo ${KERNEL}; \
+	  echo ${OBJ} | xargs sha256sum; \
+	  deps=$$($(MAKE) KERNEL=${KERNEL} depends); \
+	  if [[ "$$deps" != "" ]]; then \
+	    for d in $$deps;do \
+	      echo "$d  $$($(MAKE) KERNEL=${KERNEL} -C "../$$d" hash)";\
+	    done; \
+	  fi; \
+	} | sha256sum | cut -d' ' -f1
 
 depends:
 	@echo kernel
@@ -34,4 +46,5 @@ depends:
 .PHONY: \
 	all \
 	tag \
+	hash \
 	depends

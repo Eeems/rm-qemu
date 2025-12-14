@@ -1,10 +1,16 @@
 #!/bin/bash
-rm-exec poweroff
 case "$1" in
 -w | --wait)
-  rm-serial >/dev/null
+  if rm-is-running;then
+    rm-exec poweroff
+    rm-serial >/dev/null
+  fi
   ;;
-"") ;;
+"")
+  if rm-is-running;then
+    rm-exec poweroff
+  fi
+  ;;
 --help)
   echo "Usage: rm-start [-D|--detached]"
   ;;

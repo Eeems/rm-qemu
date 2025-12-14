@@ -1,0 +1,2 @@
+#!/bin/sh
+exec killall -0 qemu-system-arm 2> /dev/null

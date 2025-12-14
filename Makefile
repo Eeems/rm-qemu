@@ -34,6 +34,12 @@ pull:
 clean:
 	rm -rf .data .cache
 
+run-ui: ${TARGETS}
+	$(MAKE_TARGET) emulator run-ui
+
+run-cli: ${TARGETS}
+	$(MAKE_TARGET) emulator run-cli
+
 .PHONY: \
 	all \
 	$(TARGETS) \
@@ -41,4 +47,6 @@ clean:
 	push \
 	pull \
 	clean \
-	tags
+	tags \
+	run-ui \
+	run-cli

@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
-VERSION="${1:-3.22.0.64}"
+VERSION="${1:?Usage: initialize-image <version>}"
 
 version() { echo "$@" | awk -F. '{ printf("%d%04d%04d%04d\n", $1,$2,$3,$4); }'; }
 version_test() {
@@ -9,32 +9,38 @@ version_test() {
 }
 
 mkdir -p /cache
-image="/cache/$VERSION.img"
+image="/cache/$VERSION"
 if ! [ -f "$image" ]; then
   echo "Downloading update image..." >/dev/stderr
   download=$(mktemp -d)
+  trap 'rmdir $download' EXIT
   codexctl download --hardware rm2 --out "$download" "$VERSION"
-  echo "Extracting image..." >/dev/stderr
-  codexctl extract --out "$image" "$download"/*
-  rm -r "$download"
+  mv "$download"/* "$image"
+  trap - EXIT
+  rmdir "$download"
 fi
-echo "Creating rootfs image..." >/dev/stderr
+echo "Extracting image..." >/dev/stderr
+extracted=$(mktemp -d)/image
+trap 'rm -r $(basename $extracted)' EXIT
+codexctl extract --out "$extracted" "$image"
+rootfs="/data/$VERSION.qcow2"
+echo "Creating $VERSION.qcow2..." >/dev/stderr
 qemu-img create \
   --format qcow2 \
   --backing /base.qcow2 \
   --backing-format qcow2 \
   --options compression_type=zstd \
-  /data/rootfs.qcow2 \
+  "$rootfs" \
   8G
-echo "Initializing image..." >/dev/stderr
-guestfish --rw --blocksize=512 --add /data/rootfs.qcow2 <<EOF
+echo "Initializing $VERSION.qcow2..." >/dev/stderr
+guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
 run
-upload "$image" /dev/sda2
-upload "$image" /dev/sda3
+upload "$extracted" /dev/sda2
+upload "$extracted" /dev/sda3
 EOF
 for dev in 2 3; do
   echo "Setting up mmcblk2p$dev partition..." >/dev/stderr
-  guestfish --rw --blocksize=512 --add /data/rootfs.qcow2 <<EOF
+  guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
     run
     mount /dev/sda$dev /
     upload /rm2fb.tar.gz /rm2fb.tar.gz
@@ -65,7 +71,7 @@ for dev in 2 3; do
 EOF
   if version_test "$VERSION" -ge 3.22.0.0; then
     echo "Adding dropbear.socket..." >/dev/stderr
-    guestfish --rw --blocksize=512 --add /data/rootfs.qcow2 <<EOF
+    guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
       run
       mount /dev/sda$dev /
       upload /dropbear.socket /lib/systemd/system/dropbear.socket
@@ -73,7 +79,7 @@ EOF
 EOF
   elif ! version_test "$VERSION" -ge 3.13.0.0; then
     echo "Patching dhcpcd.service..." >/dev/stderr
-    guestfish --rw --blocksize=512 --add /data/rootfs.qcow2 <<EOF
+    guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
       run
       mount /dev/sda$dev /
       download /lib/systemd/system/dhcpcd.service /tmp/dhcpcd.service
@@ -101,4 +107,4 @@ exec ssh -o StrictHostKeyChecking=no root@localhost /bin/sh -l <<EOT
   mkfs.ext4 -E nodiscard /dev/mmcblk2p4
 EOT
 rm-stop --wait
-shrink-image /data/rootfs.qcow2
+shrink-image "$rootfs"

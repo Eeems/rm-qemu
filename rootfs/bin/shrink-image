@@ -1,6 +1,14 @@
 #!/bin/bash
 set -e
 IMAGE="$1"
+if rm-is-running && [[ "$(readlink $IMAGE)" == "$(readlink /rootfs.qcow2)" ]];then
+  echo "Image is in use" >/dev/stderr
+  exit
+fi
+if [[ "$(qemu-img snapshot -l "$IMAGE")" != "" ]];then
+  echo "Image has snapshots" >/dev/stderr
+  exit
+fi
 args=$(qemu-img info "$IMAGE" | awk '/backing file:/{print "--backing",$3} /backing file format:/{print "--backing-format",$4}' | xargs)
 BAK=$(mktemp -d)
 BEFORE=$(du -hs "$IMAGE" | awk '{print $1}')

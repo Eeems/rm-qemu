@@ -1,0 +1,4 @@
+#!/bin/sh
+set -e
+! rm-is-running
+rm-has-snapshot running

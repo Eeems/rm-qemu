@@ -129,6 +129,7 @@ EOT
 FROM linuxkit/guestfs:8efdfac678bd6c621d3ccf916d70707ae09470f9 AS base
 
 COPY bin/shrink-image /usr/local/bin/
+COPY bin/rm-is-running /usr/local/bin/
 
 RUN <<EOT
   set -e
