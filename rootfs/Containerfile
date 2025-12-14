@@ -1,3 +1,5 @@
+ARG HASH
+
 FROM alpine:latest AS codexctl
 
 RUN <<EOT
@@ -179,3 +181,6 @@ COPY --from=rm2fb-host /rm2fb-emu /usr/local/bin
 COPY bin/* /usr/local/bin/
 COPY dropbear.socket /
 COPY rm2fb.conf /
+
+ARG HASH
+LABEL hash="${HASH:?Hash missing}"

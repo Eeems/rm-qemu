@@ -1,8 +1,10 @@
+ARG HASH
+
 FROM ghcr.io/eeems/rm-qemu-rootfs:kernel-5.8.18
 
 COPY bin/* /usr/local/bin
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
 
-# ONBUILD ARG VERSION
-# ONBUILD RUN initialize-image ${VERSION}
+ARG HASH
+LABEL hash="${HASH:?Hash missing}"

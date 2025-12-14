@@ -1,6 +1,10 @@
-all: emulator
 
 KERNEL := 5.8.18
+
+
+SHELL := /bin/bash
+
+all: emulator
 
 kernel: kernel_${KERNEL}
 
@@ -9,21 +13,48 @@ rootfs: rootfs_${KERNEL}
 emulator: emulator_${KERNEL}
 
 kernel_${KERNEL}: $(shell find kernel -type f)
-	podman build \
-	  --tag=ghcr.io/eeems/rm-qemu-kernel:${KERNEL} \
-	  --build-arg=VERSION=${KERNEL} \
-	  kernel
+	@tag=ghcr.io/eeems/rm-qemu-kernel:${KERNEL}; \
+	echo "Checking $$tag"; \
+	local=$$(find kernel/ -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1); \
+	image=$$(podman inspect $$tag --format='{{ .Labels.hash }}' 2>/dev/null || skopeo inspect docker://$$tag --format='{{ .Labels.hash }}'); \
+	if [[ "$$image" != "$$local" ]];then \
+	  podman build \
+	    --tag=$$tag \
+	    --build-arg=VERSION=${KERNEL} \
+	    "--build-arg=HASH=$$local" \
+	    kernel; \
+	else \
+	  echo "Skipped as hash matches"; \
+	fi
 
 rootfs_${KERNEL}: kernel_${KERNEL} $(shell find rootfs -type f)
-	podman build \
-	  --tag=ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL} \
-	  --build-arg=KERNEL=${KERNEL} \
-	  rootfs
+	@tag=ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL}; \
+	echo "Checking $$tag"; \
+	local=$$(find rootfs/ -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1); \
+	image=$$(podman inspect $$tag --format='{{ .Labels.hash }}' 2>/dev/null || skopeo inspect docker://$$tag --format='{{ .Labels.hash }}'); \
+	if [[ "$$local" != "$$image" ]];then \
+	  podman build \
+	    --tag=$$tag \
+	    --build-arg=KERNEL=${KERNEL} \
+	    "--build-arg=HASH=$$local" \
+	    rootfs; \
+	else \
+	  echo "Skipped as hash matches"; \
+	fi
 
 emulator_${KERNEL}: rootfs_${KERNEL} $(shell find emulator -type f)
-	podman build \
-	  --tag=ghcr.io/eeems/rm-qemu:kernel-${KERNEL} \
-	  emulator
+	@tag=ghcr.io/eeems/rm-qemu:kernel-${KERNEL}; \
+	echo "Checking $$tag"; \
+	local=$$(find emulator/ -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1); \
+	image=$$(podman inspect $$tag --format='{{ .Labels.hash }}' 2>/dev/null || skopeo inspect docker://$$tag --format='{{ .Labels.hash }}'); \
+	if [[ "$$local" != "$$image" ]];then \
+	  podman build \
+	    --tag=$$tag \
+	    "--build-arg=HASH=$$local" \
+	    emulator; \
+	else \
+	  echo "Skipped as hash matches"; \
+	fi
 
 .data/rootfs.qcow2: $(shell find rootfs -type f)
 	mkdir -p .data .cache
