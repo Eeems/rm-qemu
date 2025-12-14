@@ -4,10 +4,16 @@ on:
     branches:
       - master
   workflow_dispatch:
+permissions:
+  packages: read
 jobs:
   build:
     name: Build images
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/eeems/arkes-builder:master
+      options: >-
+        --privileged
     steps:
       - name: Checkout the Git repository
         uses: actions/checkout@v4
