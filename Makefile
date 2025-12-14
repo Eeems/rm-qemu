@@ -84,9 +84,15 @@ run-display: emulator_${KERNEL} .data/rootfs.qcow2
 	  --display
 
 push: kernel_${KERNEL} rootfs_${KERNEL} emulator_${KERNEL}
-	podman push ghcr.io/eeems/rm-qemu-kernel:${KERNEL}
-	podman push ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL}
-	podman push ghcr.io/eeems/rm-qemu:kernel-${KERNEL}
+	for t in \
+	  ghcr.io/eeems/rm-qemu-kernel:${KERNEL} \
+	  ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL} \
+	  ghcr.io/eeems/rm-qemu:kernel-${KERNEL}; \
+	do \
+	  if podman image exists $$t; then \
+	    podman push $$t; \
+	  fi; \
+	done
 
 clean:
 	rm -rf .data .cache
