@@ -1,100 +1,34 @@
-
 KERNEL := 5.8.18
 
-
+MAKEFLAGS += --no-print-directory
 SHELL := /bin/bash
 
-all: emulator
+MAKE_TARGET := $(MAKE) KERNEL=${KERNEL} -C
+TARGETS := $(shell find . -mindepth 2 -maxdepth 2 -type f -name Makefile | xargs dirname | xargs -n1 basename)
+TAGS := $(shell for t in ${TARGETS}; do ${MAKE_TARGET} "$$t" tag; done)
+DEP_TARGETS := $(foreach t,$(TARGETS),.depends-$(t))
 
-kernel: kernel_${KERNEL}
+all: $(TARGETS)
 
-rootfs: rootfs_${KERNEL}
+.depends-%:
+	@${MAKE_TARGET} $* depends
 
-emulator: emulator_${KERNEL}
+${TARGETS}: %: .depends-%
+	${MAKE_TARGET} $@
 
-kernel_${KERNEL}: $(shell find kernel -type f)
-	@tag=ghcr.io/eeems/rm-qemu-kernel:${KERNEL}; \
-	echo "Checking $$tag"; \
-	local=$$(find kernel/ -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1); \
-	image=$$(podman inspect $$tag --format='{{ .Labels.hash }}' 2>/dev/null || skopeo inspect docker://$$tag --format='{{ .Labels.hash }}'); \
-	if [[ "$$image" != "$$local" ]];then \
-	  echo "$$local != $$image"; \
-	  podman build \
-	    --tag=$$tag \
-	    --build-arg=VERSION=${KERNEL} \
-	    "--build-arg=HASH=$$local" \
-	    kernel; \
-	else \
-	  echo "Skipped as hash matches"; \
-	fi
+tags:
+	@echo ${TAGS} | xargs -n1 echo
 
-rootfs_${KERNEL}: kernel_${KERNEL} $(shell find rootfs -type f)
-	@tag=ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL}; \
-	echo "Checking $$tag"; \
-	local=$$(find rootfs/ -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1); \
-	image=$$(podman inspect $$tag --format='{{ .Labels.hash }}' 2>/dev/null || skopeo inspect docker://$$tag --format='{{ .Labels.hash }}'); \
-	if [[ "$$local" != "$$image" ]];then \
-	  echo "$$local != $$image"; \
-	  podman build \
-	    --tag=$$tag \
-	    --build-arg=KERNEL=${KERNEL} \
-	    "--build-arg=HASH=$$local" \
-	    rootfs; \
-	else \
-	  echo "Skipped as hash matches"; \
-	fi
-
-emulator_${KERNEL}: rootfs_${KERNEL} $(shell find emulator -type f)
-	@tag=ghcr.io/eeems/rm-qemu:kernel-${KERNEL}; \
-	echo "Checking $$tag"; \
-	local=$$(find emulator/ -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1); \
-	image=$$(podman inspect $$tag --format='{{ .Labels.hash }}' 2>/dev/null || skopeo inspect docker://$$tag --format='{{ .Labels.hash }}'); \
-	if [[ "$$local" != "$$image" ]];then \
-	  echo "$$local != $$image"; \
-	  podman build \
-	    --tag=$$tag \
-	    "--build-arg=HASH=$$local" \
-	    emulator; \
-	else \
-	  echo "Skipped as hash matches"; \
-	fi
-
-.data/rootfs.qcow2: $(shell find rootfs -type f)
-	mkdir -p .data .cache
-	podman run --rm -it \
-	  --volume=.data:/data \
-	  --volume=.cache:/cache \
-	  ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL} \
-	  initialize-image
-
-run: emulator_${KERNEL} .data/rootfs.qcow2
-	mkdir -p .data .cache
-	podman run --rm -it \
-	  --volume=.data:/data \
-	  --volume=.cache:/cache \
-	  ghcr.io/eeems/rm-qemu:kernel-${KERNEL}
-
-run-display: emulator_${KERNEL} .data/rootfs.qcow2
-	mkdir -p .data .cache
-	xhost +local:$(shell hostnamectl hostname); \
-	podman run --rm -it \
-	  --volume=/tmp/.X11-unix:/tmp/.X11-unix \
-	  --env DISPLAY \
-	  --hostname="$(shell hostnamectl hostname)"\
-	  --volume=.data:/data \
-	  --volume=.cache:/cache \
-	  ghcr.io/eeems/rm-qemu:emulator \
-	  --display
-
-push: kernel_${KERNEL} rootfs_${KERNEL} emulator_${KERNEL}
-	for t in \
-	  ghcr.io/eeems/rm-qemu-kernel:${KERNEL} \
-	  ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL} \
-	  ghcr.io/eeems/rm-qemu:kernel-${KERNEL}; \
-	do \
+push: ${TARGETS}
+	for t in ${TAGS}; do \
 	  if podman image exists $$t; then \
 	    podman push $$t; \
 	  fi; \
+	done
+
+pull:
+	for t in ${TAGS}; do \
+	  podman pull $$t; \
 	done
 
 clean:
@@ -102,9 +36,9 @@ clean:
 
 .PHONY: \
 	all \
-	run \
-	run-display \
-	emulator \
-	kernel \
-	rootfs \
-	clean
+	$(TARGETS) \
+	$(DEP_TARGETS) \
+	push \
+	pull \
+	clean \
+	tags

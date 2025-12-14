@@ -19,13 +19,13 @@ EOT
 #   https://github.com/reMarkable/linux.git \
 #   /linux
 
-ARG VERSION
+ARG KERNEL
 
 RUN <<EOT
   set -e
-  curl https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${VERSION}.tar.xz \
+  curl https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${KERNEL}.tar.xz \
   | tar -xJf - -C /
-  mv /linux-${VERSION} /linux
+  mv /linux-${KERNEL} /linux
 EOT
 
 WORKDIR /linux
