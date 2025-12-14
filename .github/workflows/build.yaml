@@ -16,6 +16,7 @@ jobs:
         --privileged
         --tmpfs /tmp
         --tmpfs /run
+        --volume=/:/run/host
     steps:
       - name: Checkout the Git repository
         uses: actions/checkout@v4
@@ -35,5 +36,33 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ghcr.io
           auth_file_path: /run/containers/0/auth.json
+      - name: Free up space
+        run: |
+          chroot /run/host /bin/bash -x <<'EOF'
+            df -h
+            echo
+            echo Freeing up space
+            rm -rf .git/
+            docker system prune --force
+            docker rmi $(docker image ls -aq) || true
+            docker system prune --force
+            export DEBIAN_FRONTEND="noninteractive"
+            sudo apt-get autoremove -y
+            sudo apt-get autoclean -y
+            sudo rm -vrf \
+              /usr/lib/jvm \
+              /usr/share/dotnet \
+              /usr/share/swift \
+              /usr/local/.ghcup \
+              /usr/local/julia* \
+              /usr/local/lib/android \
+              /usr/local/share/chromium \
+              /opt/microsoft /opt/google \
+              /opt/az \
+              /usr/local/share/powershell \
+            | wc -l
+            echo
+            df -h
+          EOF
       - name: Build and push
         run: make push
