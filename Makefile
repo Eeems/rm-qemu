@@ -10,19 +10,19 @@ emulator: emulator_${KERNEL}
 
 kernel_${KERNEL}: $(shell find kernel -type f)
 	podman build \
-	  --tag="ghcr.io/eeems/rm-qemu-kernel:${KERNEL}" \
+	  --tag=ghcr.io/eeems/rm-qemu-kernel:${KERNEL} \
 	  --build-arg=VERSION=${KERNEL} \
 	  kernel
 
 rootfs_${KERNEL}: kernel_${KERNEL} $(shell find rootfs -type f)
 	podman build \
-	  --tag="ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL}" \
+	  --tag=ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL} \
 	  --build-arg=KERNEL=${KERNEL} \
 	  rootfs
 
 emulator_${KERNEL}: rootfs_${KERNEL} $(shell find emulator -type f)
 	podman build \
-	  --tag="ghcr.io/eeems/rm-qemu:kernel-${KERNEL}" \
+	  --tag=ghcr.io/eeems/rm-qemu:kernel-${KERNEL} \
 	  emulator
 
 .data/rootfs.qcow2: $(shell find rootfs -type f)
@@ -30,7 +30,7 @@ emulator_${KERNEL}: rootfs_${KERNEL} $(shell find emulator -type f)
 	podman run --rm -it \
 	  --volume=.data:/data \
 	  --volume=.cache:/cache \
-	  "ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL}" \
+	  ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL} \
 	  initialize-image
 
 run: emulator_${KERNEL} .data/rootfs.qcow2
@@ -38,7 +38,7 @@ run: emulator_${KERNEL} .data/rootfs.qcow2
 	podman run --rm -it \
 	  --volume=.data:/data \
 	  --volume=.cache:/cache \
-	  "ghcr.io/eeems/rm-qemu:kernel-${KERNEL}"
+	  ghcr.io/eeems/rm-qemu:kernel-${KERNEL}
 
 run-display: emulator_${KERNEL} .data/rootfs.qcow2
 	mkdir -p .data .cache
@@ -46,11 +46,16 @@ run-display: emulator_${KERNEL} .data/rootfs.qcow2
 	podman run --rm -it \
 	  --volume=/tmp/.X11-unix:/tmp/.X11-unix \
 	  --env DISPLAY \
-	  --hostname="$(shell hostnamectl hostname)" \
+	  --hostname="$(shell hostnamectl hostname)"\
 	  --volume=.data:/data \
 	  --volume=.cache:/cache \
 	  ghcr.io/eeems/rm-qemu:emulator \
 	  --display
+
+push: kernel_${KERNEL} rootfs_${KERNEL} emulator_${KERNEL}
+	podman push ghcr.io/eeems/rm-qemu-kernel:${KERNEL}
+	podman push ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL}
+	podman push ghcr.io/eeems/rm-qemu:kernel-${KERNEL}
 
 clean:
 	rm -rf .data .cache

@@ -5,7 +5,7 @@ on:
       - master
   workflow_dispatch:
 permissions:
-  packages: read
+  packages: write
 jobs:
   build:
     name: Build images
@@ -14,8 +14,26 @@ jobs:
       image: ghcr.io/eeems/arkes-builder:master
       options: >-
         --privileged
+        --tmpfs /tmp
+        --tmpfs /run
     steps:
       - name: Checkout the Git repository
         uses: actions/checkout@v4
-      - name: Build
-        run: make
+      - name: Setup container
+        run: |
+          set -e
+          mkdir -p /github/home/.docker /home/runner
+          if ! [ -f /github/home/.docker/config.json ];then
+            echo '{"auths":{}}' > /github/home/.docker/config.json
+          fi
+          echo "TMPDIR=${{ runner.temp }}" >> "$GITHUB_ENV"
+          ln -s /__w /home/runner/work
+      - name: Login to ghcr
+        uses: redhat-actions/podman-login@v1
+        with:
+          username: ${{github.actor}}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
+          auth_file_path: /run/containers/0/auth.json
+      - name: Build and push
+        run: make push
