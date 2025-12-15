@@ -88,7 +88,12 @@ jobs:
             emulator/.cache
             emulator/.data
       - name: Test
-        run: make test
+        run: |
+          set -e
+          mkdir -p /run/podman $TMPDIR
+          podman system service --time 0 unix:///run/podman/podman.sock &
+          make test
+          kill $(jobs -p) || true
       - name: push
         if: github.event_name != 'pull_request'
         run: make push
