@@ -28,7 +28,7 @@ all:
 
 .data/${VERSION}.qcow2: ../rootfs/bin/initialize-image
 	mkdir -p .data .cache
-	podman run --rm -it \
+	podman run --rm \
 	  --volume=.data:/data \
 	  --volume=.cache:/cache \
 	  --entrypoint=initialize-image \
