@@ -1,7 +1,11 @@
 #!/bin/bash
 set -e
-IMAGE="$1"
-if rm-is-running && [[ "$(readlink $IMAGE)" == "$(readlink /rootfs.qcow2)" ]];then
+if [ $# -ne 1 ];then
+  echo "Usage: shrink-image <image>" >/dev/stderr
+  exit 1
+fi
+IMAGE="$(readlink --canonicalize-existing "$1")"
+if rm-is-running && [[ "$IMAGE" == "$(readlink --canonicalize-existing /rootfs.qcow2)" ]];then
   echo "Image is in use" >/dev/stderr
   exit
 fi
@@ -24,4 +28,4 @@ qemu-img convert \
   "$IMAGE"
 rm -r "$BAK"
 AFTER=$(du -hs "$IMAGE" | awk '{print $1}')
-echo "Shrunk $IMAGE: $BEFORE -> $AFTER"
+echo "Shrunk $(basename "$IMAGE"): $BEFORE -> $AFTER"
