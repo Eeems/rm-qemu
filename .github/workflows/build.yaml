@@ -14,6 +14,11 @@ jobs:
       image: ghcr.io/eeems/arkes-builder:master
       options: >-
         --privileged
+        --security-opt seccomp=unconfined
+        --security-opt apparmor=unconfined
+        --cap-add=SYS_ADMIN
+        --cap-add=NET_ADMIN
+        --device /dev/fuse
         --tmpfs /tmp
         --tmpfs /run
         --volume=/:/run/host
@@ -23,7 +28,11 @@ jobs:
       - name: Setup container
         run: |
           set -e
+          git config --global --add safe.directory $(pwd)
           mkdir -p /github/home/.docker /home/runner
+          if [ ! -f /etc/containers/seccomp.json ];then
+            cp seccomp.json /etc/containers/seccomp.json
+          fi
           if ! [ -f /github/home/.docker/config.json ];then
             echo '{"auths":{}}' > /github/home/.docker/config.json
           fi
@@ -42,7 +51,6 @@ jobs:
             df -h
             echo
             echo Freeing up space
-            rm -rf .git/
             docker system prune --force
             docker rmi $(docker image ls -aq) || true
             docker system prune --force
@@ -64,5 +72,16 @@ jobs:
             echo
             df -h
           EOF
-      - name: Build and push
+      - name: Build
+        run: make
+      - name: rootfs cache
+        uses: actions/cache@v4
+        with:
+          key: rootfs-${{ hashFiles('kernel/**', 'rootfs/**', 'emulator/**') }}
+          path: |
+            emulator/.cache
+            emulator/.data
+      - name: Test
+        run: make test
+      - name: push
         run: make push

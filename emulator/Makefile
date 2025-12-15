@@ -35,27 +35,6 @@ all:
 	  ghcr.io/eeems/rm-qemu:kernel-${KERNEL} \
 	  ${VERSION}
 
-run-cli: all .data/${VERSION}.qcow2
-	mkdir -p .data .cache
-	podman run --rm -it \
-	  --volume=.data:/data \
-	  --volume=.cache:/cache \
-	  ${TAG} \
-	  ${VERSION}
-
-run-ui: all .data/${VERSION}.qcow2
-	mkdir -p .data .cache
-	xhost +local:$(shell hostnamectl hostname); \
-	podman run --rm -it \
-	  --volume=/tmp/.X11-unix:/tmp/.X11-unix \
-	  --env DISPLAY \
-	  --hostname="$(shell hostnamectl hostname)"\
-	  --volume=.data:/data \
-	  --volume=.cache:/cache \
-	  ${TAG} \
-	  ${VERSION} \
-	  --display
-
 tag:
 	@echo ${TAG}
 
@@ -74,10 +53,38 @@ hash:
 depends:
 	@echo rootfs
 
+run-cli: all .data/${VERSION}.qcow2
+	podman run --rm -it \
+	  --volume=.data:/data \
+	  --volume=.cache:/cache \
+	  ${TAG} \
+	  ${VERSION}
+
+run-ui: all .data/${VERSION}.qcow2
+	xhost +local:$(shell hostnamectl hostname); \
+	podman run --rm -it \
+	  --volume=/tmp/.X11-unix:/tmp/.X11-unix \
+	  --env DISPLAY \
+	  --hostname="$(shell hostnamectl hostname)"\
+	  --volume=.data:/data \
+	  --volume=.cache:/cache \
+	  ${TAG} \
+	  ${VERSION} \
+	  --display
+
+test: all .data/${VERSION}.qcow2
+	podman run --rm \
+	  --volume=.data:/data \
+	  --volume=.cache:/cache \
+	  ${TAG} \
+	  ${VERSION} \
+	  true
+
 .PHONY: \
 	all \
 	tag \
 	hash \
 	depends \
 	run-cli \
-	run-ui
+	run-ui \
+	test

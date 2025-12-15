@@ -4,6 +4,9 @@ case "$1" in
   if rm-is-running;then
     rm-exec poweroff
     rm-serial >/dev/null
+    while rm-is-running;do
+      sleep 1
+    done
   fi
   ;;
 "")

@@ -1,5 +1,8 @@
 #!/bin/bash
-VERSION=${1:?"Usage: entrypoint <version> [--display|--serial]"}
+if [ "$#" -eq 1 ] && [[ "$1" == "--shell" ]]; then
+    exec bash -l
+fi
+VERSION=${1:?"Usage: entrypoint --shell | entrypoint <version> [--display|--serial]"}
 shift
 if ! [ -f "/data/${VERSION}.qcow2" ]; then
     initialize-image "$VERSION"

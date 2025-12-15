@@ -40,6 +40,9 @@ run-ui: ${TARGETS}
 run-cli: ${TARGETS}
 	$(MAKE_TARGET) emulator run-cli
 
+test: ${TARGETS}
+	$(MAKE_TARGET) emulator test
+
 .PHONY: \
 	all \
 	$(TARGETS) \
@@ -49,4 +52,5 @@ run-cli: ${TARGETS}
 	clean \
 	tags \
 	run-ui \
-	run-cli
+	run-cli \
+	test
