@@ -23,6 +23,7 @@ jobs:
         --tmpfs /tmp
         --tmpfs /run
         --userns=host
+        --cgroupns=host
         --volume=/:/run/host
     steps:
       - name: Checkout the Git repository
