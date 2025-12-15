@@ -22,6 +22,7 @@ jobs:
         --device /dev/fuse
         --tmpfs /tmp
         --tmpfs /run
+        --userns=host
         --volume=/:/run/host
     steps:
       - name: Checkout the Git repository
