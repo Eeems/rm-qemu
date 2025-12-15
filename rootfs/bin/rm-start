@@ -38,7 +38,16 @@ case "$1" in
   fi
   if [[ "$2" == "--wait" ]]; then
     echo "Waiting for ssh to start..." >/dev/stderr
-    while ! rm-exec true >/dev/null 2>&1; do
+    ret=1
+    set +e
+    while [ $ret -ne 0 ]; do
+      output=$(rm-exec true 2>&1)
+      ret=$?
+      if [[ "$output" == "root@localhost: Permission denied (publickey)." ]];then
+        echo "Error: Unable to connect with publickey." >/dev/stderr
+        echo "  Please rm-monitor q && rm-ensure-ssh and then try again." >/dev/stderr
+        exit 1
+      fi
       sleep 1
     done
   fi

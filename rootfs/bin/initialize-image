@@ -2,6 +2,11 @@
 set -e
 VERSION="${1:?Usage: initialize-image <version>}"
 
+if rm-is-running;then
+  echo "Error: rm is running"
+  exit 1
+fi
+
 version() { echo "$@" | awk -F. '{ printf("%d%04d%04d%04d\n", $1,$2,$3,$4); }'; }
 version_test() {
   # shellcheck disable=SC1072,SC1073
@@ -15,13 +20,14 @@ if ! [ -f "$image" ]; then
   download=$(mktemp -d)
   trap 'rmdir $download' EXIT
   codexctl download --hardware rm2 --out "$download" "$VERSION"
+  [ -f "$download"/* ]
   mv "$download"/* "$image"
   trap - EXIT
   rmdir "$download"
 fi
 echo "Extracting image..." >/dev/stderr
 extracted=$(mktemp -d)/image
-trap 'rm -r $(basename $extracted)' EXIT
+trap 'rm -r $(dirname $extracted)' EXIT
 codexctl extract --out "$extracted" "$image"
 rootfs="/data/$VERSION.qcow2"
 echo "Creating $VERSION.qcow2..." >/dev/stderr
@@ -88,8 +94,13 @@ EOF
 EOF
   fi
 done
+if [ -f /rootfs.qcow2 ];then
+  previous=$(readlink /rootfs.qcow2)
+  trap "ln -sf '$previous' /rootfs.qcow2" EXIT
+fi
+ln -sf "$rootfs" /rootfs.qcow2
 rm-start --detached --wait
-exec ssh -o StrictHostKeyChecking=no root@localhost /bin/sh -l <<EOT
+rm-exec <<EOT
   set -e
   echo "Finalizing mmcblk2p2..." >/dev/stderr
   tar xzhf /rm2fb.tar.gz -C /

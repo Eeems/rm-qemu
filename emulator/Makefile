@@ -26,16 +26,16 @@ all:
 	  echo "Skipped as hash matches"; \
 	fi
 
-.data/rootfs.qcow2: all ../rootfs/bin/initialize-image
+.data/${VERSION}.qcow2: ../rootfs/bin/initialize-image
 	mkdir -p .data .cache
 	podman run --rm -it \
 	  --volume=.data:/data \
 	  --volume=.cache:/cache \
+	  --entrypoint=initialize-image \
 	  ghcr.io/eeems/rm-qemu:kernel-${KERNEL} \
-	  initialize-image \
 	  ${VERSION}
 
-run-cli: all .data/rootfs.qcow2
+run-cli: all .data/${VERSION}.qcow2
 	mkdir -p .data .cache
 	podman run --rm -it \
 	  --volume=.data:/data \
@@ -43,7 +43,7 @@ run-cli: all .data/rootfs.qcow2
 	  ${TAG} \
 	  ${VERSION}
 
-run-ui: all .data/rootfs.qcow2
+run-ui: all .data/${VERSION}.qcow2
 	mkdir -p .data .cache
 	xhost +local:$(shell hostnamectl hostname); \
 	podman run --rm -it \

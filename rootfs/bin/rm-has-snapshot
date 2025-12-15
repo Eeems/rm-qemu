@@ -2,7 +2,7 @@
 set -e
 NAME=${1:?Usage: rm-has-snapshot <name>}
 if rm-is-running;then
-  rm-monitor info snapshots | grep -q "$NAME"
+  rm-monitor info snapshots | tail -n+5 | head -n-1 | awk '{print $2}'  | grep -q "$NAME"
 else
   qemu-img snapshot -l /rootfs.qcow2 | grep -q "$NAME"
 fi

@@ -13,7 +13,7 @@ if ! [ -f "/data/rootfs-$VERSION.qcow2" ]; then
       "/data/rootfs-$VERSION.qcow2" \
       8G
 fi
-ln -sf "rootfs-$VERSION.qcow2" /rootfs.qcow2
+ln -sf "/data/rootfs-$VERSION.qcow2" /rootfs.qcow2
 rm-ensure-ssh
 if [ "$#" -eq 0 ]; then
     rm-start --detached --wait

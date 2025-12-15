@@ -10,9 +10,12 @@ if rm-is-running;then
   echo "Error: rm is running" >/dev/stderr
   exit 1
 fi
-exec cat <<'EOF' - | guestfish --rw --blocksize=512 --add /rootfs.qcow2
+{
+  cat << EOF
   run
   mount /dev/sda2 /
   mount /dev/sda3 /mnt
   mount /dev/sda4 /home
 EOF
+  cat
+} | exec guestfish --rw --blocksize=512 --add /rootfs.qcow2
