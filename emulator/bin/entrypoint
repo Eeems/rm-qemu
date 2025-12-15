@@ -2,7 +2,20 @@
 if [ "$#" -eq 1 ] && [[ "$1" == "--shell" ]]; then
     exec bash -l
 fi
-VERSION=${1:?"Usage: entrypoint --shell | entrypoint <version> [--display|--serial]"}
+usage="Usage: entrypoint --help
+  entrypoint --shell
+  entrypoint <version> --serial
+  entrypoint <version> [--pause] --display
+  entrypoint <version> [--pause] [<command>]..."
+if [ "$#" -eq 0 ];then
+    echo "$usage"
+    exit 1
+fi
+if [ "$#" -eq 1 ] && [[ "$1" == "--help" ]]; then
+    echo "$usage"
+    exit
+fi
+VERSION=$1
 shift
 if ! [ -f "/data/${VERSION}.qcow2" ]; then
     initialize-image "$VERSION"
@@ -18,24 +31,28 @@ if ! [ -f "/data/rootfs-$VERSION.qcow2" ]; then
 fi
 ln -sf "/data/rootfs-$VERSION.qcow2" /rootfs.qcow2
 rm-ensure-ssh
+if [ "$#" -eq 1 ] && [[ "$1" == "--serial" ]]; then
+    exec rm-start
+fi
+pause=false
+if [ "$#" -ge 1 ] && [[ "$1" == "--pause" ]]; then
+    pause=true
+    shift
+fi
+rm-start --detached --wait
 if [ "$#" -eq 0 ]; then
-    rm-start --detached --wait
     echo "Started!" >/dev/stderr
     rm-exec
-    echo "Stopping..." >/dev/stderr
-    rm-stop --wait
-    shrink-image /rootfs.qcow2
 elif [ "$#" -eq 1 ] && [[ "$1" == "--display" ]]; then
-    rm-start --detached --wait
     rm2fb-emu 127.0.0.1 8888
+else
+    rm-exec "$@"
+fi
+if ! $pause;then
     echo "Stopping..." >/dev/stderr
     rm-stop --wait
     shrink-image /rootfs.qcow2
-elif [ "$#" -eq 1 ] && [[ "$1" == "--serial" ]]; then
-    exec rm-start
 else
-    rm-start --detached --wait
-    rm-exec "$@"
-    rm-stop --wait
-    shrink-image /rootfs.qcow2
+    echo "Pausing..." >/dev/stderr
+    rm-pause
 fi
