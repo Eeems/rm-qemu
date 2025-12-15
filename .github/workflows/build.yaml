@@ -1,8 +1,9 @@
 name: build
 on:
-  push:
+  push: &filter
     branches:
       - master
+  pull_request: *filter
   workflow_dispatch:
 permissions:
   packages: write
@@ -28,6 +29,10 @@ jobs:
       - name: Setup container
         run: |
           set -e
+          cp /etc/resolv.conf /etc/hosts /etc/hostname /tmp/
+          mount --make-rprivate /
+          umount /etc/resolv.conf /etc/hosts /etc/hostname
+          mv /tmp/resolv.conf /tmp/hosts /tmp/hostname /etc/
           git config --global --add safe.directory $(pwd)
           mkdir -p /github/home/.docker /home/runner
           if [ ! -f /etc/containers/seccomp.json ];then
@@ -84,4 +89,5 @@ jobs:
       - name: Test
         run: make test
       - name: push
+        if: github.event_name != 'pull_request'
         run: make push
