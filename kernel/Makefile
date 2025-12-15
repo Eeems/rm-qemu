@@ -7,8 +7,11 @@ endif
 
 TAG := ghcr.io/eeems/rm-qemu-kernel:${KERNEL}
 OBJ := $(shell { git ls-files --other --exclude-standard;git ls-files --no-others --exclude-standard; } | uniq | sort)
+OUTPUTS := zImage qemu.dtb
 
-all:
+all: image
+
+image:
 	@set -e;\
 	tag=${TAG}; \
 	echo "Checking $$tag"; \
@@ -24,6 +27,17 @@ all:
 	else \
 	  echo "Skipped as hash matches"; \
 	fi
+
+${OUTPUTS}: image
+	podman run --rm \
+	  --volume=$$(pwd):/out \
+	  --volume=/bin:/bin:ro \
+	  --volume=/usr:/usr:ro \
+	  --volume=/lib:/lib:ro \
+	  --volume=/lib64:/lib64:ro \
+	  --entrypoint=/bin/sh \
+	  ${TAG} \
+	  -c "cp /$@ /out"
 
 tag:
 	@echo ${TAG}
@@ -47,4 +61,5 @@ depends:
 	all \
 	tag \
 	hash \
-	depends
+	depends \
+	image

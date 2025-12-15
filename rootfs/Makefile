@@ -1,5 +1,6 @@
 SHELL := /bin/bash
 MAKEFLAGS += --no-print-directory
+OUTPUTS := base.qcow2
 
 ifndef KERNEL
 $(error KERNEL is not set)
@@ -8,7 +9,9 @@ endif
 TAG := ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL}
 OBJ := $(shell { git ls-files --other --exclude-standard;git ls-files --no-others --exclude-standard; } | uniq | sort)
 
-all:
+all: image
+
+image:
 	@set -e;\
 	tag=${TAG}; \
 	echo "Checking $$tag"; \
@@ -24,6 +27,13 @@ all:
 	else \
 	  echo "Skipped as hash matches"; \
 	fi
+
+${OUTPUTS}: image
+	podman run --rm \
+	  --volume=$$(pwd):/out \
+	  --entrypoint=/bin/bash \
+	  ${TAG} \
+	  -c "cp /$@ /out"
 
 tag:
 	@echo ${TAG}
@@ -47,4 +57,5 @@ depends:
 	all \
 	tag \
 	hash \
-	depends
+	depends \
+	image
