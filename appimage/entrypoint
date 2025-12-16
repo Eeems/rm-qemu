@@ -43,8 +43,8 @@ cp -r \
   "$APPDIR/lib/guestfs"
 # Manual patching
 _tmp_share=$(grep _tmp_share= "${APPDIR}/bin/path-mapping-hardcoded.src.hook" | cut -d'=' -f2)
-sed -i -e "s|/etc/os-release|/tmp/$_tmp_bin/rm-qemu/os-release|g" "${APPDIR}/shared/bin/supermin"
-sed -i -e "s|/etc/debian_version|/tmp/$_tmp_bin/rm-qemu/debian_version|g" "${APPDIR}/shared/bin/supermin"
+sed -i -e "s|/etc/os-release|/tmp/${_tmp_bin:?}/rm-qemu/os-release|g" "${APPDIR}/shared/bin/supermin"
+sed -i -e "s|/etc/debian_version|/tmp/${_tmp_bin:?}/rm-qemu/debian_version|g" "${APPDIR}/shared/bin/supermin"
 # Create AppImage
 APPDIR="${APPDIR}" \
   VERSION="kernel-${KERNEL}" \
