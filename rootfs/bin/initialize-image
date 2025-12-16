@@ -108,7 +108,11 @@ if [ -f "${STATEDIR}/rootfs.qcow2" ];then
   trap "ln -sf '$previous' '${STATEDIR}/rootfs.qcow2'" EXIT
 fi
 ln -sf "$rootfs" "${STATEDIR}/rootfs.qcow2"
+
+RM_EXEC_ENABLED_PASSWORD=1 \
 rm-start --detached --wait
+
+RM_EXEC_ENABLED_PASSWORD=1 \
 rm-exec <<EOT
   set -e
   echo "Finalizing mmcblk2p2..." >/dev/stderr
@@ -126,6 +130,7 @@ rm-exec <<EOT
   echo "Setting up mmcblk2p4 partition..." >/dev/stderr
   mkfs.ext4 -E nodiscard /dev/mmcblk2p4
 EOT
+
 trap - EXIT
 rm-stop --wait
 shrink-image "$rootfs"
