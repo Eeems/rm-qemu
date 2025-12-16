@@ -31,7 +31,6 @@ image: $(OBJ)
 	fi
 
 rm-qemu-kernel-${KERNEL}-anylinux-x86_64.AppImage: $(OBJ)
-	rm -rf "${APPDIR}"
 	podman run --rm \
 	  --volume=$$(pwd):/workspace \
 	  --workdir=/workspace \
