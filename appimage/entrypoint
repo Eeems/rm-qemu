@@ -3,11 +3,9 @@ set -e
 KERNEL=${KERNEL:?KERNEL environment variable must be specified}
 APPDIR="rm-qemu.AppDir"
 mkdir -p "${APPDIR}/bin"
-cp \
-  rm-qemu.{png,desktop} \
-  "${APPDIR}/"
 cp appimage-entrypoint "${APPDIR}/bin"
 APPDIR="${APPDIR}" \
+DESKTOP="rm-qemu.desktop" \
 ICON=rm-qemu.png \
 MAIN_BIN=appimage-entrypoint \
 PATH_MAPPING='
