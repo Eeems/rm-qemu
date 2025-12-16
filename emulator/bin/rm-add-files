@@ -26,4 +26,4 @@ upload(){
 }
 script=$(upload "$@")
 echo "$script" | rm-guestfish
-shrink-image "${STATEDIR:-}/rootfs.qcow2"
+shrink-image "${STATEDIR}/rootfs.qcow2"

@@ -4,5 +4,5 @@ NAME=${1:?Usage: rm-commit <name>}
 if rm-is-running;then
   rm-monitor savevm "$NAME"
 else
-  qemu-img snapshot -a "$NAME" "${STATEDIR:-}/rootfs.qcow2"
+  qemu-img snapshot -a "$NAME" "${STATEDIR}/rootfs.qcow2"
 fi

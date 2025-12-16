@@ -25,6 +25,7 @@ PATH_MAPPING='
 ' \
 PATH_MAPPING_HARDCODED='
   libguestfs.so.0
+  supermin
 ' \
 quick-sharun \
   /usr/bin/qemu-{system-arm,img} \

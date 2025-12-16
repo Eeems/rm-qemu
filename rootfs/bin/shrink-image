@@ -5,7 +5,7 @@ if [ $# -ne 1 ];then
   exit 1
 fi
 IMAGE="$(readlink --canonicalize-existing "$1")"
-if rm-is-running && [[ "$IMAGE" == "$(readlink --canonicalize-existing "${STATEDIR:-}/rootfs.qcow2")" ]];then
+if rm-is-running && [[ "$IMAGE" == "$(readlink --canonicalize-existing "${STATEDIR}/rootfs.qcow2")" ]];then
   echo "Image is in use" >/dev/stderr
   exit
 fi

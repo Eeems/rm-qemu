@@ -25,8 +25,8 @@ case "$1" in
     -smp 2 \
     -m 2048 \
     -kernel /zImage \
-    -dtb "${ROOTDIR:-}/qemu.dtb" \
-    -drive "if=sd,file=${STATEDIR:-}/rootfs.qcow2,format=qcow2,index=2" \
+    -dtb "${ROOTDIR}/qemu.dtb" \
+    -drive "if=sd,file=${STATEDIR}/rootfs.qcow2,format=qcow2,index=2" \
     -append "console=ttymxc0 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init" \
     -nic user,hostfwd=tcp::${SSH_PORT}-:${SSH_PORT},hostfwd=tcp::8888-:8888 \
     -monitor unix:$STATEDIR/monitor,server=on,wait=off \
@@ -68,8 +68,8 @@ case "$1" in
     -smp 2 \
     -m 2048 \
     -kernel /zImage \
-    -dtb "${ROOTDIR:-}/qemu.dtb" \
-    -drive "if=sd,file=${STATEDIR:-}/rootfs.qcow2,format=qcow2,index=2" \
+    -dtb "${ROOTDIR}/qemu.dtb" \
+    -drive "if=sd,file=${STATEDIR}/rootfs.qcow2,format=qcow2,index=2" \
     -append "console=ttymxc0,115200 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init" \
     -nic user,hostfwd=tcp::${SSH_PORT}-:${SSH_PORT},hostfwd=tcp::8888-:8888 \
     -monitor unix:$STATEDIR/monitor,server=on,wait=off \
