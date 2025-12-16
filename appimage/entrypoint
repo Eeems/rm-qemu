@@ -28,6 +28,9 @@ PATH_MAPPING_HARDCODED='
   libguestfs.so.0
   supermin
 ' \
+_tmp_bin=rm-qemu-bin \
+_tmp_lib=rm-qemu-lib \
+_tmp_share=rm-qemu-share \
 quick-sharun \
   /usr/bin/qemu-{system-arm,img} \
   /usr/bin/ssh{,-keygen} \
@@ -43,8 +46,6 @@ cp -r \
   /lib/x86_64-linux-gnu/guestfs/. \
   "$APPDIR/lib/guestfs"
 # Manual patching
-_tmp_share="$(grep '_tmp_share=' "${APPDIR}/bin/path-mapping-hardcoded.src.hook" | cut -d'=' -f2)"
-cat "${APPDIR}/bin/path-mapping-hardcoded.src.hook"
 sed -i \
   -e "s|/etc/os-release|/tmp/${_tmp_share:?}/rm-qemu/os-release|g" \
   "${APPDIR}/shared/bin/supermin"
