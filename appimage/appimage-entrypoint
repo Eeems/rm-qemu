@@ -1,12 +1,12 @@
 #!/bin/bash
 set -e
 _D="$(dirname "$(dirname "$(readlink -f "${0}")")")"
-export ROOTDIR="$_D"
+export ROOTDIR="$_D/share/rm-qemu"
 export DATADIR="$HOME/.local/share/rm-qemu"
 export CACHEDIR="$HOME/.cache/rm-qemu/cache"
 export STATEDIR="$HOME/.cache/rm-qemu/state"
 export SSH_PORT=2222
-export LIBGUESTFS_PATH="$ROOTDIR/lib/guestfs"
+export LIBGUESTFS_PATH="$_D/lib/guestfs"
 mkdir -p "$DATADIR" "$CACHEDIR" "$STATEDIR"
 if [ $# -eq 1 ] && [[ "$1" == "--debug" ]];then
   cd $ROOTDIR
