@@ -11,7 +11,7 @@ endif
 TAG := ghcr.io/eeems/rm-qemu-appimage-builder:kernel-${KERNEL}
 OBJ := $(shell { git ls-files --other --exclude-standard;git ls-files --no-others --exclude-standard; } | uniq | sort)
 
-all: rm-qemu-kernel-${KERNEL}-anylinux-x86_64.AppImage
+all: image rm-qemu-kernel-${KERNEL}-anylinux-x86_64.AppImage
 
 image: $(OBJ)
 	@set -e;\
@@ -30,7 +30,7 @@ image: $(OBJ)
 	  echo "Skipped as hash matches"; \
 	fi
 
-rm-qemu-kernel-${KERNEL}-anylinux-x86_64.AppImage: image
+rm-qemu-kernel-${KERNEL}-anylinux-x86_64.AppImage:
 	rm -rf "${APPDIR}"
 	podman run --rm \
 	  --volume=$$(pwd):/workspace \

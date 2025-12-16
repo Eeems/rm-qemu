@@ -3,7 +3,10 @@ set -e
 KERNEL=${KERNEL:?KERNEL environment variable must be specified}
 APPDIR="rm-qemu.AppDir"
 mkdir -p "${APPDIR}/bin"
-cp appimage-entrypoint "${APPDIR}/bin"
+cp \
+  appimage-entrypoint \
+  /usr/local/bin/* \
+  "${APPDIR}/bin"
 APPDIR="${APPDIR}" \
 DESKTOP="rm-qemu.desktop" \
 ICON=rm-qemu.png \
@@ -32,7 +35,6 @@ quick-sharun \
 cp \
   /{base.qcow2,dropbear.socket,qemu.dtb,zImage,rm2fb.{conf,tar.gz}} \
   /etc/{os-release,debian_version} \
-  /usr/local/bin/* \
   "$APPDIR"
 mkdir -p $APPDIR/lib/x86_64-linux-gnu/guestfs
 cp -r \
