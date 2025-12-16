@@ -1,4 +1,5 @@
 #!/bin/sh
+STATEDIR=${STATEDIR:-/run/rm}
 if [ ! -f "${STATEDIR}/rootfs.qcow2" ]; then
   echo "${STATEDIR}/rootfs.qcow2 not found" >/dev/stderr
   exit 1

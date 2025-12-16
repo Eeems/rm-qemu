@@ -4,6 +4,8 @@ set -e
 if rm-is-running; then
   echo "Error: rm is running" >/dev/stderr
   exit 1
+elif ! rm-image-path >/dev/null;then
+  exit 1
 fi
 
 STATEDIR=${STATEDIR:-/run/rm}
@@ -16,7 +18,7 @@ args=(
   -m 2048
   -kernel "${ROOTDIR}/zImage"
   -dtb "${ROOTDIR}/qemu.dtb"
-  -drive "if=sd,file=${STATEDIR}/rootfs.qcow2,format=qcow2,index=2"
+  -drive "if=sd,file=$(rm-image-path),format=qcow2,index=2"
   -append "console=ttymxc0 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init"
   -chardev socket,id=ssh,path=$STATEDIR/ssh,server=on,wait=off
   -nic user,hostfwd=chardev:ssh:22,hostfwd=tcp::8888-:8888

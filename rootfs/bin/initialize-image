@@ -103,6 +103,8 @@ EOF
 EOF
   fi
 done
+STATEDIR=${STATEDIR:-/run/rm}
+mkdir -p "$STATEDIR"
 if [ -f "${STATEDIR}/rootfs.qcow2" ];then
   previous="$(rm-image-path)"
   trap "rm '${rootfs}'; ln -sf '${previous}' '${STATEDIR}/rootfs.qcow2'" EXIT
