@@ -19,15 +19,24 @@ PATH_MAPPING='
   /qemu.dts:\${SHARUN_DIR}/qemu.dts
   /rm2fb.tar.gz:\${SHARUN_DIR}/rm2fb.tar.gz
   /rm2fb.conf:\${SHARUN_DIR}/rm2fb.conf
+  /etc/debian_version:\${SHARUN_DIR}/debian_release
+  /etc/os-release:\${SHARUN_DIR}/os-release
 ' \
 PATH_MAPPING_HARDCODED='
   libguestfs.so.0
+
 ' \
 quick-sharun \
-  /usr/bin/{qemu-{system-arm,img},ssh{,-keygen},guestfish,nc,libguestfs-test-tool,supermin} \
+  /usr/bin/qemu-{system-arm,img} \
+  /usr/bin/ssh{,-keygen} \
+  /usr/bin/nc \
+  /usr/bin/{nc,apt} \
+  /usr/bin/{guestfish,libguestfs-test-tool,supermin} \
+  /usr/bin/{apt-get,dpkg,dpkg-{deb,query,divert}} \
   /usr/local/bin/*
 cp \
   /{base.qcow2,dropbear.socket,qemu.dtb,zImage,rm2fb.{conf,tar.gz}} \
+  /etc/{os-,debian_}release \
   "$APPDIR"
 mkdir -p $APPDIR/lib/x86_64-linux-gnu/guestfs
 cp -r \
