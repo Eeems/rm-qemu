@@ -24,19 +24,17 @@ PATH_MAPPING='
 ' \
 PATH_MAPPING_HARDCODED='
   libguestfs.so.0
-
 ' \
 quick-sharun \
   /usr/bin/qemu-{system-arm,img} \
   /usr/bin/ssh{,-keygen} \
-  /usr/bin/nc \
-  /usr/bin/{nc,apt} \
+  /usr/bin/{nc,apt,rm2fb-emu} \
   /usr/bin/{guestfish,libguestfs-test-tool,supermin} \
-  /usr/bin/{apt-get,dpkg,dpkg-{deb,query,divert}} \
-  /usr/local/bin/*
+  /usr/bin/{apt-get,dpkg,dpkg-{deb,query,divert}}
 cp \
   /{base.qcow2,dropbear.socket,qemu.dtb,zImage,rm2fb.{conf,tar.gz}} \
-  /etc/{os-,debian_}release \
+  /etc/{os-release,debian_version} \
+  /usr/local/bin/* \
   "$APPDIR"
 mkdir -p $APPDIR/lib/x86_64-linux-gnu/guestfs
 cp -r \

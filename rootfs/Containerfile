@@ -178,7 +178,7 @@ COPY --from=ghcr.io/eeems/rm-qemu-kernel:${KERNEL} zImage qemu.dtb /
 COPY --from=base /base.qcow2 /
 COPY --from=codexctl codexctl /usr/local/bin
 COPY --from=rm2fb /rm2fb.tar.gz /
-COPY --from=rm2fb-host /rm2fb-emu /usr/local/bin
+COPY --from=rm2fb-host /rm2fb-emu /usr/bin
 COPY bin/* /usr/local/bin/
 COPY dropbear.socket /
 COPY rm2fb.conf /
