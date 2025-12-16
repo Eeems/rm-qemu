@@ -1,2 +1,25 @@
 #!/bin/sh
+if [ $# -eq 1 ]; then
+  case "$1" in
+    "--help")
+      echo "Usage: rm-is-running [--verbose|--help]"
+      exit
+      ;;
+    "--verbose")
+      if rm-is-running;then
+        echo "rm is running"
+        exit
+      else
+        echo "rm is not running"
+        exit 1
+      fi
+      ;;
+    *)
+      rm-is-running --help
+      exit 1
+  esac
+elif [ $# -gt 1 ]; then
+  rm-is-running --help
+  exit 1
+fi
 exec killall -0 qemu-system-arm 2> /dev/null

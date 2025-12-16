@@ -13,8 +13,9 @@ version_test() {
   [ "$(version "$1")" "$2" "$(version "$3")" ]
 }
 
-mkdir -p /cache
-image="/cache/$VERSION"
+CACHEDIR="${CACHEDIR:-/cache}"
+mkdir -p "$CACHEDIR"
+image="$CACHEDIR/$VERSION"
 if ! [ -f "$image" ]; then
   echo "Downloading update image..." >/dev/stderr
   download=$(mktemp -d)
@@ -25,19 +26,25 @@ if ! [ -f "$image" ]; then
   trap - EXIT
   rmdir "$download"
 fi
+DATADIR="${DATADIR:-/data}"
 echo "Extracting image..." >/dev/stderr
 extracted=$(mktemp -d)/image
 trap 'rm -r $(dirname $extracted)' EXIT
 codexctl extract --out "$extracted" "$image"
-rootfs="/data/$VERSION.qcow2"
+rootfs="$DATADIR/$VERSION.qcow2"
 echo "Creating $VERSION.qcow2..." >/dev/stderr
+if [ ! -f "$DATADIR/base.qcow2" ];then
+  cp "${ROOTDIR}/base.qcow2" "$DATADIR"
+fi
+pushd $DATADIR >/dev/null
 qemu-img create \
   --format qcow2 \
-  --backing /base.qcow2 \
+  --backing base.qcow2 \
   --backing-format qcow2 \
   --options compression_type=zstd \
   "$rootfs" \
   8G
+popd >/dev/null
 echo "Initializing $VERSION.qcow2..." >/dev/stderr
 guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
 run
@@ -49,7 +56,7 @@ for dev in 2 3; do
   guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
     run
     mount /dev/sda$dev /
-    upload /rm2fb.tar.gz /rm2fb.tar.gz
+    upload ${ROOTDIR}/rm2fb.tar.gz /rm2fb.tar.gz
     ln-s /lib/systemd/system/rm2fb.socket /etc/systemd/system/sockets.target.wants/rm2fb.socket
     ln-s /dev/null /etc/systemd/system/remarkable-fail.service
     ln-s /dev/null /etc/systemd/system/system-hardening.service
@@ -73,14 +80,14 @@ for dev in 2 3; do
     ! sed -i 's|/dev/unknown|#/dev/mmcblk2p4|' /tmp/fstab
     upload /tmp/fstab /etc/fstab
     mkdir-p /etc/systemd/system/xochitl.service.d
-    upload /rm2fb.conf /etc/systemd/system/xochitl.service.d/rm2fb.conf
+    upload ${ROOTDIR}/rm2fb.conf /etc/systemd/system/xochitl.service.d/rm2fb.conf
 EOF
   if version_test "$VERSION" -ge 3.22.0.0; then
     echo "Adding dropbear.socket..." >/dev/stderr
     guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
       run
       mount /dev/sda$dev /
-      upload /dropbear.socket /lib/systemd/system/dropbear.socket
+      upload ${ROOTDIR}/dropbear.socket /lib/systemd/system/dropbear.socket
       ln-s /lib/systemd/system/dropbear.socket /etc/systemd/system/sockets.target.wants/dropbear.socket
 EOF
   elif ! version_test "$VERSION" -ge 3.13.0.0; then
@@ -94,11 +101,11 @@ EOF
 EOF
   fi
 done
-if [ -f /rootfs.qcow2 ];then
-  previous=$(readlink /rootfs.qcow2)
-  trap "ln -sf '$previous' /rootfs.qcow2" EXIT
+if [ -f "${STATEDIR:-}/rootfs.qcow2" ];then
+  previous=$(readlink "${STATEDIR:-}/rootfs.qcow2")
+  trap "ln -sf '$previous' '${STATEDIR:-}/rootfs.qcow2'" EXIT
 fi
-ln -sf "$rootfs" /rootfs.qcow2
+ln -sf "$rootfs" "${STATEDIR:-}/rootfs.qcow2"
 rm-start --detached --wait
 rm-exec <<EOT
   set -e

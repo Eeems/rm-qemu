@@ -1,4 +1,5 @@
 VERSION := 3.22.0.64
+APPDIR="rm-qemu.AppDir"
 
 SHELL := /bin/bash
 MAKEFLAGS += --no-print-directory
@@ -7,10 +8,12 @@ ifndef KERNEL
 $(error KERNEL is not set)
 endif
 
-TAG := ghcr.io/eeems/rm-qemu:kernel-${KERNEL}
+TAG := ghcr.io/eeems/rm-qemu-appimage-builder:kernel-${KERNEL}
 OBJ := $(shell { git ls-files --other --exclude-standard;git ls-files --no-others --exclude-standard; } | uniq | sort)
 
-all:
+all: rm-qemu-kernel-${KERNEL}-anylinux-x86_64.AppImage
+
+image: $(OBJ)
 	@set -e;\
 	tag=${TAG}; \
 	echo "Checking $$tag"; \
@@ -27,14 +30,14 @@ all:
 	  echo "Skipped as hash matches"; \
 	fi
 
-.data/${VERSION}.qcow2: ../rootfs/bin/initialize-image
-	mkdir -p .data .cache
+rm-qemu-kernel-${KERNEL}-anylinux-x86_64.AppImage: image
+	rm -rf "${APPDIR}"
 	podman run --rm \
-	  --volume=.data:/data \
-	  --volume=.cache:/cache \
-	  --entrypoint=initialize-image \
-	  ghcr.io/eeems/rm-qemu:kernel-${KERNEL} \
-	  ${VERSION}
+	  --volume=$$(pwd):/workspace \
+	  --workdir=/workspace \
+	  "--env=KERNEL=${KERNEL}" \
+	  "--env=APPDIR=${APPDIR}" \
+	  "${TAG}"
 
 tag:
 	@echo ${TAG}
@@ -52,32 +55,10 @@ hash:
 	} | sha256sum | cut -d' ' -f1
 
 depends:
-	@echo rootfs
+	@echo emulator
 
-run-cli: all .data/${VERSION}.qcow2
-	podman run --rm -it \
-	  --volume=.data:/data \
-	  --volume=.cache:/cache \
-	  ${TAG} \
-	  ${VERSION}
-
-run-ui: all .data/${VERSION}.qcow2
-	xhost +local:$(shell hostnamectl hostname); \
-	podman run --rm -it \
-	  --volume=/tmp/.X11-unix:/tmp/.X11-unix \
-	  --env DISPLAY \
-	  --hostname="$(shell hostnamectl hostname)"\
-	  --volume=.data:/data \
-	  --volume=.cache:/cache \
-	  ${TAG} \
-	  ${VERSION} \
-	  --display
-
-test: all .data/${VERSION}.qcow2
-	podman run --rm \
-	  --volume=.data:/data \
-	  --volume=.cache:/cache \
-	  ${TAG} \
+test: rm-qemu-kernel-${KERNEL}-anylinux-x86_64.AppImage
+	./rm-qemu-kernel-${KERNEL}-anylinux-x86_64.AppImage \
 	  ${VERSION} \
 	  true
 
@@ -86,6 +67,5 @@ test: all .data/${VERSION}.qcow2
 	tag \
 	hash \
 	depends \
-	run-cli \
-	run-ui \
-	test
+	test \
+	image

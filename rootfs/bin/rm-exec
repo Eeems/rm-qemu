@@ -3,11 +3,13 @@ if [ "$#" -ne 0 ]; then
   exec ssh \
     -o PasswordAuthentication=no \
     -o StrictHostKeyChecking=no \
+    -p ${SSH_PORT:-22} \
     root@localhost \
     /bin/sh -lc "'$*'"
 else
   exec ssh \
     -o PasswordAuthentication=no \
     -o StrictHostKeyChecking=no \
+    -p ${SSH_PORT:-22} \
     root@localhost
 fi

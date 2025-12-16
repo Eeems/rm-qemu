@@ -1,0 +1,4 @@
+*.AppDir/
+*.AppImage
+appinfo
+*.profraw

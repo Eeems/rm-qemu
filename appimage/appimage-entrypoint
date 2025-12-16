@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+_D="$(dirname "$(dirname "$(readlink -f "${0}")")")"
+export ROOTDIR="$_D"
+export DATADIR="$HOME/.local/share/rm-qemu"
+export CACHEDIR="$HOME/.cache/rm-qemu/cache"
+export STATEDIR="$HOME/.cache/rm-qemu/state"
+export SSH_PORT=2222
+mkdir -p "$DATADIR" "$CACHEDIR" "$STATEDIR"
+if [ $# -eq 1 ] && [[ "$1" == "--debug" ]];then
+  cd $ROOTDIR
+  exec bash -l
+fi
+exec entrypoint "$@"

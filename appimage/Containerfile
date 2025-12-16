@@ -1,0 +1,42 @@
+ARG HASH KERNEL
+
+FROM ghcr.io/eeems/rm-qemu:kernel-${KERNEL}
+
+RUN bash -e <<EOT
+  export DEBIAN_FRONTEND="noninteractive"
+  apt-get update
+  apt-get dist-upgrade -y --no-install-recommends
+  apt-get install -y --no-install-recommends \
+    gcc \
+    xvfb \
+    libc6-dev \
+    wget \
+    zsync \
+    git \
+    make
+  apt-get clean
+  rm -rf /var/lib/apt/lists/*
+EOT
+
+RUN <<EOT
+  set -e
+  wget \
+    --retry-connrefused \
+    --tries=30 \
+    "https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/refs/heads/main/useful-tools/quick-sharun.sh" \
+    --output-document=/usr/bin/quick-sharun
+  chmod +x /usr/bin/quick-sharun
+  wget \
+    --retry-connrefused \
+    --tries=30 \
+    "https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/refs/heads/main/useful-tools/uruntime2appimage.sh" \
+    --output-document=/usr/bin/uruntime2appimage
+  chmod +x /usr/bin/uruntime2appimage
+EOT
+
+COPY entrypoint /usr/bin
+
+ENTRYPOINT [ "/usr/bin/entrypoint" ]
+
+ARG HASH
+LABEL hash="${HASH:?Hash missing}"

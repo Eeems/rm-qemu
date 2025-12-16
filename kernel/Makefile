@@ -16,7 +16,7 @@ image:
 	tag=${TAG}; \
 	echo "Checking $$tag"; \
 	local=$$($(MAKE) KERNEL=${KERNEL} hash); \
-	image=$$(podman inspect $$tag --format='{{ .Labels.hash }}' 2>/dev/null || skopeo inspect docker://$$tag --format='{{ .Labels.hash }}'); \
+	image=$$(podman inspect $$tag --format='{{ .Labels.hash }}' 2>/dev/null || skopeo inspect docker://$$tag --format='{{ .Labels.hash }}' || true); \
 	if [[ "$$local" != "$$image" ]];then \
 	  echo "$$local != $$image"; \
 	  podman build \
@@ -57,9 +57,13 @@ hash:
 depends:
 	@true
 
+test:
+	@true
+
 .PHONY: \
 	all \
 	tag \
 	hash \
 	depends \
-	image
+	image \
+	test

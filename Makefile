@@ -5,16 +5,34 @@ SHELL := /bin/bash
 
 MAKE_TARGET := $(MAKE) KERNEL=${KERNEL} -C
 TARGETS := $(shell find . -mindepth 2 -maxdepth 2 -type f -name Makefile | xargs dirname | xargs -n1 basename)
-TAGS := $(shell for t in ${TARGETS}; do ${MAKE_TARGET} "$$t" tag; done)
-DEP_TARGETS := $(foreach t,$(TARGETS),.depends-$(t))
+TAGS := $(foreach T, ${TARGETS}, $(shell MAKEFLAGS=  ${MAKE_TARGET} $(T) tag))
+TEST_TARGETS := $(foreach T, $(TARGETS),test-$(T))
 
 all: $(TARGETS)
 
-.depends-%:
-	@${MAKE_TARGET} $* depends
+define make-target
+$1: $2
+	${MAKE_TARGET} $1
+endef
 
-${TARGETS}: %: .depends-%
-	${MAKE_TARGET} $@
+define make-test-target
+$2: $1
+	${MAKE_TARGET} $1 test
+endef
+$(foreach T,\
+	$(TARGETS),\
+	$(eval $(call make-target, \
+		$(T), \
+		$(shell MAKEFLAGS= $(MAKE_TARGET) $(T) depends), \
+	)) \
+)
+$(foreach T,\
+	$(TARGETS),\
+	$(eval $(call make-test-target, \
+		$(T), \
+		test-$(T), \
+	)) \
+)
 
 tags:
 	@echo ${TAGS} | xargs -n1 echo
@@ -40,13 +58,12 @@ run-ui: ${TARGETS}
 run-cli: ${TARGETS}
 	$(MAKE_TARGET) emulator run-cli
 
-test: ${TARGETS}
-	$(MAKE_TARGET) emulator test
+test: ${TEST_TARGETS}
 
 .PHONY: \
 	all \
 	$(TARGETS) \
-	$(DEP_TARGETS) \
+	$(TEST_TARGETS) \
 	push \
 	pull \
 	clean \

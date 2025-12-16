@@ -12,8 +12,11 @@ if rm-is-paused; then
   paused=true
   args="-loadvm running"
 fi
-mkdir -p /run/rm
 
+STATEDIR=${STATEDIR:-/run/rm}
+mkdir -p $STATEDIR
+
+SSH_PORT=${SSH_PORT:-22}
 case "$1" in
 -D | --detached)
   qemu-system-arm \
@@ -22,12 +25,12 @@ case "$1" in
     -smp 2 \
     -m 2048 \
     -kernel /zImage \
-    -dtb /qemu.dtb \
-    -drive if=sd,file=/rootfs.qcow2,format=qcow2,index=2 \
+    -dtb "${ROOTDIR:-}/qemu.dtb" \
+    -drive "if=sd,file=${STATEDIR:-}/rootfs.qcow2,format=qcow2,index=2" \
     -append "console=ttymxc0 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init" \
-    -nic user,hostfwd=tcp::22-:22,hostfwd=tcp::8888-:8888 \
-    -monitor unix:/run/rm/monitor,server=on,wait=off \
-    -chardev socket,id=serial0,path=/run/rm/serial,server=on,wait=off \
+    -nic user,hostfwd=tcp::${SSH_PORT}-:${SSH_PORT},hostfwd=tcp::8888-:8888 \
+    -monitor unix:$STATEDIR/monitor,server=on,wait=off \
+    -chardev socket,id=serial0,path=$STATEDIR/serial,server=on,wait=off \
     -serial chardev:serial0 \
     -parallel null \
     -display none \
@@ -65,11 +68,11 @@ case "$1" in
     -smp 2 \
     -m 2048 \
     -kernel /zImage \
-    -dtb /qemu.dtb \
-    -drive if=sd,file=/rootfs.qcow2,format=qcow2,index=2 \
+    -dtb "${ROOTDIR:-}/qemu.dtb" \
+    -drive "if=sd,file=${STATEDIR:-}/rootfs.qcow2,format=qcow2,index=2" \
     -append "console=ttymxc0,115200 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init" \
-    -nic user,hostfwd=tcp::22-:22,hostfwd=tcp::8888-:8888 \
-    -monitor unix:/run/rm/monitor,server=on,wait=off \
+    -nic user,hostfwd=tcp::${SSH_PORT}-:${SSH_PORT},hostfwd=tcp::8888-:8888 \
+    -monitor unix:$STATEDIR/monitor,server=on,wait=off \
     -serial mon:stdio \
     -nographic \
     "$args"

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=rm-qemu
+Comment=reMarkable QEMU Emulator
+Exec=AppRun
+Icon=rm-qemu
+Categories=System;Emulator;
+Terminal=true

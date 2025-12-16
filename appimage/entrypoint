@@ -1,0 +1,35 @@
+#!/bin/bash
+set -e
+KERNEL=${KERNEL:?KERNEL environment variable must be specified}
+APPDIR="rm-qemu.AppDir"
+mkdir -p "${APPDIR}/bin"
+cp \
+  rm-qemu.{png,desktop} \
+  "${APPDIR}/"
+cp appimage-entrypoint "${APPDIR}/bin"
+APPDIR="${APPDIR}" \
+ICON=rm-qemu.png \
+MAIN_BIN=appimage-entrypoint \
+PATH_MAPPING='
+  /usr/bin/supermin:\${SHARUN_DIR}/bin/supermin
+  /lib/x86_64-linux-gnu/guestfs/:\${SHARUN_DIR}/lib/guestfs
+  /base.qcow2:\${SHARUN_DIR}/base.qcow2
+  /dropbear.socket:\${SHARUN_DIR}/dropbear.socket
+  /zImage:\${SHARUN_DIR}/zImage
+  /qemu.dts:\${SHARUN_DIR}/qemu.dts
+  /rm2fb.tar.gz:\${SHARUN_DIR}/rm2fb.tar.gz
+  /rm2fb.conf:\${SHARUN_DIR}/rm2fb.conf
+' \
+quick-sharun \
+  /usr/bin/{qemu-{system-arm,img},ssh{,-keygen},guestfish,nclibguestfs-test-tool,supermin} \
+  /usr/local/bin/*
+cp \
+  /{base.qcow2,dropbear.socket,qemu.dtb,zImage,rm2fb.{conf,tar.gz}} \
+  "$APPDIR"
+mkdir -p $APPDIR/lib/x86_64-linux-gnu/guestfs
+cp -r \
+  /lib/x86_64-linux-gnu/guestfs/. \
+  "$APPDIR/lib/guestfs"
+APPDIR="${APPDIR}" \
+  VERSION="kernel-${KERNEL}" \
+  uruntime2appimage
