@@ -16,7 +16,7 @@ fi
 STATEDIR=${STATEDIR:-/run/rm}
 mkdir -p $STATEDIR
 
-SSH_PORT=${SSH_PORT:-22}
+RM_SSH_PORT=${RM_SSH_PORT:-22}
 case "$1" in
 -D | --detached)
   qemu-system-arm \
@@ -28,7 +28,7 @@ case "$1" in
     -dtb "${ROOTDIR}/qemu.dtb" \
     -drive "if=sd,file=${STATEDIR}/rootfs.qcow2,format=qcow2,index=2" \
     -append "console=ttymxc0 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init" \
-    -nic user,hostfwd=tcp::${SSH_PORT}-:${SSH_PORT},hostfwd=tcp::8888-:8888 \
+    -nic user,hostfwd=tcp::${RM_SSH_PORT}-:${RM_SSH_PORT},hostfwd=tcp::8888-:8888 \
     -monitor unix:$STATEDIR/monitor,server=on,wait=off \
     -chardev socket,id=serial0,path=$STATEDIR/serial,server=on,wait=off \
     -serial chardev:serial0 \
@@ -46,15 +46,15 @@ case "$1" in
     while [ $ret -ne 0 ]; do
       output=$(rm-exec true 2>&1)
       ret=$?
-      if \
-        [[ "$output" == *"kex_exchange_identification: read: Connection reset by peer"* ]] \
-        || [[ "$output" == "root@localhost: Permission denied (publickey)." ]]
-      then
+      if [[ "$output" == "root@localhost: Permission denied (publickey)." ]];then
         echo "Error: Unable to connect with publickey." >/dev/stderr
         echo "  Please rm-monitor q && rm-ensure-ssh and then try again." >/dev/stderr
         exit 1
       elif [[ "$output" == *"Segmentation fault"* ]] || [ $ret -eq 139 ];then
         echo "Error: ssh executable is broken." >/dev/stderr
+        exit 1
+      elif [ $ret -eq 255 ];then
+        echo "Error: rm-exec is failing to call ssh properly" >/dev/stderr
         exit 1
       elif ! rm-is-running; then
         echo "Error: qemu is no longer running">/dev/stderr
@@ -80,7 +80,7 @@ case "$1" in
     -dtb "${ROOTDIR}/qemu.dtb" \
     -drive "if=sd,file=${STATEDIR}/rootfs.qcow2,format=qcow2,index=2" \
     -append "console=ttymxc0,115200 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init" \
-    -nic user,hostfwd=tcp::${SSH_PORT}-:${SSH_PORT},hostfwd=tcp::8888-:8888 \
+    -nic user,hostfwd=tcp::${RM_SSH_PORT}-:${RM_SSH_PORT},hostfwd=tcp::8888-:8888 \
     -monitor unix:$STATEDIR/monitor,server=on,wait=off \
     -serial mon:stdio \
     -nographic \

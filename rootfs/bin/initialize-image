@@ -43,7 +43,7 @@ qemu-img create \
   "$rootfs" \
   8G
 # If we fail at this point, we
-trap "rm -r '$(dirname $extracted)' '${ROOTDIR}/base.qcow2'" EXIT
+trap "rm -r '$(dirname $extracted)' '${rootfs}'" EXIT
 popd >/dev/null
 echo "Initializing $VERSION.qcow2..." >/dev/stderr
 guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
@@ -52,7 +52,7 @@ upload "$extracted" /dev/sda2
 upload "$extracted" /dev/sda3
 EOF
 rm -r "$(dirname $extracted)"
-trap "rm '${ROOTDIR}/base.qcow2'" EXIT
+trap "rm '${rootfs}'" EXIT
 for dev in 2 3; do
   echo "Setting up mmcblk2p$dev partition..." >/dev/stderr
   guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
@@ -105,7 +105,7 @@ EOF
 done
 if [ -f "${STATEDIR}/rootfs.qcow2" ];then
   previous="$(rm-image-path)"
-  trap "ln -sf '$previous' '${STATEDIR}/rootfs.qcow2'" EXIT
+  trap "rm '${rootfs}'; ln -sf '$previous' '${STATEDIR}/rootfs.qcow2'" EXIT
 fi
 ln -sf "$rootfs" "${STATEDIR}/rootfs.qcow2"
 
@@ -130,7 +130,6 @@ rm-exec <<EOT
   echo "Setting up mmcblk2p4 partition..." >/dev/stderr
   mkfs.ext4 -E nodiscard /dev/mmcblk2p4
 EOT
-
 trap - EXIT
 rm-stop --wait
 shrink-image "$rootfs"

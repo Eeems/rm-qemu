@@ -1,18 +1,17 @@
 #!/bin/bash
 args=(
-  -p ${SSH_PORT:-22}
+  -p ${RM_SSH_PORT:-22}
   -o StrictHostKeyChecking=no
 )
 if [[ "$RM_EXEC_ENABLED_PASSWORD" != "1" ]];then
   args+=(-o PasswordAuthentication=no)
 fi
+args+=(root@localhost)
 if [ "$#" -ne 0 ]; then
-  exec ssh \
-    "${args[@]}"
-    root@localhost \
-    /bin/sh -lc "'$*'"
-else
-  exec ssh \
-    "${args[@]}"
-    root@localhost
+  args+=(
+    /bin/sh
+    -lc
+    "'$*'"
+  )
 fi
+exec ssh ${args[@]}

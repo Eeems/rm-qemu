@@ -5,7 +5,7 @@ export ROOTDIR="/tmp/rm-qemu-share/rm-qemu"
 export DATADIR="$HOME/.local/share/rm-qemu"
 export CACHEDIR="$HOME/.cache/rm-qemu/cache"
 export STATEDIR="$HOME/.cache/rm-qemu/state"
-export SSH_PORT=2222
+export RM_SSH_PORT=2222
 mkdir -p "$DATADIR" "$CACHEDIR" "$STATEDIR"
 export PATH="$_D/bin:${PATH}"
 if [ $# -eq 1 ] && [[ "$1" == "--debug" ]];then
