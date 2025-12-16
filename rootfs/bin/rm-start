@@ -46,13 +46,18 @@ case "$1" in
     while [ $ret -ne 0 ]; do
       output=$(rm-exec true 2>&1)
       ret=$?
-      if [[ "$output" == "root@localhost: Permission denied (publickey)." ]];then
+      if \
+        [[ "$output" == *"kex_exchange_identification: read: Connection reset by peer"* ]] \
+        || [[ "$output" == "root@localhost: Permission denied (publickey)." ]]
+      then
         echo "Error: Unable to connect with publickey." >/dev/stderr
         echo "  Please rm-monitor q && rm-ensure-ssh and then try again." >/dev/stderr
         exit 1
-      fi
-      if [[ "$output" == *"Segmentation fault"* ]] || [ $ret -eq 139 ];then
+      elif [[ "$output" == *"Segmentation fault"* ]] || [ $ret -eq 139 ];then
         echo "Error: ssh executable is broken." >/dev/stderr
+        exit 1
+      elif ! rm-is-running; then
+        echo "Error: qemu is no longer running">/dev/stderr
         exit 1
       fi
       sleep 1

@@ -18,6 +18,7 @@ if [ "$#" -eq 1 ] && [[ "$1" == "--help" ]]; then
 fi
 VERSION=$1
 shift
+rm-ensure-image "$VERSION" || true
 VERSION_IMAGE="${DATADIR:-/data}/${VERSION}.qcow2"
 if ! [ -f "$VERSION_IMAGE" ]; then
     initialize-image "$VERSION"
@@ -44,6 +45,7 @@ if [ "$#" -ge 1 ] && [[ "$1" == "--pause" ]]; then
     pause=true
     shift
 fi
+trap 'rm-pause || true' EXIT
 rm-start --detached --wait
 if [ "$#" -eq 0 ]; then
     echo "Started!" >/dev/stderr
@@ -53,6 +55,7 @@ elif [ "$#" -eq 1 ] && [[ "$1" == "--display" ]]; then
 else
     rm-exec "$@"
 fi
+trap - EXIT
 if ! $pause;then
     echo "Stopping..." >/dev/stderr
     rm-stop --wait
