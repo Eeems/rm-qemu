@@ -9,7 +9,7 @@ export SSH_PORT=2222
 export LIBGUESTFS_PATH="$_D/lib/guestfs"
 mkdir -p "$DATADIR" "$CACHEDIR" "$STATEDIR"
 if [ $# -eq 1 ] && [[ "$1" == "--debug" ]];then
-  cd $ROOTDIR
+  cd "$_D"
   exec bash -l
 fi
 exec entrypoint "$@"

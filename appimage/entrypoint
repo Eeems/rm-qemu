@@ -22,8 +22,6 @@ PATH_MAPPING='
   /qemu.dts:\${SHARUN_DIR}/share/rm-qemu/qemu.dts
   /rm2fb.tar.gz:\${SHARUN_DIR}/share/rm-qemu/rm2fb.tar.gz
   /rm2fb.conf:\${SHARUN_DIR}/share/rm-qemu/rm2fb.conf
-  /etc/debian_version:\${SHARUN_DIR}/share/rm-qemu/debian_release
-  /etc/os-release:\${SHARUN_DIR}/share/rm-qemu/os-release
 ' \
 PATH_MAPPING_HARDCODED='
   libguestfs.so.0
@@ -43,6 +41,11 @@ mkdir -p $APPDIR/lib/x86_64-linux-gnu/guestfs
 cp -r \
   /lib/x86_64-linux-gnu/guestfs/. \
   "$APPDIR/lib/guestfs"
+# Manual patching
+_tmp_share=$(grep _tmp_share= "${APPDIR}/bin/path-mapping-hardcoded.src.hook" | cut -d'=' -f2)
+sed -i -e "s|/etc/os-release|/tmp/$_tmp_bin/rm-qemu/os-release|g" "${APPDIR}/shared/bin/supermin"
+sed -i -e "s|/etc/debian_version|/tmp/$_tmp_bin/rm-qemu/debian_version|g" "${APPDIR}/shared/bin/supermin"
+# Create AppImage
 APPDIR="${APPDIR}" \
   VERSION="kernel-${KERNEL}" \
   uruntime2appimage
