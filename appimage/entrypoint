@@ -21,7 +21,7 @@ PATH_MAPPING='
   /rm2fb.conf:\${SHARUN_DIR}/rm2fb.conf
 ' \
 quick-sharun \
-  /usr/bin/{qemu-{system-arm,img},ssh{,-keygen},guestfish,nclibguestfs-test-tool,supermin} \
+  /usr/bin/{qemu-{system-arm,img},ssh{,-keygen},guestfish,nc,libguestfs-test-tool,supermin} \
   /usr/local/bin/*
 cp \
   /{base.qcow2,dropbear.socket,qemu.dtb,zImage,rm2fb.{conf,tar.gz}} \
