@@ -12,33 +12,62 @@ STATEDIR=${STATEDIR:-/run/rm}
 mkdir -p $STATEDIR
 
 args=(
-  -machine mcimx7d-sabre
-  -cpu cortex-a9
-  -smp 2
-  -m 2048
-  -kernel "${ROOTDIR}/zImage"
-  -dtb "${ROOTDIR}/qemu.dtb"
-  -drive "if=sd,file=$(rm-image-path),format=qcow2,index=2"
-  -append "console=ttymxc0 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init"
-  -chardev socket,id=ssh,path=$STATEDIR/ssh,server=on,wait=off
-  -nic user,hostfwd=chardev:ssh:22,hostfwd=tcp::8888-:8888
-  -monitor unix:$STATEDIR/monitor,server=on,wait=off
+  -machine
+  mcimx7d-sabre
+  -cpu
+  cortex-a9
+  -smp
+  2
+  -m
+  2048
+  -kernel
+  "${ROOTDIR}/zImage"
+  -dtb
+  "${ROOTDIR}/qemu.dtb"
+  -drive
+  "if=sd,file=$(rm-image-path),format=qcow2,index=2"
+  -append
+  "console=ttymxc0 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init"
+  -chardev
+  socket,id=ssh,path=$STATEDIR/ssh,server=on,wait=off
+  -nic
+  user,hostfwd=tcp::${RM_SSH_PORT:-2222}-:22,hostfwd=tcp::8888-:8888
+  -monitor
+  unix:$STATEDIR/monitor,server=on,wait=off
 )
 paused=false
 if rm-is-paused; then
   paused=true
   args+=(-loadvm running)
 fi
-
+if [[ "$1" == "--verbose" ]];then
+  shift
+  print_args(){
+    echo "qemu-system-arm"
+    for a in "${args[@]}";do
+      echo " $a"
+    done
+  }
+else
+  print_args(){
+    :
+  }
+fi
 case "$1" in
 -D | --detached)
-  qemu-system-arm \
-    ${args[@]} \
-    -chardev socket,id=serial0,path=$STATEDIR/serial,server=on,wait=off \
-    -serial chardev:serial0 \
-    -parallel null \
-    -display none \
+  args+=(
+    -chardev
+    socket,id=serial0,path=$STATEDIR/serial,server=on,wait=off
+    -serial
+    chardev:serial0
+    -parallel
+    null
+    -display
+    none
     -daemonize
+  )
+  print_args
+  qemu-system-arm "${args[@]}"
   if $paused; then
     rm-monitor commit sd2
   fi
@@ -52,12 +81,11 @@ case "$1" in
       if [[ "$output" == "root@localhost: Permission denied (publickey)." ]];then
         echo "Error: Unable to connect with publickey." >/dev/stderr
         echo "  Please rm-monitor q && rm-ensure-ssh and then try again." >/dev/stderr
+        echo "$output" >/dev/stderr
         exit 1
       elif [[ "$output" == *"Segmentation fault"* ]] || [ $ret -eq 139 ];then
         echo "Error: ssh executable is broken." >/dev/stderr
-        exit 1
-      elif [ $ret -eq 255 ];then
-        echo "Error: rm-exec is failing to call ssh properly" >/dev/stderr
+        echo "$output" >/dev/stderr
         exit 1
       elif ! rm-is-running; then
         echo "Error: qemu is no longer running">/dev/stderr
@@ -74,13 +102,15 @@ case "$1" in
       rm-monitor commit sd2 || true
     } &
   fi
-  qemu-system-arm \
-    ${args[@]} \
-    -serial mon:stdio \
-    -nographic \
-    ${args[@]}
+  args+=(
+    -serial
+    mon:stdio
+    -nographic
+  )
+  print_args
+  qemu-system-arm "${args[@]}"
   ;;
 *)
-  echo "Usage: rm-start [-D|--detached] [--wait]" >/dev/stderr
+  echo "Usage: rm-start [--verbose] [-D|--detached  [--wait]]" >/dev/stderr
   ;;
 esac

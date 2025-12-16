@@ -1,7 +1,7 @@
 #!/bin/bash
 args=(
   -o StrictHostKeyChecking=no
-  -o "ProxyCommand nc -U ${STATEDIR:-/run/rm}/ssh"
+  -p ${RM_SSH_PORT:-2222}
 )
 if [[ "$RM_EXEC_ENABLED_PASSWORD" != "1" ]];then
   args+=(-o PasswordAuthentication=no)
