@@ -21,12 +21,38 @@ _tmp_bin=rm-qemu-bin \
 _tmp_lib=rm-qemu-lib \
 _tmp_share=rm-qemu-share \
 quick-sharun \
-  /usr/bin/ssh{,-keygen} \
   /usr/bin/{nc,rm2fb-emu}
 
-sed -i -e 's|_tmp_bin=""|_tmp_bin="rm-qemu-bin"|' "${APPDIR}/bin/path-mapping-hardcoded.src.hook"
-sed -i -e 's|_tmp_lib=""|_tmp_lib="rm-qemu-lib"|' "${APPDIR}/bin/path-mapping-hardcoded.src.hook"
-sed -i -e 's|_tmp_share=""|_tmp_share="rm-qemu-share"|' "${APPDIR}/bin/path-mapping-hardcoded.src.hook"
+_hook="${APPDIR}/bin/path-mapping-hardcoded.src.hook"
+if [ -f "$_hook" ];then
+  sed -i -e 's|_tmp_bin=""|_tmp_bin="rm-qemu-bin"|' "$_hook"
+  sed -i -e 's|_tmp_lib=""|_tmp_lib="rm-qemu-lib"|' "$_hook"
+  sed -i -e 's|_tmp_share=""|_tmp_share="rm-qemu-share"|' "$_hook"
+else
+  cat <<-'EOF' > "$_hook"
+  #!/bin/sh
+  _tmp_bin="rm-qemu-bin"
+  _tmp_lib="rm-qemu-lib"
+  _tmp_share="rm-qemu-share"
+
+  if ! command -v ln 1>/dev/null; then
+      >&2 echo "path-mapping-hardcoded: ERROR we cannot make symlinks"
+      >&2 echo "because command 'ln' is missing from the system! Aborting..."
+      exit 1
+  fi
+
+  if [ -n "$_tmp_bin" ]; then
+      ln -sfn "$APPDIR"/bin /tmp/"$_tmp_bin"
+  fi
+  if [ -n "$_tmp_lib" ]; then
+      ln -sfn "$APPDIR"/lib /tmp/"$_tmp_lib"
+  fi
+  if [ -n "$_tmp_share" ]; then
+      ln -sfn "$APPDIR"/share /tmp/"$_tmp_share"
+  fi
+EOF
+  chmod +x "$_hook"
+fi
 
 # Copy static files
 cp \

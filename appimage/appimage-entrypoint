@@ -25,6 +25,12 @@ fi
 if ! command -v qemu-system-arm >/dev/null; then
   errors+=("Unable to find qemu-system-arm command, please install qemu-system-arm")
 fi
+if ! command -v ssh >/dev/null; then
+  errors+=("Unable to find ssh command, please install ssh")
+fi
+if ! command -v ssh-keygen >/dev/null; then
+  errors+=("Unable to find ssh-keygen command, please install ssh")
+fi
 if [ ${#errors[@]} -gt 0 ];then
   echo "Errors found:"
   for e in "${errors[@]}";do

@@ -29,7 +29,8 @@ fi
 DATADIR="${DATADIR:-/data}"
 echo "Extracting image..." >/dev/stderr
 extracted=$(mktemp -d)/image
-trap 'rm -r $(dirname $extracted)' EXIT
+# Remove the extracted image when we are done
+trap "rm -r '$(dirname $extracted)'" EXIT
 codexctl extract --out "$extracted" "$image"
 rootfs="$DATADIR/$VERSION.qcow2"
 echo "Creating $VERSION.qcow2..." >/dev/stderr
@@ -41,6 +42,8 @@ qemu-img create \
   --options compression_type=zstd \
   "$rootfs" \
   8G
+# If we fail at this point, we
+trap "rm -r '$(dirname $extracted)' '${ROOTDIR}/base.qcow2'" EXIT
 popd >/dev/null
 echo "Initializing $VERSION.qcow2..." >/dev/stderr
 guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
@@ -48,6 +51,8 @@ run
 upload "$extracted" /dev/sda2
 upload "$extracted" /dev/sda3
 EOF
+rm -r "$(dirname $extracted)"
+trap "rm '${ROOTDIR}/base.qcow2'" EXIT
 for dev in 2 3; do
   echo "Setting up mmcblk2p$dev partition..." >/dev/stderr
   guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
@@ -121,5 +126,6 @@ rm-exec <<EOT
   echo "Setting up mmcblk2p4 partition..." >/dev/stderr
   mkfs.ext4 -E nodiscard /dev/mmcblk2p4
 EOT
+trap - EXIT
 rm-stop --wait
 shrink-image "$rootfs"

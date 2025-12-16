@@ -51,6 +51,10 @@ case "$1" in
         echo "  Please rm-monitor q && rm-ensure-ssh and then try again." >/dev/stderr
         exit 1
       fi
+      if [[ "$output" == *"Segmentation fault"* ]] || [ $ret -eq 139 ];then
+        echo "Error: ssh executable is broken." >/dev/stderr
+        exit 1
+      fi
       sleep 1
     done
   fi
