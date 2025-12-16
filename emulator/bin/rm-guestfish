@@ -21,4 +21,4 @@ EOF
 } \
 | exec guestfish --rw \
   --blocksize=512 \
-  --add "${STATEDIR}/rootfs.qcow2"
+  --add "$(rm-image-path)"

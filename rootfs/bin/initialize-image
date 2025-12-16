@@ -33,13 +33,10 @@ trap 'rm -r $(dirname $extracted)' EXIT
 codexctl extract --out "$extracted" "$image"
 rootfs="$DATADIR/$VERSION.qcow2"
 echo "Creating $VERSION.qcow2..." >/dev/stderr
-if [ ! -f "$DATADIR/base.qcow2" ];then
-  cp "${ROOTDIR}/base.qcow2" "$DATADIR"
-fi
 pushd $DATADIR >/dev/null
 qemu-img create \
   --format qcow2 \
-  --backing base.qcow2 \
+  --backing "${ROOTDIR}/base.qcow2" \
   --backing-format qcow2 \
   --options compression_type=zstd \
   "$rootfs" \
@@ -102,7 +99,7 @@ EOF
   fi
 done
 if [ -f "${STATEDIR}/rootfs.qcow2" ];then
-  previous=$(readlink "${STATEDIR}/rootfs.qcow2")
+  previous="$(rm-image-path)"
   trap "ln -sf '$previous' '${STATEDIR}/rootfs.qcow2'" EXIT
 fi
 ln -sf "$rootfs" "${STATEDIR}/rootfs.qcow2"

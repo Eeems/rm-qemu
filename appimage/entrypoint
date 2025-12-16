@@ -3,55 +3,39 @@ set -e
 KERNEL=${KERNEL:?KERNEL environment variable must be specified}
 APPDIR="rm-qemu.AppDir"
 rm -rf "${APPDIR}"
+
+# Copy initial files
 mkdir -p \
   "${APPDIR}/bin" \
   "$APPDIR/share/rm-qemu"
 cp \
   appimage-entrypoint \
-  /usr/local/bin/* \
   "${APPDIR}/bin"
+
+# Import some helper programs that can be run with sharun
 APPDIR="${APPDIR}" \
 DESKTOP="rm-qemu.desktop" \
 ICON=rm-qemu.png \
 MAIN_BIN=appimage-entrypoint \
-PATH_MAPPING='
-  /usr/bin/supermin:\${SHARUN_DIR}/bin/supermin
-  /lib/x86_64-linux-gnu/guestfs/:\${SHARUN_DIR}/lib/guestfs
-  /base.qcow2:\${SHARUN_DIR}/share/rm-qemu/base.qcow2
-  /dropbear.socket:\${SHARUN_DIR}/share/rm-qemu/dropbear.socket
-  /zImage:\${SHARUN_DIR}/share/rm-qemu/zImage
-  /qemu.dts:\${SHARUN_DIR}/share/rm-qemu/qemu.dts
-  /rm2fb.tar.gz:\${SHARUN_DIR}/share/rm-qemu/rm2fb.tar.gz
-  /rm2fb.conf:\${SHARUN_DIR}/share/rm-qemu/rm2fb.conf
-' \
-PATH_MAPPING_HARDCODED='
-  libguestfs.so.0
-  supermin
-' \
 _tmp_bin=rm-qemu-bin \
 _tmp_lib=rm-qemu-lib \
 _tmp_share=rm-qemu-share \
 quick-sharun \
-  /usr/bin/qemu-{system-arm,img} \
   /usr/bin/ssh{,-keygen} \
-  /usr/bin/{nc,apt,rm2fb-emu} \
-  /usr/bin/{guestfish,libguestfs-test-tool,supermin} \
-  /usr/bin/{apt-get,dpkg,dpkg-{deb,query,divert}}
+  /usr/bin/{nc,rm2fb-emu}
+
+sed -i -e 's|_tmp_bin=""|_tmp_bin="rm-qemu-bin"|' "${APPDIR}/bin/path-mapping-hardcoded.src.hook"
+sed -i -e 's|_tmp_lib=""|_tmp_lib="rm-qemu-lib"|' "${APPDIR}/bin/path-mapping-hardcoded.src.hook"
+sed -i -e 's|_tmp_share=""|_tmp_share="rm-qemu-share"|' "${APPDIR}/bin/path-mapping-hardcoded.src.hook"
+
+# Copy static files
 cp \
   /{base.qcow2,dropbear.socket,qemu.dtb,zImage,rm2fb.{conf,tar.gz}} \
-  /etc/{os-release,debian_version} \
   "$APPDIR/share/rm-qemu"
-mkdir -p $APPDIR/lib/x86_64-linux-gnu/guestfs
-cp -r \
-  /lib/x86_64-linux-gnu/guestfs/. \
-  "$APPDIR/lib/guestfs"
-# Manual patching
-sed -i \
-  -e "s|/etc/os-release|/tmp/${_tmp_share:?}/rm-qemu/os-release|g" \
-  "${APPDIR}/shared/bin/supermin"
-sed -i \
-  -e "s|/etc/debian_version|/tmp/${_tmp_share:?}/rm-qemu/debian_version|g" \
-  "${APPDIR}/shared/bin/supermin"
+cp \
+  /usr/local/bin/* \
+  "${APPDIR}/bin"
+
 # Create AppImage
 APPDIR="${APPDIR}" \
   VERSION="kernel-${KERNEL}" \

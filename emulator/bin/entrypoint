@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 if [ "$#" -eq 1 ] && [[ "$1" == "--shell" ]]; then
     exec bash -l
 fi
@@ -17,23 +18,23 @@ if [ "$#" -eq 1 ] && [[ "$1" == "--help" ]]; then
 fi
 VERSION=$1
 shift
-if ! [ -f "${DATADIR:-/data}/${VERSION}.qcow2" ]; then
+VERSION_IMAGE="${DATADIR:-/data}/${VERSION}.qcow2"
+if ! [ -f "$VERSION_IMAGE" ]; then
     initialize-image "$VERSION"
 fi
-if ! [ -f "${DATADIR:-/data}/rootfs-$VERSION.qcow2" ]; then
+IMAGE="${DATADIR:-/data}/rootfs-$VERSION.qcow2"
+if ! [ -f "$IMAGE" ]; then
     pushd "${DATADIR:-/data}" >/dev/null
     qemu-img create \
       --format qcow2 \
-      --backing "${VERSION}.qcow2" \
+      --backing "$VERSION_IMAGE" \
       --backing-format qcow2 \
       --options compression_type=zstd \
-      "${DATADIR:-/data}/rootfs-$VERSION.qcow2" \
+      "$IMAGE" \
       8G
     popd >/dev/null
 fi
-ln -sf \
-    "${DATADIR:-/data}/rootfs-$VERSION.qcow2" \
-    "${STATEDIR}/rootfs.qcow2"
+ln -sf "$IMAGE" "${STATEDIR}/rootfs.qcow2"
 rm-ensure-ssh
 if [ "$#" -eq 1 ] && [[ "$1" == "--serial" ]]; then
     exec rm-start
@@ -55,7 +56,7 @@ fi
 if ! $pause;then
     echo "Stopping..." >/dev/stderr
     rm-stop --wait
-    shrink-image "${STATEDIR}/rootfs.qcow2"
+    shrink-image "$(rm-image-path)"
 else
     echo "Pausing..." >/dev/stderr
     rm-pause

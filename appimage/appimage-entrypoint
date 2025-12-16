@@ -1,15 +1,35 @@
 #!/bin/bash
 set -e
 _D="$(dirname "$(dirname "$(readlink -f "${0}")")")"
-export ROOTDIR="$_D/share/rm-qemu"
+export ROOTDIR="/tmp/rm-qemu-share/rm-qemu"
 export DATADIR="$HOME/.local/share/rm-qemu"
 export CACHEDIR="$HOME/.cache/rm-qemu/cache"
 export STATEDIR="$HOME/.cache/rm-qemu/state"
 export SSH_PORT=2222
-export LIBGUESTFS_PATH="$_D/lib/guestfs"
 mkdir -p "$DATADIR" "$CACHEDIR" "$STATEDIR"
+export PATH="$_D/bin:${PATH}"
 if [ $# -eq 1 ] && [[ "$1" == "--debug" ]];then
   cd "$_D"
   exec bash -l
+fi
+errors=()
+if ! command -v guestfish >/dev/null; then
+  errors+=("Unable to find guestfish command, please install libguestfs")
+fi
+if ! command -v qemu-img >/dev/null; then
+  errors+=("Unable to find qemu-img command, please install qemu-img")
+fi
+if ! command -v supermin >/dev/null; then
+  errors+=("Unable to find supermin command, please install supermin")
+fi
+if ! command -v qemu-system-arm >/dev/null; then
+  errors+=("Unable to find qemu-system-arm command, please install qemu-system-arm")
+fi
+if [ ${#errors[@]} -gt 0 ];then
+  echo "Errors found:"
+  for e in "${errors[@]}";do
+    echo "  $e"
+  done
+  exit 1
 fi
 exec entrypoint "$@"
