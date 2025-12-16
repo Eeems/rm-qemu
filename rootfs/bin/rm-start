@@ -6,36 +6,37 @@ if rm-is-running; then
   exit 1
 fi
 
-args=""
-paused=false
-if rm-is-paused; then
-  paused=true
-  args="-loadvm running"
-fi
-
 STATEDIR=${STATEDIR:-/run/rm}
 mkdir -p $STATEDIR
 
-RM_SSH_PORT=${RM_SSH_PORT:-22}
+args=(
+  -machine mcimx7d-sabre
+  -cpu cortex-a9
+  -smp 2
+  -m 2048
+  -kernel "${ROOTDIR}/zImage"
+  -dtb "${ROOTDIR}/qemu.dtb"
+  -drive "if=sd,file=${STATEDIR}/rootfs.qcow2,format=qcow2,index=2"
+  -append "console=ttymxc0 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init"
+  -chardev socket,id=ssh,path=$STATEDIR/ssh,server=on,wait=off
+  -nic user,hostfwd=chardev:ssh:22,hostfwd=tcp::8888-:8888
+  -monitor unix:$STATEDIR/monitor,server=on,wait=off
+)
+paused=false
+if rm-is-paused; then
+  paused=true
+  args+=(-loadvm running)
+fi
+
 case "$1" in
 -D | --detached)
   qemu-system-arm \
-    -machine mcimx7d-sabre \
-    -cpu cortex-a9 \
-    -smp 2 \
-    -m 2048 \
-    -kernel "${ROOTDIR}/zImage" \
-    -dtb "${ROOTDIR}/qemu.dtb" \
-    -drive "if=sd,file=${STATEDIR}/rootfs.qcow2,format=qcow2,index=2" \
-    -append "console=ttymxc0 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init" \
-    -nic user,hostfwd=tcp::${RM_SSH_PORT}-:${RM_SSH_PORT},hostfwd=tcp::8888-:8888 \
-    -monitor unix:$STATEDIR/monitor,server=on,wait=off \
+    ${args[@]} \
     -chardev socket,id=serial0,path=$STATEDIR/serial,server=on,wait=off \
     -serial chardev:serial0 \
     -parallel null \
     -display none \
-    -daemonize \
-    "$args"
+    -daemonize
   if $paused; then
     rm-monitor commit sd2
   fi
@@ -72,19 +73,10 @@ case "$1" in
     } &
   fi
   qemu-system-arm \
-    -machine mcimx7d-sabre \
-    -cpu cortex-a9 \
-    -smp 2 \
-    -m 2048 \
-    -kernel "${ROOTDIR}/zImage" \
-    -dtb "${ROOTDIR}/qemu.dtb" \
-    -drive "if=sd,file=${STATEDIR}/rootfs.qcow2,format=qcow2,index=2" \
-    -append "console=ttymxc0,115200 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init" \
-    -nic user,hostfwd=tcp::${RM_SSH_PORT}-:${RM_SSH_PORT},hostfwd=tcp::8888-:8888 \
-    -monitor unix:$STATEDIR/monitor,server=on,wait=off \
+    ${args[@]} \
     -serial mon:stdio \
     -nographic \
-    "$args"
+    ${args[@]}
   ;;
 *)
   echo "Usage: rm-start [-D|--detached] [--wait]" >/dev/stderr

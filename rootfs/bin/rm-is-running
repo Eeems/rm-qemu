@@ -21,5 +21,7 @@ if [ $# -eq 1 ]; then
 elif [ $# -gt 1 ]; then
   rm-is-running --help
   exit 1
+elif ! rm-image-path >/dev/null; then
+  exit 1
 fi
 exec killall -0 qemu-system-arm 2> /dev/null

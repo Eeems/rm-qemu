@@ -105,7 +105,7 @@ EOF
 done
 if [ -f "${STATEDIR}/rootfs.qcow2" ];then
   previous="$(rm-image-path)"
-  trap "rm '${rootfs}'; ln -sf '$previous' '${STATEDIR}/rootfs.qcow2'" EXIT
+  trap "rm '${rootfs}'; ln -sf '${previous}' '${STATEDIR}/rootfs.qcow2'" EXIT
 fi
 ln -sf "$rootfs" "${STATEDIR}/rootfs.qcow2"
 
