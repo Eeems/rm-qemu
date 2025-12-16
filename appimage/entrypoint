@@ -20,6 +20,9 @@ PATH_MAPPING='
   /rm2fb.tar.gz:\${SHARUN_DIR}/rm2fb.tar.gz
   /rm2fb.conf:\${SHARUN_DIR}/rm2fb.conf
 ' \
+PATH_MAPPING_HARDCODED='
+  libguestfs.so.0
+' \
 quick-sharun \
   /usr/bin/{qemu-{system-arm,img},ssh{,-keygen},guestfish,nc,libguestfs-test-tool,supermin} \
   /usr/local/bin/*
