@@ -1,0 +1,20 @@
+ARG HASH
+
+FROM ghcr.io/eeems/arkes-builder:master
+
+ENV DEBIAN_FRONTEND="noninteractive"
+
+RUN apt-get update \
+  && apt-get dist-upgrade -y --no-install-recommends \
+  && apt-get install -y --no-install-recommends \
+  qemu-utils \
+  guestfish \
+  supermin \
+  linux-image-generic \
+  libguestfs-tools \
+  ssh \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+ARG HASH
+LABEL hash="${HASH:?Hash missing}"
