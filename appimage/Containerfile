@@ -35,7 +35,8 @@ RUN <<EOT
   chmod +x /usr/bin/uruntime2appimage
 EOT
 
-COPY bin/* /usr/bin
+COPY entrypoint /usr/bin
+COPY bin/* /usr/local/bin
 
 ENTRYPOINT [ "/usr/bin/entrypoint" ]
 

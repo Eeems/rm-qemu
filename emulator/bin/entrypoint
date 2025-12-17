@@ -18,33 +18,12 @@ if [ "$#" -eq 1 ] && [[ "$1" == "--help" ]]; then
     echo "$usage"
     exit
 fi
-VERSION=$1
+rm-select "$1"
 shift
-echo "Ensuring image is in a good state..."
-rm-ensure-image "$VERSION" || true
-VERSION_IMAGE="${DATADIR:-/data}/${VERSION}.qcow2"
-if ! [ -f "$VERSION_IMAGE" ]; then
-    echo "Creating base $VERSION image..."
-    initialize-image "$VERSION"
-fi
-IMAGE="${DATADIR:-/data}/rootfs-$VERSION.qcow2"
-if ! [ -f "$IMAGE" ]; then
-    echo "Creating rootfs image..."
-    pushd "${DATADIR:-/data}" >/dev/null
-    qemu-img create \
-        --format qcow2 \
-        --backing "$VERSION_IMAGE" \
-        --backing-format qcow2 \
-        --options compression_type=zstd \
-        "$IMAGE" \
-        8G
-    popd >/dev/null
-fi
-ln -sf "$IMAGE" "${STATEDIR}/rootfs.qcow2"
 echo "Ensuring SSH key is configured..."
 rm-ensure-ssh
 if [ "$#" -eq 1 ] && [[ "$1" == "--serial" ]]; then
-    exec rm-start
+    exec rm-start </dev/stdin >/dev/stdout 2>/dev/stderr
 fi
 pause=false
 if [ "$#" -ge 1 ] && [[ "$1" == "--pause" ]]; then
@@ -55,7 +34,7 @@ trap 'rm-pause || true' EXIT
 rm-start --detached --wait
 if [ "$#" -eq 0 ]; then
     echo "Started!" >/dev/stderr
-    rm-exec
+    rm-exec </dev/stdin >/dev/stdout 2>/dev/stderr
 elif [ "$#" -eq 1 ] && [[ "$1" == "--display" ]]; then
     rm2fb-emu 127.0.0.1 "${RM_EMU_PORT:-8888}"
 else

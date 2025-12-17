@@ -12,7 +12,7 @@ export RM_EMU_PORT=${RM_EMU_PORT:-$(get-free-port)}
 export RM_SSH_PORT=${RM_SSH_PORT:-$(get-free-port "${RM_EMU_PORT}")}
 if [ $# -eq 1 ] && [[ "$1" == "--debug" ]]; then
   cd "$_D"
-  exec bash -l
+  exec bash -l </dev/stdin >/dev/stdout 2>/dev/stderr
 fi
 errors=()
 if ! command -v guestfish >/dev/null; then
@@ -40,4 +40,4 @@ if [ ${#errors[@]} -gt 0 ]; then
   done
   exit 1
 fi
-exec entrypoint "$@"
+exec entrypoint "$@" </dev/stdin >/dev/stdout 2>/dev/stderr

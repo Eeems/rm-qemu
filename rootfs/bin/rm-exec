@@ -4,6 +4,11 @@ args=(
   -o WarnWeakCrypto=no
   -p "${RM_SSH_PORT:-2222}"
 )
+if [ -t 0 ]; then
+  args+=(-t)
+else
+  args+=(-T)
+fi
 if [[ "$RM_EXEC_ENABLED_PASSWORD" != "1" ]]; then
   args+=(-o PasswordAuthentication=no)
 fi
@@ -15,4 +20,4 @@ if [ "$#" -ne 0 ]; then
     "'$*'"
   )
 fi
-exec ssh "${args[@]}"
+exec ssh "${args[@]}" </dev/stdin >/dev/stdout 2>/dev/stderr
