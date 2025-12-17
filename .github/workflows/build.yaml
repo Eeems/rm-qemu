@@ -64,6 +64,8 @@ jobs:
           fi
           echo "TMPDIR=${{ runner.temp }}" >> "$GITHUB_ENV"
           ln -s /__w /home/runner/work
+          mkdir /github/home/.ssh
+          chmod 600 /github/home/.ssh
       - name: Login to ghcr
         uses: redhat-actions/podman-login@v1
         with:
