@@ -115,21 +115,23 @@ RM_EXEC_ENABLED_PASSWORD=1 \
 rm-start --detached --wait
 
 RM_EXEC_ENABLED_PASSWORD=1 \
+echo "Finalizing mmcblk2p2..." >/dev/stderr
 rm-exec <<EOT
   set -e
-  echo "Finalizing mmcblk2p2..." >/dev/stderr
   tar xzhf /rm2fb.tar.gz -C /
   sed -i 's|#/dev/mmcblk2p4|/dev/mmcblk2p4|' /etc/fstab
   rm /etc/systemd/system/xochitl.service
-
-  echo "Finalizing mmcblk2p3..." >/dev/stderr
+EOT
+echo "Finalizing mmcblk2p3..." >/dev/stderr
+rm-exec <<EOT
   mount /dev/mmcblk2p3 /mnt
   sed -i 's|#/dev/mmcblk2p4|/dev/mmcblk2p4|' /mnt/etc/fstab
   rm /mnt/etc/systemd/system/xochitl.service
   tar xzhf /rm2fb.tar.gz -C /mnt
   umount /mnt
-
-  echo "Setting up mmcblk2p4 partition..." >/dev/stderr
+EOT
+echo "Setting up mmcblk2p4 partition..." >/dev/stderr
+rm-exec <<EOT
   mkfs.ext4 -E nodiscard /dev/mmcblk2p4
 EOT
 trap - EXIT

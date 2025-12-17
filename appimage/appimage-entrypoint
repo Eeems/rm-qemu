@@ -30,6 +30,9 @@ fi
 if ! command -v ssh-keygen >/dev/null; then
   errors+=("Unable to find ssh-keygen command, please install ssh")
 fi
+if ! command -v pidof >/dev/null; then
+  errors+=("Unable to find pidof command, please install pidof")
+fi
 if [ ${#errors[@]} -gt 0 ];then
   echo "Errors found:"
   for e in "${errors[@]}";do

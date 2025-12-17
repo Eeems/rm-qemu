@@ -21,7 +21,17 @@ if [ $# -eq 1 ]; then
 elif [ $# -gt 1 ]; then
   rm-is-running --help
   exit 1
-elif ! rm-image-path >/dev/null; then
+elif ! rm-image-path &>/dev/null; then
   exit 1
 fi
-exec killall -0 qemu-system-arm 2> /dev/null
+if ! killall -0 qemu-system-arm 2> /dev/null;then
+  exit
+fi
+image=$(rm-image-path)
+for pid in "$(pidof qemu-system-arm)";then
+  for l in /proc/"$pid"/fd/*;do
+    if [[ "$(readlink "$l")" == "$image" ]]; then
+      exit 1
+    fi
+  done
+fi
