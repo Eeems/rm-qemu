@@ -57,7 +57,7 @@ jobs:
           mv /tmp/resolv.conf /tmp/hosts /tmp/hostname /etc/
           git config --global --add safe.directory $(pwd)
           mkdir -p /github/home/.docker /home/runner
-          if [ ! -f /etc/containers/seccomp.json ];then
+          if [ -f seccomp.json ] && [ ! -f /etc/containers/seccomp.json ];then
             cp seccomp.json /etc/containers/seccomp.json
           fi
           if ! [ -f /github/home/.docker/config.json ];then
