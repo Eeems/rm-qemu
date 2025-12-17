@@ -46,6 +46,9 @@ trap - EXIT
 if ! $pause; then
     echo "Stopping..." >/dev/stderr
     rm-stop --wait
+    if rm-has-snapshot running; then
+        rm-commit running
+    fi
     shrink-image "$(rm-image-path)"
 else
     echo "Pausing..." >/dev/stderr
