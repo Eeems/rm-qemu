@@ -61,7 +61,6 @@ cp -r \
   "$APPDIR/share/rm-qemu"
 cp \
   /usr/local/bin/* \
-  /usr/bin/get-free-port \
   "${APPDIR}/bin"
 
 # Create AppImage
