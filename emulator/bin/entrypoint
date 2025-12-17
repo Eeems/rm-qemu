@@ -20,13 +20,16 @@ if [ "$#" -eq 1 ] && [[ "$1" == "--help" ]]; then
 fi
 VERSION=$1
 shift
+echo "Ensuring image is in a good state..."
 rm-ensure-image "$VERSION" || true
 VERSION_IMAGE="${DATADIR:-/data}/${VERSION}.qcow2"
 if ! [ -f "$VERSION_IMAGE" ]; then
+    echo "Creating base $VERSION image..."
     initialize-image "$VERSION"
 fi
 IMAGE="${DATADIR:-/data}/rootfs-$VERSION.qcow2"
 if ! [ -f "$IMAGE" ]; then
+    echo "Creating rootfs image..."
     pushd "${DATADIR:-/data}" >/dev/null
     qemu-img create \
       --format qcow2 \
@@ -38,6 +41,7 @@ if ! [ -f "$IMAGE" ]; then
     popd >/dev/null
 fi
 ln -sf "$IMAGE" "${STATEDIR}/rootfs.qcow2"
+echo "Ensuring SSH key is configured..."
 rm-ensure-ssh
 if [ "$#" -eq 1 ] && [[ "$1" == "--serial" ]]; then
     exec rm-start

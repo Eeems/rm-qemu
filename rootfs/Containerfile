@@ -127,7 +127,7 @@ RUN <<EOT
   rm -rf build
 EOT
 
-FROM debian:12-slim as guestfs
+FROM debian:13-slim as guestfs
 
 RUN <<EOT
   set -e
@@ -135,7 +135,10 @@ RUN <<EOT
   apt-get update
   apt-get dist-upgrade -y --no-install-recommends
   apt-get install -y --no-install-recommends \
-    guestfs-tools
+    qemu-utils \
+    guestfish \
+    supermin \
+    linux-image-amd64
   apt-get autoremove -y
   apt-get clean
   rm -rf /var/lib/apt/lists/*
@@ -143,9 +146,11 @@ EOT
 
 FROM guestfs AS base
 
-COPY bin/shrink-image /usr/local/bin/
-COPY bin/rm-is-running /usr/local/bin/
-COPY bin/rm-image-path /usr/local/bin/
+COPY \
+  bin/shrink-image \
+  bin/rm-is-running \
+  bin/rm-image-path \
+  /usr/local/bin/
 
 RUN <<EOT
   set -e
@@ -179,7 +184,6 @@ RUN <<EOT
   apt-get dist-upgrade -y --no-install-recommends
   apt-get install -y --no-install-recommends \
     qemu-system-arm \
-    qemu-utils \
     ssh \
     netcat-openbsd \
     libevdev2 \
