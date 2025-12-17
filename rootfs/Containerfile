@@ -136,21 +136,7 @@ RUN <<EOT
   apt-get dist-upgrade -y --no-install-recommends
   apt-get install -y --no-install-recommends \
     qemu-utils \
-    guestfish
-  apt-get autoremove -y
-  apt-get clean
-  rm -rf /var/lib/apt/lists/*
-EOT
-
-FROM guestfs as appliance
-
-RUN <<EOT
-  set -e
-  export DEBIAN_FRONTEND="noninteractive"
-  apt-get update
-  apt-get dist-upgrade -y --no-install-recommends
-  apt-get install -y --no-install-recommends \
-    supermin \
+    guestfish \
     linux-image-amd64 \
     libguestfs-tools
   apt-get autoremove -y
@@ -158,13 +144,7 @@ RUN <<EOT
   rm -rf /var/lib/apt/lists/*
 EOT
 
-RUN libguestfs-make-fixed-appliance /appliance
-
 FROM guestfs AS base
-
-COPY --from=appliance /appliance /appliance
-
-ENV LIBGUESTFS_PATH=/appliance
 
 COPY \
   bin/shrink-image \
@@ -179,7 +159,7 @@ RUN <<EOT
     --options compression_type=zstd \
     /base.qcow2 \
     8G
-  guestfish --rw --blocksize=512 --add /base.qcow2 <<EOF
+    guestfish --rw --blocksize=512 --add /base.qcow2 <<EOF
   run
 
   part-init /dev/sda mbr
@@ -216,8 +196,6 @@ EOT
 
 ARG KERNEL
 
-COPY --from=appliance /appliance /appliance
-ENV LIBGUESTFS_PATH=/appliance
 COPY --from=ghcr.io/eeems/rm-qemu-kernel:${KERNEL} zImage qemu.dtb /
 COPY --from=base /base.qcow2 /
 COPY --from=codexctl codexctl /usr/local/bin

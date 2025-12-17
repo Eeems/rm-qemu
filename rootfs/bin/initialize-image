@@ -87,7 +87,7 @@ EOF
       upload ${ROOTDIR}/dropbear.socket /lib/systemd/system/dropbear.socket
       ln-s /lib/systemd/system/dropbear.socket /etc/systemd/system/sockets.target.wants/dropbear.socket
 EOF
-  elif ! version-test "$VERSION" -ge 3.13.0.0; then
+  elif version-test "$VERSION" -lt 3.13.0.0; then
     echo "Patching dhcpcd.service..." >/dev/stderr
     guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
       run
@@ -137,7 +137,6 @@ echo "Setting up mmcblk2p4 partition..." >/dev/stderr
 rm-exec <<EOT
   mkfs.ext4 -E nodiscard /dev/mmcblk2p4
 EOT
-
 trap - EXIT
 rm-stop --wait
 shrink-image "$rootfs"

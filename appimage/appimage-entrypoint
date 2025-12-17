@@ -7,7 +7,6 @@ export CACHEDIR="$HOME/.cache/rm-qemu/cache"
 export STATEDIR="$HOME/.cache/rm-qemu/state"
 mkdir -p "$DATADIR" "$CACHEDIR" "$STATEDIR"
 export PATH="$_D/bin:${PATH}"
-export LIBGUESTFS_PATH="$ROOTDIR/appliance"
 export RM_EMU_PORT=${RM_EMU_PORT:-$(get-free-port)}
 export RM_SSH_PORT=${RM_SSH_PORT:-$(get-free-port "${RM_EMU_PORT}")}
 if [ $# -eq 1 ] && [[ "$1" == "--debug" ]]; then

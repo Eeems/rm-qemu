@@ -57,7 +57,6 @@ fi
 # Copy static files
 cp -r \
   /{base.qcow2,dropbear.socket,qemu.dtb,zImage,rm2fb.{conf,tar.gz}} \
-  "$LIBGUESTFS_PATH" \
   "$APPDIR/share/rm-qemu"
 cp \
   /usr/local/bin/* \

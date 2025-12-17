@@ -1,24 +1,27 @@
 #!/bin/sh
 set -e
-if [ $# -ne 0 ];then
+if [ $# -ne 0 ]; then
   echo "Usage: rm-guestfish <<EOF" >/dev/stderr
   echo "  ln-s /dev/null /etc/systemd/system/xochitl.service" >/dev/stderr
   echo "EOF" >/dev/stderr
+  echo "  mmcblk2p2 is mounted to /" >/dev/stderr
+  echo "  mmcblk2p3 is mounted to /mnt" >/dev/stderr
+  echo "  mmcblk2p4 is mounted to /home" >/dev/stderr
   exit 1
 fi
-if rm-is-running;then
+if rm-is-running; then
   echo "Error: rm is running" >/dev/stderr
   exit 1
 fi
 {
-  cat << EOF
+  cat <<EOF
   run
   mount /dev/sda2 /
   mount /dev/sda3 /mnt
   mount /dev/sda4 /home
 EOF
   cat
-} \
-| exec guestfish --rw \
-  --blocksize=512 \
-  --add "$(rm-image-path)"
+} |
+  exec guestfish --rw \
+    --blocksize=512 \
+    --add "$(rm-image-path)"
