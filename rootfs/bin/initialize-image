@@ -1,15 +1,16 @@
 #!/bin/bash
 set -e
 VERSION="${1:?Usage: initialize-image <version>}"
+DATADIR="${DATADIR:-/data}"
 
-if rm-is-running; then
-  echo "Error: rm is running"
-  exit 1
+if rm-is-running && rm-image-path 2>/dev/null && [[ "$DATADIR/rootfs-$VERSION.qcow2" == "$(rm-image-path)" ]]; then
+  echo "Image is in use" >/dev/stderr
+  exit
 fi
 
 CACHEDIR="${CACHEDIR:-/cache}"
-mkdir -p "$CACHEDIR"
 image="$CACHEDIR/$VERSION"
+mkdir -p "$CACHEDIR"
 if ! [ -f "$image" ]; then
   echo "Downloading update image..." >/dev/stderr
   download=$(mktemp -d)
@@ -19,7 +20,6 @@ if ! [ -f "$image" ]; then
   trap - EXIT
   rmdir "$download"
 fi
-DATADIR="${DATADIR:-/data}"
 echo "Extracting image..." >/dev/stderr
 extracted=$(mktemp -d)/image
 # Remove the extracted image when we are done

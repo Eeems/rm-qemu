@@ -10,6 +10,7 @@ endif
 
 TAG := ghcr.io/eeems/rm-qemu-appimage-builder:kernel-${KERNEL}
 OBJ := $(shell { git ls-files --other --exclude-standard;git ls-files --no-others --exclude-standard; } | uniq | sort)
+OTHEROBJ := $(shell { git ls-files --other --exclude-standard ../{rootfs,emulator}/bin;git ls-files --no-others --exclude-standard ../{rootfs,emulator}/bin; } | uniq | sort)
 
 all: image rm-qemu-kernel-${KERNEL}-anylinux-x86_64.AppImage
 
