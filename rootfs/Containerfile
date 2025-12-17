@@ -19,6 +19,7 @@ RUN bash -e <<EOT
     xxd \
     git \
     git-lfs
+  apt-get autoremove -y
   apt-get clean
   rm -rf /var/lib/apt/lists/*
 EOT
@@ -112,6 +113,7 @@ RUN bash -e <<EOT
     libevdev-dev \
     libsystemd-dev \
     libclang-rt-14-dev
+  apt-get autoremove -y
   apt-get clean
   rm -rf /var/lib/apt/lists/*
 EOT
@@ -125,8 +127,21 @@ RUN <<EOT
   rm -rf build
 EOT
 
+FROM debian:12-slim as guestfs
 
-FROM linuxkit/guestfs:8efdfac678bd6c621d3ccf916d70707ae09470f9 AS base
+RUN <<EOT
+  set -e
+  export DEBIAN_FRONTEND="noninteractive"
+  apt-get update
+  apt-get dist-upgrade -y --no-install-recommends
+  apt-get install -y --no-install-recommends \
+    guestfs-tools
+  apt-get autoremove -y
+  apt-get clean
+  rm -rf /var/lib/apt/lists/*
+EOT
+
+FROM guestfs AS base
 
 COPY bin/shrink-image /usr/local/bin/
 COPY bin/rm-is-running /usr/local/bin/
@@ -155,7 +170,7 @@ EOF
   shrink-image /base.qcow2
 EOT
 
-FROM linuxkit/guestfs:8efdfac678bd6c621d3ccf916d70707ae09470f9
+FROM guestfs
 
 RUN <<EOT
   set -e
@@ -169,6 +184,7 @@ RUN <<EOT
     netcat-openbsd \
     libevdev2 \
     libsdl2-2.0-0
+  apt-get autoremove -y
   apt-get clean
   rm -rf /var/lib/apt/lists/*
 EOT
