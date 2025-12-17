@@ -136,15 +136,35 @@ RUN <<EOT
   apt-get dist-upgrade -y --no-install-recommends
   apt-get install -y --no-install-recommends \
     qemu-utils \
-    guestfish \
-    supermin \
-    linux-image-amd64
+    guestfish
   apt-get autoremove -y
   apt-get clean
   rm -rf /var/lib/apt/lists/*
 EOT
 
+FROM guestfs as appliance
+
+RUN <<EOT
+  set -e
+  export DEBIAN_FRONTEND="noninteractive"
+  apt-get update
+  apt-get dist-upgrade -y --no-install-recommends
+  apt-get install -y --no-install-recommends \
+    supermin \
+    linux-image-amd64 \
+    libguestfs-tools
+  apt-get autoremove -y
+  apt-get clean
+  rm -rf /var/lib/apt/lists/*
+EOT
+
+RUN libguestfs-make-fixed-appliance /appliance
+
 FROM guestfs AS base
+
+COPY --from=appliance /appliance /appliance
+
+ENV LIBGUESTFS_PATH=/appliance
 
 COPY \
   bin/shrink-image \
@@ -195,6 +215,8 @@ EOT
 
 ARG KERNEL
 
+COPY --from=appliance /appliance /appliance
+ENV LIBGUESTFS_PATH=/appliance
 COPY --from=ghcr.io/eeems/rm-qemu-kernel:${KERNEL} zImage qemu.dtb /
 COPY --from=base /base.qcow2 /
 COPY --from=codexctl codexctl /usr/local/bin
@@ -203,6 +225,7 @@ COPY --from=rm2fb-host /rm2fb-emu /usr/bin
 COPY bin/* /usr/local/bin/
 COPY dropbear.socket /
 COPY rm2fb.conf /
+
 
 ARG HASH
 LABEL hash="${HASH:?Hash missing}"

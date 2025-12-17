@@ -7,6 +7,7 @@ export CACHEDIR="$HOME/.cache/rm-qemu/cache"
 export STATEDIR="$HOME/.cache/rm-qemu/state"
 mkdir -p "$DATADIR" "$CACHEDIR" "$STATEDIR"
 export PATH="$_D/bin:${PATH}"
+export LIBGUESTFS_PATH="$ROOTDIR/appliance"
 if [ $# -eq 1 ] && [[ "$1" == "--debug" ]];then
   cd "$_D"
   exec bash -l
