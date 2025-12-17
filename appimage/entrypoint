@@ -21,7 +21,7 @@ APPDIR="${APPDIR}" \
   _tmp_lib=rm-qemu-lib \
   _tmp_share=rm-qemu-share \
   quick-sharun \
-  /usr/bin/{nc,rm2fb-emu}
+  /usr/bin/{nc,rm2fb-emu,socat}
 
 _hook="${APPDIR}/bin/path-mapping-hardcoded.src.hook"
 if [ -f "$_hook" ]; then

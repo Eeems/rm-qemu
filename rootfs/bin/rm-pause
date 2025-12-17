@@ -1,6 +1,5 @@
 #!/bin/sh
 rm-monitor savevm running
 rm-monitor quit
-while rm-is-running;do
-  sleep 1
-done
+rm-wait-stop
+rm-stop-ssh

@@ -1,0 +1,4 @@
+#!/bin/sh
+while rm-is-running; do
+  sleep 1
+done

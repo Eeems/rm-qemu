@@ -1,21 +1,19 @@
 #!/bin/bash
 case "$1" in
 -w | --wait)
-  if rm-is-running;then
+  if rm-is-running; then
     rm-exec poweroff
     rm-serial >/dev/null
-    while rm-is-running;do
-      sleep 1
-    done
+    rm-wait-stop
+    rm-stop-ssh
   fi
   ;;
 "")
-  if rm-is-running;then
-    rm-exec poweroff
-  fi
+  rm-stop --wait &
+  disown %-
   ;;
 --help)
-  echo "Usage: rm-start [-D|--detached]"
+  echo "Usage: rm-stop [--help|-w|--wait]"
   ;;
 *)
   "$0" --help

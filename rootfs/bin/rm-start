@@ -28,8 +28,6 @@ args=(
   "if=sd,file=$(rm-image-path),format=qcow2,index=2"
   -append
   "console=ttymxc0 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init"
-  -chardev
-  "socket,id=ssh,path=$STATEDIR/ssh,server=on,wait=off"
   -nic
   "user,hostfwd=tcp::${RM_SSH_PORT:-2222}-:22,hostfwd=tcp::${RM_EMU_PORT:-8888}-:8888"
   -monitor
@@ -53,6 +51,12 @@ else
     :
   }
 fi
+start_ssh_socket() {
+  socat UNIX-LISTEN:"${STATEDIR}/ssh",fork TCP-CONNECT:localhost:"${RM_SSH_PORT:-2222}" &
+  pid=$!
+  disown "$pid"
+  echo "$pid" >"${STATEDIR}/ssh.pid"
+}
 case "$1" in
 -D | --detached)
   args+=(
@@ -67,6 +71,7 @@ case "$1" in
     -daemonize
   )
   print_args
+  start_ssh_socket
   qemu-system-arm "${args[@]}"
   if $paused; then
     rm-monitor commit sd2
@@ -89,6 +94,7 @@ case "$1" in
     -nographic
   )
   print_args
+  start_ssh_socket
   exec qemu-system-arm "${args[@]}"
   ;;
 *)
