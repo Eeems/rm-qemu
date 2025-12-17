@@ -10,7 +10,7 @@ usage="Usage: entrypoint --help
   entrypoint <version> --serial
   entrypoint <version> [--pause] --display
   entrypoint <version> [--pause] [<command>]..."
-if [ "$#" -eq 0 ];then
+if [ "$#" -eq 0 ]; then
     echo "$usage"
     exit 1
 fi
@@ -32,12 +32,12 @@ if ! [ -f "$IMAGE" ]; then
     echo "Creating rootfs image..."
     pushd "${DATADIR:-/data}" >/dev/null
     qemu-img create \
-      --format qcow2 \
-      --backing "$VERSION_IMAGE" \
-      --backing-format qcow2 \
-      --options compression_type=zstd \
-      "$IMAGE" \
-      8G
+        --format qcow2 \
+        --backing "$VERSION_IMAGE" \
+        --backing-format qcow2 \
+        --options compression_type=zstd \
+        "$IMAGE" \
+        8G
     popd >/dev/null
 fi
 ln -sf "$IMAGE" "${STATEDIR}/rootfs.qcow2"
@@ -57,12 +57,12 @@ if [ "$#" -eq 0 ]; then
     echo "Started!" >/dev/stderr
     rm-exec
 elif [ "$#" -eq 1 ] && [[ "$1" == "--display" ]]; then
-    rm2fb-emu 127.0.0.1 8888
+    rm2fb-emu 127.0.0.1 "${RM_EMU_PORT:-8888}"
 else
     rm-exec "$@"
 fi
 trap - EXIT
-if ! $pause;then
+if ! $pause; then
     echo "Stopping..." >/dev/stderr
     rm-stop --wait
     shrink-image "$(rm-image-path)"

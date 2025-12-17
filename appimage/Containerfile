@@ -13,7 +13,8 @@ RUN bash -e <<EOT
     wget \
     zsync \
     git \
-    make
+    make \
+    xauth
   apt-get clean
   rm -rf /var/lib/apt/lists/*
 EOT
@@ -34,7 +35,7 @@ RUN <<EOT
   chmod +x /usr/bin/uruntime2appimage
 EOT
 
-COPY entrypoint /usr/bin
+COPY bin/* /usr/bin
 
 ENTRYPOINT [ "/usr/bin/entrypoint" ]
 

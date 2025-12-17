@@ -1,37 +1,38 @@
 #!/bin/bash
 if [ $# -eq 1 ]; then
   case "$1" in
-    "--help")
-      echo "Usage: rm-is-running [--verbose|--help]"
+  "--help")
+    echo "Usage: rm-is-running [--verbose|--help]"
+    exit
+    ;;
+  "--verbose")
+    if rm-is-running; then
+      echo "rm is running"
       exit
-      ;;
-    "--verbose")
-      if rm-is-running;then
-        echo "rm is running"
-        exit
-      else
-        echo "rm is not running"
-        exit 1
-      fi
-      ;;
-    *)
-      rm-is-running --help
+    else
+      echo "rm is not running"
       exit 1
+    fi
+    ;;
+  *)
+    rm-is-running --help
+    exit 1
+    ;;
   esac
 elif [ $# -gt 1 ]; then
   rm-is-running --help
   exit 1
+elif ! killall -0 qemu-system-arm &>/dev/null; then
+  exit 1
 elif ! rm-image-path &>/dev/null; then
   exit 1
 fi
-if ! killall -0 qemu-system-arm &> /dev/null;then
-  exit 1
-fi
 image=$(rm-image-path)
-for pid in "$(pidof qemu-system-arm)";do
-  for l in /proc/"$pid"/fd/*;do
+for pid in $(pidof qemu-system-arm); do
+  for l in /proc/"$pid"/fd/*; do
     if [[ "$(readlink "$l")" == "$image" ]]; then
-      exit 1
+      exit
     fi
   done
-fi
+done
+exit 1

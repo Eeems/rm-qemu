@@ -1,9 +1,10 @@
 #!/bin/bash
 args=(
   -o StrictHostKeyChecking=no
-  -p ${RM_SSH_PORT:-2222}
+  -o WarnWeakCrypto=no
+  -p "${RM_SSH_PORT:-2222}"
 )
-if [[ "$RM_EXEC_ENABLED_PASSWORD" != "1" ]];then
+if [[ "$RM_EXEC_ENABLED_PASSWORD" != "1" ]]; then
   args+=(-o PasswordAuthentication=no)
 fi
 args+=(root@localhost)
@@ -14,4 +15,4 @@ if [ "$#" -ne 0 ]; then
     "'$*'"
   )
 fi
-exec ssh ${args[@]}
+exec ssh "${args[@]}"

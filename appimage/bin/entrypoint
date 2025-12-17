@@ -14,22 +14,22 @@ cp \
 
 # Import some helper programs that can be run with sharun
 APPDIR="${APPDIR}" \
-DESKTOP="rm-qemu.desktop" \
-ICON=rm-qemu.png \
-MAIN_BIN=appimage-entrypoint \
-_tmp_bin=rm-qemu-bin \
-_tmp_lib=rm-qemu-lib \
-_tmp_share=rm-qemu-share \
-quick-sharun \
+  DESKTOP="rm-qemu.desktop" \
+  ICON=rm-qemu.png \
+  MAIN_BIN=appimage-entrypoint \
+  _tmp_bin=rm-qemu-bin \
+  _tmp_lib=rm-qemu-lib \
+  _tmp_share=rm-qemu-share \
+  quick-sharun \
   /usr/bin/{nc,rm2fb-emu}
 
 _hook="${APPDIR}/bin/path-mapping-hardcoded.src.hook"
-if [ -f "$_hook" ];then
+if [ -f "$_hook" ]; then
   sed -i -e 's|_tmp_bin=""|_tmp_bin="rm-qemu-bin"|' "$_hook"
   sed -i -e 's|_tmp_lib=""|_tmp_lib="rm-qemu-lib"|' "$_hook"
   sed -i -e 's|_tmp_share=""|_tmp_share="rm-qemu-share"|' "$_hook"
 else
-  cat <<-'EOF' > "$_hook"
+  cat <<-'EOF' >"$_hook"
   #!/bin/sh
   _tmp_bin="rm-qemu-bin"
   _tmp_lib="rm-qemu-lib"
@@ -55,13 +55,13 @@ EOF
 fi
 
 # Copy static files
-cp \
-  -r
+cp -r \
   /{base.qcow2,dropbear.socket,qemu.dtb,zImage,rm2fb.{conf,tar.gz}} \
   "$LIBGUESTFS_PATH" \
   "$APPDIR/share/rm-qemu"
 cp \
   /usr/local/bin/* \
+  /usr/bin/get-free-port \
   "${APPDIR}/bin"
 
 # Create AppImage

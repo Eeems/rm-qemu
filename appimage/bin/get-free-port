@@ -1,0 +1,26 @@
+#!/bin/bash
+LOW_BOUND=49152
+RANGE=16384
+args=("$@")
+in_args() {
+  if [ ${#args} -eq 0 ]; then
+    return 1
+  fi
+  for x in "${args[@]}"; do
+    if [[ "$x" == "$1" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+while true; do
+  CANDIDATE=$((LOW_BOUND + (RANDOM % RANGE)))
+  if in_args "$CANDIDATE"; then
+    continue
+  fi
+  (echo -n >/dev/tcp/127.0.0.1/${CANDIDATE}) >/dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo $CANDIDATE
+    break
+  fi
+done

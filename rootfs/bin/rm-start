@@ -4,12 +4,12 @@ set -e
 if rm-is-running; then
   echo "Error: rm is running" >/dev/stderr
   exit 1
-elif ! rm-image-path >/dev/null;then
+elif ! rm-image-path >/dev/null; then
   exit 1
 fi
 
 STATEDIR=${STATEDIR:-/run/rm}
-mkdir -p $STATEDIR
+mkdir -p "$STATEDIR"
 
 args=(
   -machine
@@ -29,27 +29,27 @@ args=(
   -append
   "console=ttymxc0 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init"
   -chardev
-  socket,id=ssh,path=$STATEDIR/ssh,server=on,wait=off
+  "socket,id=ssh,path=$STATEDIR/ssh,server=on,wait=off"
   -nic
-  user,hostfwd=tcp::${RM_SSH_PORT:-2222}-:22,hostfwd=tcp::8888-:8888
+  "user,hostfwd=tcp::${RM_SSH_PORT:-2222}-:22,hostfwd=tcp::${RM_EMU_PORT:-8888}-:8888"
   -monitor
-  unix:$STATEDIR/monitor,server=on,wait=off
+  "unix:$STATEDIR/monitor,server=on,wait=off"
 )
 paused=false
 if rm-is-paused; then
   paused=true
   args+=(-loadvm running)
 fi
-if [[ "$1" == "--verbose" ]];then
+if [[ "$1" == "--verbose" ]]; then
   shift
-  print_args(){
+  print_args() {
     echo "qemu-system-arm"
-    for a in "${args[@]}";do
+    for a in "${args[@]}"; do
       echo " $a"
     done
   }
 else
-  print_args(){
+  print_args() {
     :
   }
 fi
@@ -57,7 +57,7 @@ case "$1" in
 -D | --detached)
   args+=(
     -chardev
-    socket,id=serial0,path=$STATEDIR/serial,server=on,wait=off
+    "socket,id=serial0,path=$STATEDIR/serial,server=on,wait=off"
     -serial
     chardev:serial0
     -parallel

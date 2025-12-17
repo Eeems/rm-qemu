@@ -2,7 +2,7 @@
 set -e
 VERSION="${1:?Usage: initialize-image <version>}"
 
-if rm-is-running;then
+if rm-is-running; then
   echo "Error: rm is running"
   exit 1
 fi
@@ -103,25 +103,31 @@ EOF
 EOF
   fi
 done
+
+echo "Setting temporary boot image..." >/dev/stderr
 STATEDIR=${STATEDIR:-/run/rm}
 mkdir -p "$STATEDIR"
-if [ -f "${STATEDIR}/rootfs.qcow2" ];then
+if [ -f "${STATEDIR}/rootfs.qcow2" ]; then
   previous="$(rm-image-path)"
   trap "rm '${rootfs}'; ln -sf '${previous}' '${STATEDIR}/rootfs.qcow2'" EXIT
 fi
 ln -sf "$rootfs" "${STATEDIR}/rootfs.qcow2"
 
-RM_EXEC_ENABLED_PASSWORD=1 \
-rm-start --detached --wait
+echo "Starting QEMU for setup..." >/dev/stderr
 
 RM_EXEC_ENABLED_PASSWORD=1 \
+  rm-start --detached --wait
+
 echo "Finalizing mmcblk2p2..." >/dev/stderr
-rm-exec <<EOT
+
+RM_EXEC_ENABLED_PASSWORD=1 \
+  rm-exec <<EOT
   set -e
   tar xzhf /rm2fb.tar.gz -C /
   sed -i 's|#/dev/mmcblk2p4|/dev/mmcblk2p4|' /etc/fstab
   rm /etc/systemd/system/xochitl.service
 EOT
+
 echo "Finalizing mmcblk2p3..." >/dev/stderr
 rm-exec <<EOT
   mount /dev/mmcblk2p3 /mnt
@@ -130,10 +136,12 @@ rm-exec <<EOT
   tar xzhf /rm2fb.tar.gz -C /mnt
   umount /mnt
 EOT
+
 echo "Setting up mmcblk2p4 partition..." >/dev/stderr
 rm-exec <<EOT
   mkfs.ext4 -E nodiscard /dev/mmcblk2p4
 EOT
+
 trap - EXIT
 rm-stop --wait
 shrink-image "$rootfs"

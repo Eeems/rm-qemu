@@ -8,7 +8,9 @@ export STATEDIR="$HOME/.cache/rm-qemu/state"
 mkdir -p "$DATADIR" "$CACHEDIR" "$STATEDIR"
 export PATH="$_D/bin:${PATH}"
 export LIBGUESTFS_PATH="$ROOTDIR/appliance"
-if [ $# -eq 1 ] && [[ "$1" == "--debug" ]];then
+export RM_EMU_PORT=${RM_EMU_PORT:-$(get-free-port)}
+export RM_SSH_PORT=${RM_SSH_PORT:-$(get-free-port "${RM_EMU_PORT}")}
+if [ $# -eq 1 ] && [[ "$1" == "--debug" ]]; then
   cd "$_D"
   exec bash -l
 fi
@@ -18,9 +20,6 @@ if ! command -v guestfish >/dev/null; then
 fi
 if ! command -v qemu-img >/dev/null; then
   errors+=("Unable to find qemu-img command, please install qemu-img")
-fi
-if ! command -v supermin >/dev/null; then
-  errors+=("Unable to find supermin command, please install supermin")
 fi
 if ! command -v qemu-system-arm >/dev/null; then
   errors+=("Unable to find qemu-system-arm command, please install qemu-system-arm")
@@ -34,9 +33,9 @@ fi
 if ! command -v pidof >/dev/null; then
   errors+=("Unable to find pidof command, please install pidof")
 fi
-if [ ${#errors[@]} -gt 0 ];then
+if [ ${#errors[@]} -gt 0 ]; then
   echo "Errors found:"
-  for e in "${errors[@]}";do
+  for e in "${errors[@]}"; do
     echo "  $e"
   done
   exit 1

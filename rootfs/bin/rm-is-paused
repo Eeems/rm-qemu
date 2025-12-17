@@ -1,27 +1,30 @@
 #!/bin/sh
 if [ $# -eq 1 ]; then
   case "$1" in
-    "--help")
-      echo "Usage: rm-is-paused [--verbose|--help]"
+  "--help")
+    echo "Usage: rm-is-paused [--verbose|--help]"
+    exit
+    ;;
+  "--verbose")
+    if rm-is-paused; then
+      echo "rm is paused"
       exit
-      ;;
-    "--verbose")
-      if rm-is-paused;then
-        echo "rm is paused"
-        exit
-      else
-        echo "rm is not paused"
-        exit 1
-      fi
-      ;;
-    *)
-      rm-is-paused --help
+    else
+      echo "rm is not paused"
       exit 1
+    fi
+    ;;
+  *)
+    rm-is-paused --help
+    exit 1
+    ;;
   esac
 elif [ $# -gt 1 ]; then
   rm-is-paused --help
   exit 1
 fi
 set -e
-! rm-is-running
+if rm-is-running; then
+  exit 1
+fi
 rm-has-snapshot running
