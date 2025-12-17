@@ -7,12 +7,6 @@ if rm-is-running; then
   exit 1
 fi
 
-version() { echo "$@" | awk -F. '{ printf("%d%04d%04d%04d\n", $1,$2,$3,$4); }'; }
-version_test() {
-  # shellcheck disable=SC1072,SC1073
-  [ "$(version "$1")" "$2" "$(version "$3")" ]
-}
-
 CACHEDIR="${CACHEDIR:-/cache}"
 mkdir -p "$CACHEDIR"
 image="$CACHEDIR/$VERSION"
@@ -21,7 +15,6 @@ if ! [ -f "$image" ]; then
   download=$(mktemp -d)
   trap 'rmdir $download' EXIT
   codexctl download --hardware rm2 --out "$download" "$VERSION"
-  [ -f "$download"/* ]
   mv "$download"/* "$image"
   trap - EXIT
   rmdir "$download"
@@ -30,11 +23,12 @@ DATADIR="${DATADIR:-/data}"
 echo "Extracting image..." >/dev/stderr
 extracted=$(mktemp -d)/image
 # Remove the extracted image when we are done
+# shellcheck disable=SC2064,SC2086
 trap "rm -r '$(dirname $extracted)'" EXIT
 codexctl extract --out "$extracted" "$image"
 rootfs="$DATADIR/$VERSION.qcow2"
 echo "Creating $VERSION.qcow2..." >/dev/stderr
-pushd $DATADIR >/dev/null
+pushd "$DATADIR" >/dev/null
 qemu-img create \
   --format qcow2 \
   --backing "${ROOTDIR}/base.qcow2" \
@@ -42,7 +36,7 @@ qemu-img create \
   --options compression_type=zstd \
   "$rootfs" \
   8G
-# If we fail at this point, we
+# shellcheck disable=SC2064,SC2086
 trap "rm -r '$(dirname $extracted)' '${rootfs}'" EXIT
 popd >/dev/null
 echo "Initializing $VERSION.qcow2..." >/dev/stderr
@@ -51,7 +45,8 @@ run
 upload "$extracted" /dev/sda2
 upload "$extracted" /dev/sda3
 EOF
-rm -r "$(dirname $extracted)"
+rm -r "$(dirname "$extracted")"
+# shellcheck disable=SC2064,SC2086
 trap "rm '${rootfs}'" EXIT
 for dev in 2 3; do
   echo "Setting up mmcblk2p$dev partition..." >/dev/stderr
@@ -84,7 +79,7 @@ for dev in 2 3; do
     mkdir-p /etc/systemd/system/xochitl.service.d
     upload ${ROOTDIR}/rm2fb.conf /etc/systemd/system/xochitl.service.d/rm2fb.conf
 EOF
-  if version_test "$VERSION" -ge 3.22.0.0; then
+  if version-test "$VERSION" -ge 3.22.0.0; then
     echo "Adding dropbear.socket..." >/dev/stderr
     guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
       run
@@ -92,7 +87,7 @@ EOF
       upload ${ROOTDIR}/dropbear.socket /lib/systemd/system/dropbear.socket
       ln-s /lib/systemd/system/dropbear.socket /etc/systemd/system/sockets.target.wants/dropbear.socket
 EOF
-  elif ! version_test "$VERSION" -ge 3.13.0.0; then
+  elif ! version-test "$VERSION" -ge 3.13.0.0; then
     echo "Patching dhcpcd.service..." >/dev/stderr
     guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
       run
@@ -109,6 +104,7 @@ STATEDIR=${STATEDIR:-/run/rm}
 mkdir -p "$STATEDIR"
 if [ -f "${STATEDIR}/rootfs.qcow2" ]; then
   previous="$(rm-image-path)"
+  # shellcheck disable=SC2064,SC2086
   trap "rm '${rootfs}'; ln -sf '${previous}' '${STATEDIR}/rootfs.qcow2'" EXIT
 fi
 ln -sf "$rootfs" "${STATEDIR}/rootfs.qcow2"

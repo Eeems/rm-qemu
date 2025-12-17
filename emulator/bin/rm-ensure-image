@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
-usage(){
+usage() {
   echo "Usage: rm-ensure-image <version>" >/dev/stderr
-  exit ${1:-0}
+  exit "${1:-0}"
 }
 if [ $# -eq 0 ]; then
   echo "Error: Version must be specified" >/dev/stderr
@@ -14,7 +14,7 @@ do_rm=true
 if [ $# -gt 1 ]; then
   echo "Error: Too many arguments" >/dev/stderr
   usage 1
-elif [ $# -eq 1 ];then
+elif [ $# -eq 1 ]; then
   if [[ "$1" == "--help" ]]; then
     usage
   elif [[ "$1" == "--no-remove" ]]; then
@@ -25,45 +25,45 @@ elif [ $# -eq 1 ];then
   fi
 fi
 
-if rm-is-running;then
-  echo "Error: rm is running"
-  exit 1
+if rm-is-running && rm-image-path 2>/dev/null && [[ "${DATADIR:-/data}/rootfs-$VERSION.qcow2" == "$(rm-image-path)" ]]; then
+  echo "Image is in use" >/dev/stderr
+  exit
 fi
 
-verify(){
-  if [ ! -f "$1" ];then
+verify() {
+  if [ ! -f "$1" ]; then
     echo "$1 does not exist"
     return 0
   fi
   filesystems=$(echo -e "run\nlist-filesystems" | guestfish -a "$1" --ro)
-  fstype(){ [[ $(echo "$filesystems" | awk "/\/dev\/sda$1/{print \$2}") == "$2" ]]; }
+  fstype() { [[ $(echo "$filesystems" | awk "/\/dev\/sda$1/{print \$2}") == "$2" ]]; }
   errors=()
-  if ! fstype 1 vfat;then
+  if ! fstype 1 vfat; then
     errors+=("mmcblk2p1 is not vfat")
   fi
-  if ! fstype 2 ext4;then
+  if ! fstype 2 ext4; then
     errors+=("mmcblk2p2 is not ext4")
   fi
-  if ! fstype 3 ext4;then
+  if ! fstype 3 ext4; then
     errors+=("mmcblk2p3 is not ext4")
   fi
-  if ! fstype 4 ext4;then
+  if ! fstype 4 ext4; then
     errors+=("mmcblk2p4 is not ext4")
   fi
-  if [ ${#errors[@]} -eq 0 ];then
+  if [ ${#errors[@]} -eq 0 ]; then
     return 0
   fi
   echo "Errors found in $1"
-  for e in "${errors[@]}";do
+  for e in "${errors[@]}"; do
     echo "  $e"
   done
   return 1
 }
 ret=0
-for i in "${DATADIR:-/data}/"{rootfs-,}"$VERSION".qcow2;do
-  if ! verify "$i";then
+for i in "${DATADIR:-/data}/"{rootfs-,}"$VERSION".qcow2; do
+  if ! verify "$i"; then
     ret=1
-    if $do_rm;then
+    if $do_rm; then
       rm "$i"
     fi
   fi

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 set -o pipefail
 if [ $# -eq 0 ] || [ $(($# % 2)) -ne 0 ]; then
@@ -8,14 +8,14 @@ if [ $# -eq 0 ] || [ $(($# % 2)) -ne 0 ]; then
   echo "  mmcblk2p4 is mounted to /home" >/dev/stderr
   exit 1
 fi
-upload(){
+upload() {
   while [ $# -gt 0 ]; do
     echo "mkdir-p $(dirname "$2")"
-    if [ -d $1 ]; then
+    if [ -d "$1" ]; then
       while read -r f; do
         upload "$1/$f" "$2/$f"
-      done < <(ls $1)
-    elif [ -f "$1" ];then
+      done < <(ls "$1")
+    elif [ -f "$1" ]; then
       echo "upload $1 $2"
     else
       echo "$1 is not a file or directory" >/dev/stderr

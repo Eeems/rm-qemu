@@ -1,9 +1,12 @@
 #!/bin/bash
 args=(
   -o StrictHostKeyChecking=no
-  -o WarnWeakCrypto=no
   -p "${RM_SSH_PORT:-2222}"
 )
+ssh_version=$(ssh -V 2>&1 | cut -d' ' -f1 | cut -d_ -f2 | grep -o '[0-9\.]\+' | head -n1)
+if version-test "$ssh_version" -ge 10.1; then
+  args+=(-o WarnWeakCrypto=no)
+fi
 if [ -t 0 ]; then
   args+=(-t)
 else

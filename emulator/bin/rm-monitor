@@ -3,4 +3,4 @@ if ! rm-is-running; then
   echo "Error: rm is not running" >/dev/stderr
   exit 1
 fi
-exec serial-client ${STATEDIR:-/run/rm}/monitor "$@"
+exec serial-client "${STATEDIR:-/run/rm}/monitor" "$@"
