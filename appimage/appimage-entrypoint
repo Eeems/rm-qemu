@@ -14,9 +14,6 @@ if [ $# -eq 1 ] && [[ "$1" == "--debug" ]]; then
   exec bash -l </dev/stdin >/dev/stdout 2>/dev/stderr
 fi
 errors=()
-if ! command -v guestfish >/dev/null; then
-  errors+=("Unable to find guestfish command, please install libguestfs")
-fi
 if ! command -v qemu-img >/dev/null; then
   errors+=("Unable to find qemu-img command, please install qemu-img")
 fi

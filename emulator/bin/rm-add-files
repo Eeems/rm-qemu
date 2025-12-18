@@ -25,5 +25,5 @@ upload() {
   done
 }
 script=$(upload "$@")
-echo "$script" | rm-guestfish
+echo "$script" | rm-busybox
 shrink-image "$(rm-image-path)"

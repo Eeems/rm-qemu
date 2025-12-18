@@ -30,13 +30,18 @@ EOT
 
 WORKDIR /linux
 
-RUN --mount=target=/host bash -e <<EOT
+COPY qemu.dts /
+
+RUN bash -e <<EOT
   source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
   mv arch/arm/boot/dts/imx7d-cl-som-imx7{,-factory}.dts
-  cp /host/qemu.dts arch/arm/boot/dts/imx7d-cl-som-imx7.dts
+  mv /qemu.dts arch/arm/boot/dts/imx7d-cl-som-imx7.dts
   make imx_v6_v7_defconfig
   sed -i 's/# CONFIG_INPUT_UINPUT is not set/CONFIG_INPUT_UINPUT=y/' .config
   sed -i 's/=m/=n/' .config
+  echo "CONFIG_VIRTIO=y" >> .config
+  echo "CONFIG_VIRTIO_MMIO=y" >> .config
+  echo "CONFIG_VIRTIO_BLK=y" >> .config
 EOT
 
 RUN bash -e <<EOT

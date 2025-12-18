@@ -1,0 +1,26 @@
+#!/bin/sh
+qemu-system-arm \
+  -machine mcimx7d-sabre \
+  -cpu cortex-a9 \
+  -smp 2 \
+  -m 2048 \
+  -kernel \
+  "${ROOTDIR}/artifact/zImage" \
+  -dtb \
+  "${ROOTDIR}/artifact/qemu.dtb" \
+  -initrd \
+  "${ROOTDIR}/artifact/busybox.img" \
+  -drive \
+  "if=sd,file=${1:-$(rm-image-path)},format=qcow2,index=2" \
+  -append "console=ttymxc0 quiet init=/init" \
+  -nic \
+  "user,hostfwd=tcp::${RM_BUSYBOX_PORT:-2221}-:22" \
+  -serial \
+  null \
+  -parallel \
+  null \
+  -display \
+  none \
+  -daemonize
+echo "Waiting for busybox to be ready..."
+rm-wait-busybox

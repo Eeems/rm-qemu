@@ -5,7 +5,7 @@ ifndef KERNEL
 $(error KERNEL is not set)
 endif
 
-TAG := ghcr.io/eeems/rm-qemu-kernel:${KERNEL}
+TAG := ghcr.io/eeems/rm-qemu-artifact:kernel-${KERNEL}
 OBJ := $(shell { git ls-files --other --exclude-standard;git ls-files --no-others --exclude-standard; } | uniq | sort)
 OUTPUTS := zImage qemu.dtb
 

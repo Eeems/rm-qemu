@@ -35,8 +35,8 @@ verify() {
     echo "$1 does not exist"
     return 0
   fi
-  filesystems=$(echo -e "run\nlist-filesystems" | guestfish -a "$1" --ro)
-  fstype() { [[ $(echo "$filesystems" | awk "/\/dev\/sda$1/{print \$2}") == "$2" ]]; }
+  filesystems=$(echo -e "blkid -o full" | rm-busybox "$1")
+  fstype() { [[ $(echo "$filesystems" | blkid -o full | grep "/dev/mmcblk2p$1" | xargs -n1 | grep TYPE= | cut -d= -f2) == "$2" ]]; }
   errors=()
   if ! fstype 1 vfat; then
     errors+=("mmcblk2p1 is not vfat")

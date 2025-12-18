@@ -1,5 +1,5 @@
 /*
- * Edited imx7d device tree to enable all three usdhc controllers.
+ * Edited imx7d device tree to enable all three usdhc controllers and add virtio.
  *
  * Support for CompuLab SBC-iMX7 Single Board Computer
  *
@@ -58,5 +58,4 @@
 			MX7D_PAD_SD2_DATA3__SD2_DATA3		0x59
 		>;
 	};
-
 };
