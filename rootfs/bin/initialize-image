@@ -119,7 +119,9 @@ echo "Finalizing mmcblk2p2..." >/dev/stderr
 RM_EXEC_ENABLED_PASSWORD=1 \
   rm-exec <<EOT
   set -e
-  tar xzhf /rm2fb.tar.gz -C /
+  mv /rm2fb.tar.gz /tmp
+  tar xzhf /tmp/rm2fb.tar.gz -C /
+  rm /tmp/rm2fb.tar.gz
   sed -i 's|#/dev/mmcblk2p4|/dev/mmcblk2p4|' /etc/fstab
   rm /etc/systemd/system/xochitl.service
 EOT
@@ -129,7 +131,9 @@ rm-exec <<EOT
   mount /dev/mmcblk2p3 /mnt
   sed -i 's|#/dev/mmcblk2p4|/dev/mmcblk2p4|' /mnt/etc/fstab
   rm /mnt/etc/systemd/system/xochitl.service
-  tar xzhf /rm2fb.tar.gz -C /mnt
+  mv /rm2fb.tar.gz /tmp
+  tar xzhf /tmp/rm2fb.tar.gz -C /mnt
+  rm /tmp/rm2fb.tar.gz
   umount /mnt
 EOT
 

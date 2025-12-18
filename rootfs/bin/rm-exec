@@ -1,6 +1,7 @@
 #!/bin/bash
 args=(
   -o StrictHostKeyChecking=no
+  -o UserKnownHostsFile=/dev/null
 )
 socket="${STATEDIR:-/run/rm}/ssh"
 if [ -S "$socket" ]; then
