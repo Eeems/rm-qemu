@@ -3,14 +3,8 @@ args=(
   -o StrictHostKeyChecking=no
   -o UserKnownHostsFile=/dev/null
   -o LogLevel=ERROR
+  -p "${RM_BUSYBOX_PORT:-2221}"
 )
-socket="${STATEDIR:-/run/rm}/ssh"
-if [ -S "$socket" ]; then
-  args+=(-o ProxyCommand="nc -U $socket")
-else
-  echo "Warning: $socket missing, falling back to port" >/dev/stderr
-  args+=(-p "${RM_SSH_PORT:-2222}")
-fi
 ssh_version=$(ssh -V 2>&1 | cut -d' ' -f1 | cut -d_ -f2 | grep -o '[0-9\.]\+' | head -n1)
 if version-test "$ssh_version" -ge 10.1; then
   args+=(-o WarnWeakCrypto=no)
@@ -19,9 +13,6 @@ if [ -t 0 ]; then
   args+=(-t)
 else
   args+=(-T)
-fi
-if [[ "$RM_EXEC_ENABLED_PASSWORD" != "1" ]]; then
-  args+=(-o PasswordAuthentication=no)
 fi
 args+=(root@localhost)
 if [ "$#" -ne 0 ]; then

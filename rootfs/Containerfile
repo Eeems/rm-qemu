@@ -9,124 +9,6 @@ RUN <<EOT
   chmod +x codexctl
 EOT
 
-FROM ghcr.io/toltec-dev/base:v4.0 AS rm2fb-src
-
-RUN bash -e <<EOT
-  export DEBIAN_FRONTEND="noninteractive"
-  apt-get update
-  apt-get dist-upgrade -y --no-install-recommends
-  apt-get install -y --no-install-recommends \
-    xxd \
-    git \
-    git-lfs
-  apt-get autoremove -y
-  apt-get clean
-  rm -rf /var/lib/apt/lists/*
-EOT
-
-WORKDIR /src
-
-RUN bash -e <<EOT
-  cd /src
-  git init
-  git lfs install
-  git remote add origin https://github.com/timower/rM2-stuff.git
-  commit=93a2a93bc0bb92952b0bf15f8d714d3bcb6e6837
-  git fetch --depth 1 origin "\$commit" --no-tags
-  git checkout "\$commit"
-  git lfs fetch
-  git lfs checkout
-EOT
-
-FROM rm2fb-src AS rm2fb
-
-RUN bash -e <<EOT
-  source /opt/x-tools/switch-arm.sh
-  srcdir=/src
-  mkdir build install
-  cd build
-  cmake \
-    -DCMAKE_TOOLCHAIN_FILE="/usr/share/cmake/\$CHOST.cmake" \
-    -DCMAKE_INSTALL_PREFIX="\$srcdir/install" \
-    -DCMAKE_BUILD_TYPE=Release \
-    "\$srcdir"
-  cd libs/rm2fb
-  make
-  make install
-  cd "\$srcdir"
-  rm -rf build
-  rm -f \
-    install/usr/lib/librm2fb_client.so.1 \
-    build/librm2fb_client.so.1
-EOT
-
-RUN bash -e <<EOT
-  srcdir=/src
-  pkgdir=/package
-  mkdir "\$pkgdir"
-  libver=1.1.0
-  libname="librm2fb_server.so.\$libver"
-  install -D -m 644 "\$srcdir"/install/lib/librm2fb_server.so "\$pkgdir"/opt/lib/"\$libname"
-  ln -s "\$libname" "\$pkgdir"/opt/lib/"\${libname%.*.*.*}"
-  ln -s "\$libname" "\$pkgdir"/opt/lib/"\${libname%.*.*}"
-  ln -s "\$libname" "\$pkgdir"/opt/lib/"\${libname%.*}"
-  install -D -m 644 -t "\$pkgdir"/lib/systemd/system "\$srcdir"/install/lib/systemd/system/rm2fb.service
-  install -D -m 644 -t "\$pkgdir"/lib/systemd/system "\$srcdir"/install/lib/systemd/system/rm2fb.socket
-  install -D -m 755 "\$srcdir"/install/bin/rm2fb_server "\$pkgdir"/opt/bin/rm2fb_server
-  libname="librm2fb_client.so.\$libver"
-  install -D -m 644 -t "\$pkgdir"/opt/lib "\$srcdir"/install/lib/"\$libname"
-  install -D -m 644 -t "\$pkgdir"/opt/lib "\$srcdir"/install/lib/librm2fb_client_no_hook.so
-  install -d "\$pkgdir"/usr/lib
-  ln -s /opt/lib/"\$libname" "\$pkgdir"/usr/lib/"\$libname"
-  for dest in opt/lib usr/lib; do
-      ln -s "\$libname" "\$pkgdir/\$dest/\${libname%.*.*.*}"
-      ln -s "\$libname" "\$pkgdir/\$dest/\${libname%.*.*}"
-      ln -s "\$libname" "\$pkgdir/\$dest/\${libname%.*}"
-  done
-  tar -czf /rm2fb.tar.gz -C "\$pkgdir" .
-  rm -rf "\$pkgdir"
-EOT
-
-FROM rm2fb-src AS rm2fb-host
-
-RUN cat <<EOF > vendor/systemd/CMakeLists.txt
-  find_package(PkgConfig)
-  pkg_check_modules(SYSTEMD libsystemd REQUIRED)
-
-  add_library(Systemd::Lib INTERFACE IMPORTED GLOBAL)
-  set_target_properties(Systemd::Lib PROPERTIES
-      INTERFACE_INCLUDE_DIRECTORIES "${SYSTEMD_INCLUDE_DIRS}"
-      INTERFACE_LINK_LIBRARIES "${SYSTEMD_LIBRARIES}"
-  )
-EOF
-
-RUN bash -e <<EOT
-  export DEBIAN_FRONTEND="noninteractive"
-  apt-get update
-  apt-get dist-upgrade -y --no-install-recommends
-  apt-get install -y --no-install-recommends \
-    xxd \
-    clang \
-    cmake \
-    ninja-build \
-    libsdl2-dev \
-    libevdev-dev \
-    libsystemd-dev \
-    libclang-rt-14-dev
-  apt-get autoremove -y
-  apt-get clean
-  rm -rf /var/lib/apt/lists/*
-EOT
-
-RUN cmake --preset dev-host
-
-RUN <<EOT
-  set -e
-  cmake --build build/dev-host --target rm2fb-emu
-  mv build/dev-host/tools/rm2fb-emu/rm2fb-emu /rm2fb-emu
-  rm -rf build
-EOT
-
 FROM debian:13-slim as guestfs
 
 RUN <<EOT
@@ -175,7 +57,7 @@ EOF
   shrink-image /base.qcow2
 EOT
 
-FROM guestfs
+FROM debian:13-slim
 
 RUN <<EOT
   set -e
@@ -188,22 +70,24 @@ RUN <<EOT
     socat \
     netcat-openbsd \
     libevdev2 \
-    libsdl2-2.0-0
+    libsdl2-2.0-0 \
+    qemu-utils
   apt-get autoremove -y
   apt-get clean
   rm -rf /var/lib/apt/lists/*
+  mkdir -p /artifact/{rm-,}kernel
 EOT
 
 ARG KERNEL
 
-COPY --from=ghcr.io/eeems/rm-qemu-kernel:${KERNEL} zImage qemu.dtb /
-COPY --from=base /base.qcow2 /
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-${KERNEL} zImage qemu.dtb /artifact/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:busybox /busybox.img /artifact/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:rm2fb /rm2fb.tar.gz /artifact/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:rm2fb /rm2fb-emu /usr/bin
+COPY --from=base /base.qcow2 /artifact/
 COPY --from=codexctl codexctl /usr/local/bin
-COPY --from=rm2fb /rm2fb.tar.gz /
-COPY --from=rm2fb-host /rm2fb-emu /usr/bin
 COPY bin/* /usr/local/bin/
-COPY dropbear.socket /
-COPY rm2fb.conf /
+COPY dropbear.socket rm2fb.conf /artifact/
 
 
 ARG HASH

@@ -1,0 +1,17 @@
+#!/bin/bash
+rm-busybox-exec <<EOF
+  cd /mnt
+  for x in rootA rootB home;do
+    if mountpoint -q \$x;then
+      umount \$x
+    fi
+  done
+  {
+    sleep 1
+    poweroff -f
+  } &
+  exit
+EOF
+while rm-busybox-exec true &>/dev/null; do
+  sleep 1
+done

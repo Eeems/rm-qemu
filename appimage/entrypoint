@@ -7,7 +7,7 @@ rm -rf "${APPDIR}"
 # Copy initial files
 mkdir -p \
   "${APPDIR}/bin" \
-  "$APPDIR/share/rm-qemu"
+  "$APPDIR/share/rm-qemu/artifact"
 cp \
   appimage-entrypoint \
   "${APPDIR}/bin"
@@ -55,9 +55,7 @@ EOF
 fi
 
 # Copy static files
-cp -r \
-  /{base.qcow2,dropbear.socket,qemu.dtb,zImage,rm2fb.{conf,tar.gz}} \
-  "$APPDIR/share/rm-qemu"
+cp -r /artifact/* "$APPDIR/share/rm-qemu/artifact"
 cp \
   /usr/local/bin/* \
   "${APPDIR}/bin"

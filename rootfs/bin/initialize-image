@@ -31,7 +31,7 @@ echo "Creating $VERSION.qcow2..." >/dev/stderr
 pushd "$DATADIR" >/dev/null
 qemu-img create \
   --format qcow2 \
-  --backing "${ROOTDIR}/base.qcow2" \
+  --backing "${ROOTDIR}/artifact/base.qcow2" \
   --backing-format qcow2 \
   --options compression_type=zstd \
   "$rootfs" \
@@ -39,65 +39,69 @@ qemu-img create \
 # shellcheck disable=SC2064,SC2086
 trap "rm -r '$(dirname $extracted)' '${rootfs}'" EXIT
 popd >/dev/null
+rm-busybox-start "$rootfs"
 echo "Initializing $VERSION.qcow2..." >/dev/stderr
-guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
-run
-upload "$extracted" /dev/sda2
-upload "$extracted" /dev/sda3
+hash=$(sha256sum "$extracted" | cut -d' ' -f1)
+dd if="$extracted" bs=160000 | gzip -1 | rm-busybox-exec "gunzip -c | dd of=/dev/mmcblk2p2 bs=160000"
+rm-busybox-exec <<EOF
+  set -e
+  cd /mnt
+  echo "$hash  /dev/mmcblk2p2" | sha256sum -c
+  dd if=/dev/mmcblk2p2 of=/dev/mmcblk2p3 bs=160000
+  echo "$hash  /dev/mmcblk2p3" | sha256sum -c
+  mkdir -p rootA rootB home
+  mount /dev/mmcblk2p2 rootA
+  mount /dev/mmcblk2p3 rootB
 EOF
 rm -r "$(dirname "$extracted")"
 # shellcheck disable=SC2064,SC2086
 trap "rm '${rootfs}'" EXIT
-for dev in 2 3; do
-  echo "Setting up mmcblk2p$dev partition..." >/dev/stderr
-  guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
-    run
-    mount /dev/sda$dev /
-    upload ${ROOTDIR}/rm2fb.tar.gz /rm2fb.tar.gz
-    ln-s /lib/systemd/system/rm2fb.socket /etc/systemd/system/sockets.target.wants/rm2fb.socket
-    ln-s /dev/null /etc/systemd/system/remarkable-fail.service
-    ln-s /dev/null /etc/systemd/system/system-hardening.service
-    ln-s /dev/null /etc/systemd/system/wacom_flash.service
-    ln-s /dev/null /etc/systemd/system/memfaultd.service
-    ln-s /dev/null /etc/systemd/system/crashuploader.service
-    ln-s /dev/null /etc/systemd/system/wpa_supplicant.service
-    ln-s /dev/null /etc/systemd/system/migrate_wifi.service
-    ln-s /dev/null /etc/systemd/system/swupdate.service
-    ln-s /dev/null /etc/systemd/system/swupdate.socket
-    ln-sf /dev/null /etc/systemd/system/update-engine.service
-    ln-s /dev/null /etc/systemd/system/prepare_wifi.service
-    ln-s /dev/null /etc/systemd/system/dropbear-wlan.socket
-    ln-s /dev/null /etc/systemd/system/dropbear-wlan@.service
-    ln-s /dev/null /etc/systemd/system/dropbear-usb0.socket
-    ln-s /dev/null /etc/systemd/system/dropbear-usb0@.service
-    ln-s /dev/null /etc/systemd/system/dropbear-usb1.socket
-    ln-s /dev/null /etc/systemd/system/dropbear-usb1.service
-    ln-s /dev/null /etc/systemd/system/xochitl.service
-    download /etc/fstab /tmp/fstab
-    ! sed -i 's|/dev/unknown|#/dev/mmcblk2p4|' /tmp/fstab
-    upload /tmp/fstab /etc/fstab
-    mkdir-p /etc/systemd/system/xochitl.service.d
-    upload ${ROOTDIR}/rm2fb.conf /etc/systemd/system/xochitl.service.d/rm2fb.conf
+for dev in A B; do
+  echo "Setting up root$dev partition..." >/dev/stderr
+  rm-busybox-upload "${ROOTDIR}/artifact/rm2fb.tar.gz" /tmp
+  rm-busybox-exec <<EOF
+    set -e
+    cd /mnt/root${dev}
+    tar xzhf /tmp/rm2fb.tar.gz -C .
+    ln -s /lib/systemd/system/rm2fb.socket etc/systemd/system/sockets.target.wants/rm2fb.socket
+    ln -s /dev/null etc/systemd/system/remarkable-fail.service
+    ln -s /dev/null etc/systemd/system/system-hardening.service
+    ln -s /dev/null etc/systemd/system/wacom_flash.service
+    ln -s /dev/null etc/systemd/system/memfaultd.service
+    ln -s /dev/null etc/systemd/system/crashuploader.service
+    ln -s /dev/null etc/systemd/system/wpa_supplicant.service
+    ln -s /dev/null etc/systemd/system/migrate_wifi.service
+    ln -s /dev/null etc/systemd/system/swupdate.service
+    ln -s /dev/null etc/systemd/system/swupdate.socket
+    ln -sf /dev/null etc/systemd/system/update-engine.service
+    ln -s /dev/null etc/systemd/system/prepare_wifi.service
+    ln -s /dev/null etc/systemd/system/dropbear-wlan.socket
+    ln -s /dev/null etc/systemd/system/dropbear-wlan@.service
+    ln -s /dev/null etc/systemd/system/dropbear-usb0.socket
+    ln -s /dev/null etc/systemd/system/dropbear-usb0@.service
+    ln -s /dev/null etc/systemd/system/dropbear-usb1.socket
+    ln -s /dev/null etc/systemd/system/dropbear-usb1.service
+    ln -s /dev/null etc/systemd/system/xochitl.service
+    sed -i 's|/dev/unknown|#/dev/mmcblk2p4|' etc/fstab
+    mkdir -p etc/systemd/system/xochitl.service.d
 EOF
+  rm-busybox-upload "${ROOTDIR}/artifact/rm2fb.conf" /mnt/root${dev}/etc/systemd/system/xochitl.service.d/rm2fb.conf
   if version-test "$VERSION" -ge 3.22.0.0; then
     echo "Adding dropbear.socket..." >/dev/stderr
-    guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
-      run
-      mount /dev/sda$dev /
-      upload ${ROOTDIR}/dropbear.socket /lib/systemd/system/dropbear.socket
-      ln-s /lib/systemd/system/dropbear.socket /etc/systemd/system/sockets.target.wants/dropbear.socket
+    rm-busybox-upload "${ROOTDIR}/artifact/dropbear.socket" /mnt/root${dev}/lib/systemd/system/dropbear.socket
+    rm-busybox-exec <<EOF
+      set -e
+      ln -s /lib/systemd/system/dropbear.socket /mnt/root${dev}/etc/systemd/system/sockets.target.wants/dropbear.socket
 EOF
   elif version-test "$VERSION" -lt 3.13.0.0; then
     echo "Patching dhcpcd.service..." >/dev/stderr
-    guestfish --rw --blocksize=512 --add "$rootfs" <<EOF
-      run
-      mount /dev/sda$dev /
-      download /lib/systemd/system/dhcpcd.service /tmp/dhcpcd.service
-      ! sed -i 's/wlan/eth/' /tmp/dhcpcd.service
-      upload /tmp/dhcpcd.service /lib/systemd/system/dhcpcd.service
+    rm-busybox-exec <<EOF
+      set -e
+      sed -i 's/wlan/eth/' /lib/systemd/system/dhcpcd.service
 EOF
   fi
 done
+rm-busybox-stop
 
 echo "Setting temporary boot image..." >/dev/stderr
 STATEDIR=${STATEDIR:-/run/rm}
@@ -119,9 +123,6 @@ echo "Finalizing mmcblk2p2..." >/dev/stderr
 RM_EXEC_ENABLED_PASSWORD=1 \
   rm-exec <<EOT
   set -e
-  mv /rm2fb.tar.gz /tmp
-  tar xzhf /tmp/rm2fb.tar.gz -C /
-  rm /tmp/rm2fb.tar.gz
   sed -i 's|#/dev/mmcblk2p4|/dev/mmcblk2p4|' /etc/fstab
   rm /etc/systemd/system/xochitl.service
 EOT
@@ -131,9 +132,6 @@ rm-exec <<EOT
   mount /dev/mmcblk2p3 /mnt
   sed -i 's|#/dev/mmcblk2p4|/dev/mmcblk2p4|' /mnt/etc/fstab
   rm /mnt/etc/systemd/system/xochitl.service
-  mv /rm2fb.tar.gz /tmp
-  tar xzhf /tmp/rm2fb.tar.gz -C /mnt
-  rm /tmp/rm2fb.tar.gz
   umount /mnt
 EOT
 
