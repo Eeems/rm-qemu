@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 rm-busybox-exec <<EOF
   cd /mnt
   for x in rootA rootB home;do
@@ -6,12 +7,8 @@ rm-busybox-exec <<EOF
       umount \$x
     fi
   done
-  {
-    sleep 1
-    poweroff -f
-  } &
-  exit
 EOF
+echo "poweroff -f" | rm-busybox-exec 2>/dev/null || true
 while rm-busybox-exec true &>/dev/null; do
   sleep 1
 done

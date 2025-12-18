@@ -101,6 +101,7 @@ EOF
 EOF
   fi
 done
+echo "Stopping busybox..." >/dev/stderr
 rm-busybox-stop
 
 echo "Setting temporary boot image..." >/dev/stderr
