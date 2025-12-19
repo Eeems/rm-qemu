@@ -31,7 +31,10 @@ unset -f mv_blk
 mount -a
 
 if [ -b /dev/mmcblk0 ] && [ ! -b /dev/mmcblk0p1 ]; then
-  mount -o ro /dev/mmcblk0 /mnt/script
+  mkdir -p /mnt/script
+  if ! mount -o ro /dev/mmcblk0 /mnt/script; then
+    rmdir /mnt/script
+  fi
 fi
 
 ip link set lo up
@@ -47,8 +50,23 @@ if [ -x /mnt/script/init ]; then
 else
   ${1:-/bin/sh}
 fi
+signal_children() {
+  for pid in /proc/[0-9]*; do
+    pid_num=${pid#/proc/}
+    if [ "$pid_num" -eq 1 ]; then
+      continue
+    fi
+    ppid=$(awk '/PPid:/ {print $2}' "$pid/status")
+    if [ "$ppid" = "1" ]; then
+      kill -15 "$pid_num"
+    fi
+  done
+}
+signal_children 15
+sleep 2
+signal_children 9
+unset -f signal_children
 sync
-sync
-umount -a -r
 swapoff -a
+umount -a -r
 poweroff -f
