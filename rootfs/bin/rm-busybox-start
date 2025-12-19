@@ -3,7 +3,7 @@ set -e
 if [ $# -gt 0 ]; then
   image="$1"
 elif rm-image-path >/dev/null; then
-  image=-"$(rm-image-path)"
+  image="$(rm-image-path)"
 else
   exit 1
 fi
@@ -27,7 +27,7 @@ qemu-system-arm \
   -device \
   virtio-net-device,netdev=net0 \
   -netdev \
-  user,id=net0,hostfwd=tcp::${RM_BUSYBOX_PORT:-2221}-:22 \
+  "user,id=net0,hostfwd=tcp::${RM_BUSYBOX_PORT:-2221}-:22" \
   -device \
   virtio-blk-device,drive=hd2 \
   -drive \

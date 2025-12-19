@@ -41,7 +41,7 @@ verify() {
   is_fstype() {
     f=$(fstype "$1")
     if [[ "$f" != "$2" ]]; then
-      errors+=("mmcblk2p$1 is not $2: $f")
+      errors+=("mmcblk2p$1 is not $2: ${f:-(none)}")
     fi
   }
   rm-wait-busybox

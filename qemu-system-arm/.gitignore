@@ -1,0 +1,6 @@
+qemu-img
+qemu-system-arm
+qemu-pr-helper
+qemu-storage-daemon
+qemu-bridge-helper
+firmware/

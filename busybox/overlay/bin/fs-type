@@ -4,4 +4,4 @@ if [ $# -ne 1 ] || [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
   echo "Usage: fs-type <device or file>"
   exit 1
 fi
-blkid -o full "$1" | xargs -n1 | grep -E '^TYPE=' | cut -d= -f2 | tail -n1
+/sbin/blkid -o full "$1" | xargs -n1 | grep -E '^TYPE=' | cut -d= -f2 | tail -n1
