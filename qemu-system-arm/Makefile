@@ -1,13 +1,13 @@
 SHELL := /bin/bash
 MAKEFLAGS += --no-print-directory
-OUTPUTS := base.qcow2
 
 ifndef KERNEL
-$(error KERNEL is not set)
+KERNEL := 5.8.18
 endif
 
-TAG := ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL}
+TAG := ghcr.io/eeems/rm-qemu-artifact:qemu-system-arm
 OBJ := $(shell { git ls-files --other --exclude-standard;git ls-files --no-others --exclude-standard; } | uniq | sort)
+OUTPUTS := qemu-img qemu-system-arm qemu-pr-helper qemu-storage-daemon qemu-bridge-helper firmware libslirp.so.0.4.0
 
 all: image
 
@@ -21,7 +21,6 @@ image:
 	  echo "$$local != $$image"; \
 	  podman build \
 	    --tag=$$tag \
-	    --build-arg=KERNEL=${KERNEL} \
 	    "--build-arg=HASH=$$local" \
 	    .; \
 	else \
@@ -29,11 +28,16 @@ image:
 	fi
 
 ${OUTPUTS}: image
+	rm -rf $@
 	podman run --rm \
 	  --volume=$$(pwd):/out \
-	  --entrypoint=/bin/bash \
+	  --volume=/bin:/bin:ro \
+	  --volume=/usr:/usr:ro \
+	  --volume=/lib:/lib:ro \
+	  --volume=/lib64:/lib64:ro \
+	  --entrypoint=/bin/sh \
 	  ${TAG} \
-	  -c "cp /artifact/$@ /out"
+	  -c "cp -r /$@ /out"
 
 tag:
 	@echo ${TAG}
@@ -51,7 +55,7 @@ hash:
 	} | sha256sum | cut -d' ' -f1
 
 depends:
-	@echo kernel busybox rm2fb qemu-system-arm
+	@true
 
 test:
 	@true

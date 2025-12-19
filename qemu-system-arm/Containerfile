@@ -1,0 +1,106 @@
+ARG HASH
+ARG VERSION=10.1.3
+
+FROM alpine:latest AS builder
+
+RUN apk add --no-cache \
+  build-base \
+  git \
+  python3 \
+  py3-virtualenv \
+  pkgconfig \
+  ninja \
+  meson \
+  ca-certificates \
+  sparse \
+  bash \
+  glib-dev \
+  glib-static \
+  pcre2-dev \
+  pcre2-static \
+  pixman-dev \
+  pixman-static \
+  xz-dev \
+  xz-static \
+  zlib-dev \
+  zlib-static \
+  zstd-dev \
+  zstd-static
+
+ARG VERSION
+
+RUN <<EOT
+  set -e
+  wget \
+    https://gitlab.freedesktop.org/-/project/2767/uploads/ed8eaeada090f91a640c8e8e01d704bc/libslirp-4.9.1.tar.xz \
+    --output-document=- \
+  | tar -xJf - -C /
+    mv /libslirp-4.9.1 /libslirp
+EOT
+
+WORKDIR /libslirp
+
+RUN <<EOT
+  meson build --default-library static --buildtype release
+  ninja -C build install
+  meson clean
+EOT
+
+RUN <<EOT
+  set -e
+  wget \
+    https://download.qemu.org/qemu-${VERSION}.tar.xz \
+    --output-document=- \
+  | tar -xJf - -C /
+  mv /qemu-${VERSION} /qemu
+EOT
+
+WORKDIR /qemu
+
+RUN ./configure \
+  --static \
+  --prefix=/usr \
+  --target-list=arm-softmmu \
+  --without-default-features \
+  --enable-kvm \
+  --enable-zstd \
+  --enable-slirp \
+  --enable-tools \
+  --enable-sparse \
+  --enable-tcg \
+  --enable-slirp \
+  --disable-gettext \
+  --enable-pie \
+  -Ddefault_library=static \
+  LDFLAGS="-static" \
+  CFLAGS="-O2"
+
+RUN <<EOT
+  set -e
+  make -j $(nproc)
+  make -j $(nproc) DESTDIR=/install install
+  rm -r build
+EOT
+
+RUN bash -e <<EOT
+  mkdir -p /firmware/firmware
+  cd /install/usr/share/qemu
+  cp edk2-arm-{code,vars}.fd /firmware/
+  cp firmware/60-edk2-arm.json /firmware/firmware/
+EOT
+
+FROM scratch
+
+COPY --from=builder \
+  /install/usr/bin/qemu-img \
+  /install/usr/bin/qemu-system-arm \
+  /install/usr/bin/qemu-pr-helper \
+  /install/usr/bin/qemu-storage-daemon \
+  /install/usr/libexec/qemu-bridge-helper \
+  /
+
+COPY --from=builder /firmware/firmware/* /firmware/
+COPY --from=builder /firmware/*.* /
+
+ARG HASH
+LABEL hash="${HASH:?Hash missing}"

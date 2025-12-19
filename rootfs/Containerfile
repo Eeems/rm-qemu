@@ -65,7 +65,6 @@ RUN <<EOT
   apt-get update
   apt-get dist-upgrade -y --no-install-recommends
   apt-get install -y --no-install-recommends \
-    qemu-system-arm \
     ssh \
     socat \
     netcat-openbsd \
@@ -73,7 +72,7 @@ RUN <<EOT
     libsdl2-2.0-0 \
     qemu-utils \
     psmisc \
-    ipxe-qemu
+    util-linux
   apt-get autoremove -y
   apt-get clean
   rm -rf /var/lib/apt/lists/*
@@ -82,16 +81,38 @@ EOT
 
 ARG KERNEL
 
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-${KERNEL} zImage qemu.dtb /artifact/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:busybox-kernel-${KERNEL} /busybox-zImage /artifact/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:busybox /busybox.img /artifact/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:rm2fb /rm2fb.tar.gz /artifact/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:rm2fb /rm2fb-emu /usr/bin
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-${KERNEL} \
+  zImage \
+  qemu.dtb \
+  /artifact/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:busybox-kernel-${KERNEL} \
+  /busybox-zImage \
+  /artifact/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:busybox \
+  /busybox.img \
+  /artifact/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:qemu-system-arm \
+  /qemu-system-arm \
+  /qemu-img \
+  /qemu-pr-helper \
+  /qemu-storage-daemon \
+  /usr/bin/
+# COPY --from=ghcr.io/eeems/rm-qemu-artifact:qemu-system-arm \
+#   /firmware/* \
+#   /usr/share/qemu/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:qemu-system-arm \
+  qemu-bridge-helper \
+  /usr/libexec/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:rm2fb \
+  /rm2fb.tar.gz \
+  /artifact/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:rm2fb \
+  /rm2fb-emu \
+  /usr/bin/
 COPY --from=base /base.qcow2 /artifact/
 COPY --from=codexctl codexctl /usr/local/bin
 COPY bin/* /usr/local/bin/
 COPY dropbear.socket rm2fb.conf /artifact/
-
 
 ARG HASH
 LABEL hash="${HASH:?Hash missing}"
