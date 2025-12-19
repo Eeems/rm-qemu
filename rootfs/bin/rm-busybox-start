@@ -1,20 +1,45 @@
-#!/bin/sh
+#!/bin/bash
+set -e
+if [ $# -gt 0 ]; then
+  image="$1"
+elif rm-image-path >/dev/null; then
+  image=-"$(rm-image-path)"
+else
+  exit 1
+fi
+if [ ! -f "$image" ]; then
+  echo "Error: $image is not found" >/dev/stderr
+  exit 1
+fi
 qemu-system-arm \
-  -machine mcimx7d-sabre \
-  -cpu cortex-a9 \
-  -smp 2 \
-  -m 2048 \
+  -machine \
+  virt \
+  -smp \
+  "cpus=$(nproc)" \
+  -m \
+  size=2048 \
   -kernel \
-  "${ROOTDIR}/artifact/zImage" \
-  -dtb \
-  "${ROOTDIR}/artifact/qemu.dtb" \
+  "${ROOTDIR}/artifact/busybox-zImage" \
   -initrd \
   "${ROOTDIR}/artifact/busybox.img" \
+  -append \
+  "quiet" \
+  -device \
+  virtio-net-device,netdev=net0 \
+  -netdev \
+  user,id=net0,hostfwd=tcp::${RM_BUSYBOX_PORT:-2221}-:22 \
+  -device \
+  virtio-blk-device,drive=hd2 \
   -drive \
-  "if=sd,file=${1:-$(rm-image-path)},format=qcow2,index=2" \
-  -append "console=ttymxc0 quiet init=/init" \
-  -nic \
-  "user,hostfwd=tcp::${RM_BUSYBOX_PORT:-2221}-:22" \
+  "if=none,file=$image,format=qcow2,id=hd2" \
+  -device \
+  virtio-blk-device,drive=hd1 \
+  -drive \
+  if=none,file=null-co://,format=raw,id=hd1 \
+  -device \
+  virtio-blk-device,drive=hd0 \
+  -drive \
+  if=none,file=null-co://,format=raw,id=hd0 \
   -serial \
   null \
   -parallel \
@@ -22,5 +47,6 @@ qemu-system-arm \
   -display \
   none \
   -daemonize
+
 echo "Waiting for busybox to be ready..."
 rm-wait-busybox

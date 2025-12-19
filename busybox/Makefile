@@ -21,6 +21,7 @@ image:
 	  echo "$$local != $$image"; \
 	  podman build \
 	    --tag=$$tag \
+	    "--build-arg=KERNEL=${KERNEL}" \
 	    "--build-arg=HASH=$$local" \
 	    .; \
 	else \
@@ -44,41 +45,70 @@ script.img: script
 	mcopy -i script.img script ::init
 
 run: busybox.img script.img ../appimage/bin/get-free-port
-	$(MAKE) -C ../kernel KERNEL=${KERNEL} zImage qemu.dtb
+	$(MAKE) -C ../busybox-kernel KERNEL=${KERNEL} busybox-zImage
+	$(MAKE) -C ../rootfs KERNEL=${KERNEL} base.qcow2
 	port=$$(../appimage/bin/get-free-port); \
-	echo "RM_BUSYBOX_PORT=$$port0"; \
+	cpus=$$(nproc); \
+	echo "RM_BUSYBOX_PORT=$${port}"; \
+	echo "cpus=$${cpus}"; \
 	qemu-system-arm \
-	  -machine mcimx7d-sabre \
-	  -cpu cortex-a9 \
-	  -smp 2 \
-	  -m 2048 \
-	  -kernel ../kernel/zImage \
-	  -dtb ../kernel/qemu.dtb \
-	  -initrd busybox.img \
-	  -append "console=ttymxc0 quiet init=/init" \
-	  -nic \
-	  "user,hostfwd=tcp::$${port}-:22" \
+	  -machine \
+	  virt \
+	  -smp \
+	  cpus=$${cpus} \
+	  -m \
+	  size=2048 \
+	  -kernel \
+	  ../busybox-kernel/busybox-zImage \
+	  -initrd \
+	  busybox.img \
+	  -append \
+	  "quiet" \
+	  -device \
+	  virtio-net-device,netdev=net0 \
+	  -netdev \
+	  user,id=net0,hostfwd=tcp::$${RM_BUSYBOX_PORT:-2221}-:22 \
+	  -device \
+	  virtio-blk-device,drive=hd2 \
+	  -drive \
+	  if=none,file=../rootfs/base.qcow2,format=qcow2,readonly=on,id=hd2 \
+	  -device \
+	  virtio-blk-device,drive=hd1 \
+	  -drive \
+	  if=none,file=null-co://,format=raw,id=hd1 \
+	  -device \
+	  virtio-blk-device,drive=hd0 \
+	  -drive \
+	  if=none,file=null-co://,format=raw,id=hd0 \
 	  -serial \
 	  mon:stdio \
 	  -nographic
 
 test: busybox.img script.img ../appimage/bin/get-free-port
-	$(MAKE) -C ../kernel KERNEL=${KERNEL} zImage qemu.dtb
+	$(MAKE) -C ../busybox-kernel KERNEL=${KERNEL} busybox-zImage
 	port=$$(../appimage/bin/get-free-port); \
-	echo "RM_BUSYBOX_PORT=$$port0"; \
+	cpus=$$(nproc); \
+	echo "RM_BUSYBOX_PORT=$${port}"; \
+	echo "cpus=$${cpus}"; \
 	qemu-system-arm \
-	  -machine mcimx7d-sabre \
-	  -cpu cortex-a9 \
-	  -smp 2 \
-	  -m 2048 \
-	  -kernel ../kernel/zImage \
-	  -dtb ../kernel/qemu.dtb \
-	  -initrd busybox.img \
-	  -append "console=ttymxc0 init=/init" \
+	  -machine \
+	  virt \
+	  -smp \
+	  cpus=$${cpus} \
+	  -m \
+	  size=2048 \
+	  -kernel \
+	  ../busybox-kernel/busybox-zImage \
+	  -initrd \
+	  busybox.img \
+	   -device \
+	  virtio-net-device,netdev=net0 \
+	  -netdev \
+	  user,id=net0,hostfwd=tcp::$${RM_BUSYBOX_PORT:-2221}-:22 \
+	  -device \
+	  virtio-blk-device,drive=hd0 \
 	  -drive \
-	  if=sd,file=script.img,format=raw,index=0 \
-	  -nic \
-	  "user,hostfwd=tcp::$${port}-:22" \
+	  if=none,file=script.img,format=raw,id=hd0 \
 	  -serial \
 	  mon:stdio \
 	  -nographic
@@ -99,7 +129,7 @@ hash:
 	} | sha256sum | cut -d' ' -f1
 
 depends:
-	@true
+	@echo busybox-kernel
 
 .PHONY: \
 	all \

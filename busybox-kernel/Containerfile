@@ -13,12 +13,6 @@ RUN bash -e <<EOT
   rm -rf /var/lib/apt/lists/*
 EOT
 
-# RUN git clone \
-#   --branch=RM1XX_5.4.70_v1.6.2 \
-#   --depth=1 \
-#   https://github.com/reMarkable/linux.git \
-#   /linux
-
 ARG KERNEL
 
 RUN <<EOT
@@ -30,16 +24,7 @@ EOT
 
 WORKDIR /linux
 
-COPY qemu.dts /
-
-RUN bash -e <<EOT
-  source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
-  mv arch/arm/boot/dts/imx7d-cl-som-imx7{,-factory}.dts
-  mv /qemu.dts arch/arm/boot/dts/imx7d-cl-som-imx7.dts
-  make imx_v6_v7_defconfig
-  sed -i 's/# CONFIG_INPUT_UINPUT is not set/CONFIG_INPUT_UINPUT=y/' .config
-  sed -i 's/=m/=n/' .config
-EOT
+COPY busybox-kernel.config .config
 
 RUN bash -e <<EOT
   source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
@@ -48,8 +33,7 @@ EOT
 
 FROM scratch
 
-COPY --from=builder /linux/arch/arm/boot/zImage /
-COPY --from=builder /linux/arch/arm/boot/dts/imx7d-cl-som-imx7.dtb /qemu.dtb
+COPY --from=builder /linux/arch/arm/boot/zImage /busybox-zImage
 
 ARG HASH
 LABEL hash="${HASH:?Hash missing}"
