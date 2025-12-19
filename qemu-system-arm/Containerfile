@@ -99,8 +99,7 @@ COPY --from=builder \
   /install/usr/libexec/qemu-bridge-helper \
   /
 
-COPY --from=builder /firmware/firmware/* /firmware/
-COPY --from=builder /firmware/*.* /
+COPY --from=builder /firmware /firmware
 
 ARG HASH
 LABEL hash="${HASH:?Hash missing}"

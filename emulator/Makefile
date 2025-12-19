@@ -8,7 +8,7 @@ $(error KERNEL is not set)
 endif
 
 TAG := ghcr.io/eeems/rm-qemu:kernel-${KERNEL}
-OBJ := $(shell { git ls-files --other --exclude-standard;git ls-files --no-others --exclude-standard; } | uniq | sort)
+OBJ := $(shell ../tools/get-objects)
 
 all:
 	@set -e;\
@@ -40,16 +40,11 @@ tag:
 	@echo ${TAG}
 
 hash:
-	@{ \
-	  echo ${KERNEL}; \
-	  echo ${OBJ} | xargs sha256sum; \
-	  deps=$$($(MAKE) KERNEL=${KERNEL} depends); \
-	  if [[ "$$deps" != "" ]]; then \
-	    for d in $$deps;do \
-	      echo "$d  $$($(MAKE) KERNEL=${KERNEL} -C "../$$d" hash)";\
-	    done; \
-	  fi; \
-	} | sha256sum | cut -d' ' -f1
+	@../tools/get-hash \
+	  --single \
+	  --static=kernel=${KERNEL} \
+	  ${OBJ} \
+	  $($$($(MAKE) KERNEL=${KERNEL} depends) | xargs -rI {} echo "--static{}=$$($(MAKE) KERNEL=${KERNEL} -C "../{}" hash)")
 
 depends:
 	@echo rootfs

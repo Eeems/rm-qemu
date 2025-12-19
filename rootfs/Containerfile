@@ -70,7 +70,6 @@ RUN <<EOT
     netcat-openbsd \
     libevdev2 \
     libsdl2-2.0-0 \
-    qemu-utils \
     psmisc \
     util-linux
   apt-get autoremove -y

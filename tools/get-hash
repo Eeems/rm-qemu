@@ -1,0 +1,51 @@
+#!/bin/bash
+single=false
+declare -A hashes
+to_hash=()
+for a in "$@"; do
+  if [[ "$a" == "--"* ]]; then
+    case "$a" in
+    "--single")
+      single=true
+      ;;
+    "--static")
+      echo "Error: Format must be --static=name=value" >/dev/stderr
+      exit 1
+      ;;
+    "--static="*)
+      a="${a:9}"
+      hashes[".STATIC:$(echo "$a" | cut -d= -f1)"]="$(echo "$a" | cut -d= -f2)"
+      ;;
+    *)
+      echo "Usage: $0 [--singe] [path|--static=name=value]..." >/dev/stderr
+      exit 1
+      ;;
+    esac
+  elif [ -f "$a" ]; then
+    to_hash+=("$a")
+  elif [ -d "$a" ]; then
+    while read -r f; do
+      to_hash+=("$f")
+    done < <(find "$a" -type f)
+  else
+    echo "Error: Unknown argument: $a" >/dev/stderr
+    exit 1
+  fi
+done
+for f in "${to_hash[@]}"; do
+  hashes["$f"]="$(sha256sum "$f" | cut -d' ' -f1)"
+done
+output=""
+for key in $(echo "${!hashes[@]}" | xargs -rn1 | sort); do
+  if [[ "$key" != ".STATIC:"* ]]; then
+    output+="${hashes[$key]}  $key\n"
+    continue
+  fi
+  output+="${key:8}: ${hashes[$key]}\n"
+done
+
+if $single; then
+  echo -ne "${output}" | sha256sum | cut -d' ' -f1
+else
+  echo -ne "${output}"
+fi
