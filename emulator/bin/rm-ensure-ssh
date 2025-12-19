@@ -8,19 +8,19 @@ fi
 rm-busybox-start
 rm-wait-busybox
 rm-busybox-exec <<EOF
-  mkdir -p home/root/.ssh
-  chmod 0700 home/root/.ssh
-  mkdir -p rootA/home/root/.ssh
-  chmod 0700 rootA/home/root/.ssh
-  mkdir -p rootB/home/root/.ssh
-  chmod 0700 rootB/home/root/.ssh
+  mkdir -p \
+    home/root/.ssh \
+    rootA/home/root/.ssh \
+    rootB/home/root/.ssh
+  chmod 0700 \
+    home/root/.ssh \
+    rootA/home/root/.ssh \
+    rootB/home/root/.ssh
 EOF
 rm-busybox-upload "$HOME/.ssh/id_rsa.pub" home/root/.ssh/authorized_keys
-rm-busybox-upload "$HOME/.ssh/id_rsa.pub" rootA/home/root/.ssh/authorized_keys
-rm-busybox-upload "$HOME/.ssh/id_rsa.pub" rootB/home/root/.ssh/authorized_keys
 rm-busybox-exec <<EOF
   chmod 0600 home/root/.ssh/authorized_keys
-  chmod 0600 roomA/home/root/.ssh/authorized_keys
-  chmod 0600 rootB/home/root/.ssh/authorized_keys
+  cp -a home/root/.ssh/authorized_keys rootA/home/root/.ssh/authorized_keys
+  cp -a home/root/.ssh/authorized_keys rootB/home/root/.ssh/authorized_keys
 EOF
 rm-busybox-stop
