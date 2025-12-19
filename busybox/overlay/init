@@ -1,0 +1,54 @@
+#!/bin/sh
+mount -t devtmpfs devtmpfs /dev
+mkdir /dev/pts
+mount -t devpts devpts /dev/pts
+
+mv_blk() {
+  if [ $# -ne 2 ]; then
+    echo "Error: mv_blk called with incorrect number of arguments" >/dev/stderr
+    return
+  fi
+  if [ ! -b "/dev/$1" ]; then
+    return
+  fi
+  echo "Renaming /dev/$1 -> /dev/$2"
+  mv "/dev/$1" "/dev/$2"
+  for p in "/dev/$1"[0-9]*; do
+    if [ -e "$p" ]; then
+      part_num=$(echo "$p" | sed "s|/dev/$1||")
+      from="/dev/$1$part_num"
+      to="/dev/${2}p$part_num"
+      echo "Renaming $from -> $to"
+      mv "$from" "$to"
+    fi
+  done
+}
+mv_blk vda mmcblk0
+mv_blk vdb mmcblk1
+mv_blk vdc mmcblk2
+unset -f mv_blk
+
+mount -a
+
+if [ -b /dev/mmcblk0 ] && [ ! -b /dev/mmcblk0p1 ]; then
+  mount -o ro /dev/mmcblk0 /mnt/script
+fi
+
+ip link set lo up
+ip link set eth0 up
+udhcpc
+
+dropbear -REB -W 524288
+
+dmesg -n 1
+
+if [ -x /mnt/script/init ]; then
+  /mnt/script/init
+else
+  ${1:-/bin/sh}
+fi
+sync
+sync
+umount -a -r
+swapoff -a
+poweroff -f

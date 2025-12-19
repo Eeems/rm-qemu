@@ -32,30 +32,30 @@ fi
 
 verify() {
   if [ ! -f "$1" ]; then
-    echo "$1 does not exist"
+    echo "$1 does not exist" >/dev/stderr
     return 0
   fi
-  filesystems=$(echo -e "blkid -o full" | rm-busybox "$1")
-  fstype() { [[ $(echo "$filesystems" | blkid -o full | grep "/dev/mmcblk2p$1" | xargs -n1 | grep TYPE= | cut -d= -f2) == "$2" ]]; }
+  rm-busybox-start "$1"
   errors=()
-  if ! fstype 1 vfat; then
-    errors+=("mmcblk2p1 is not vfat")
-  fi
-  if ! fstype 2 ext4; then
-    errors+=("mmcblk2p2 is not ext4")
-  fi
-  if ! fstype 3 ext4; then
-    errors+=("mmcblk2p3 is not ext4")
-  fi
-  if ! fstype 4 ext4; then
-    errors+=("mmcblk2p4 is not ext4")
-  fi
+  fstype() { echo "fs-type '/dev/mmcblk2p$1'" | rm-busybox-exec | xargs -n1 | grep ' TYPE=' | cut -d= -f2 | tail -n1; }
+  is_fstype() {
+    f=$(fstype "$1")
+    if [[ "$f" != "$2" ]]; then
+      errors+=("mmcblk2p$1 is not $2: $f")
+    fi
+  }
+  rm-wait-busybox
+  is_fstype 1 vfat
+  is_fstype 2 ext4
+  is_fstype 3 ext4
+  is_fstype 4 ext4
+  rm-busybox-stop
   if [ ${#errors[@]} -eq 0 ]; then
     return 0
   fi
   echo "Errors found in $1"
   for e in "${errors[@]}"; do
-    echo "  $e"
+    echo "  $e" >/dev/stderr
   done
   return 1
 }

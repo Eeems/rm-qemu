@@ -1,13 +1,13 @@
 SHELL := /bin/bash
 MAKEFLAGS += --no-print-directory
-OUTPUTS := base.qcow2
 
 ifndef KERNEL
 $(error KERNEL is not set)
 endif
 
-TAG := ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL}
+TAG := ghcr.io/eeems/rm-qemu-artifact:busybox-kernel-${KERNEL}
 OBJ := $(shell { git ls-files --other --exclude-standard;git ls-files --no-others --exclude-standard; } | uniq | sort)
+OUTPUTS := busybox-zImage
 
 all: image
 
@@ -31,9 +31,13 @@ image:
 ${OUTPUTS}: image
 	podman run --rm \
 	  --volume=$$(pwd):/out \
-	  --entrypoint=/bin/bash \
+	  --volume=/bin:/bin:ro \
+	  --volume=/usr:/usr:ro \
+	  --volume=/lib:/lib:ro \
+	  --volume=/lib64:/lib64:ro \
+	  --entrypoint=/bin/sh \
 	  ${TAG} \
-	  -c "cp /artifact/$@ /out"
+	  -c "cp /$@ /out"
 
 tag:
 	@echo ${TAG}
@@ -51,7 +55,7 @@ hash:
 	} | sha256sum | cut -d' ' -f1
 
 depends:
-	@echo kernel busybox rm2fb
+	@true
 
 test:
 	@true

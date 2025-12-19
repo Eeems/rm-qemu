@@ -1,4 +1,21 @@
-ARG HASH
+ARG HASH KERNEL
+
+FROM alpine:latest AS modules
+
+RUN <<EOT
+  set -e
+  mkdir initrd
+  cd initrd
+  wget \
+    http://http.us.debian.org/debian/dists/bullseye/main/installer-armhf/current/images/netboot/initrd.gz \
+    --output-document=- \
+  | gunzip \
+  | cpio -idv
+  mkdir /modules
+  mv lib/modules/5.10.0-32-armmp/kernel/drivers/virtio/* /modules
+  cd ..
+  rm -r initrd
+EOT
 
 FROM eeems/remarkable-toolchain:4.3.98-rm2 AS base
 
@@ -47,7 +64,6 @@ RUN rm -r \
   usr/libexec \
   usr/share
 
-
 FROM base AS busybox
 
 RUN <<EOT
@@ -60,7 +76,7 @@ EOT
 
 WORKDIR /busybox
 
-COPY .config /busybox/
+COPY busybox.config /busybox/.config
 
 RUN bash -e <<EOT
   source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
@@ -95,22 +111,25 @@ EOT
 
 COPY --from=busybox /rootfs /busybox/
 COPY --from=e2fsprogs /rootfs /e2fsprogs/
+COPY --from=modules /modules /modules/
+COPY overlay/ /overlay
 
 WORKDIR /rootfs
-
-COPY init .
-COPY udhcpc.hook bin/
 
 RUN bash -e <<EOT
   source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
   cp -r /busybox/. .
   cp -r /e2fsprogs/. .
+  cp -r /overlay/. .
   ln -s udhcpc.hook bin/udhcpc6.hook
   cp \$SDKTARGETSYSROOT/usr/sbin/dropbearmulti usr/sbin/
   ln -s ./dropbearmulti usr/sbin/dropbear
   ln -s ./dropbearmulti usr/sbin/dropbearconvert
   ln -s ./dropbearmulti usr/sbin/dropbearkey
-  mkdir lib etc/dropbear usr/libexec
+  mkdir \
+    {lib,dev,sys,tmp,proc,mnt} \
+    etc/dropbear \
+    usr/libexec
   cp \
     \$SDKTARGETSYSROOT/lib/ld-linux-armhf.so.3 \
     \$SDKTARGETSYSROOT/lib/libz.so.1.2.11 \
@@ -129,6 +148,8 @@ RUN bash -e <<EOT
 EOT
 
 FROM scratch
+
+ARG KERNEL
 
 COPY --from=rootfs /busybox.img /
 
