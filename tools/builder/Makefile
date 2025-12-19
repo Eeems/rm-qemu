@@ -2,7 +2,7 @@ SHELL := /bin/bash
 MAKEFLAGS += --no-print-directory
 
 TAG := ghcr.io/eeems/rm-qemu-builder:latest
-OBJ := $(shell { git ls-files --other --exclude-standard;git ls-files --no-others --exclude-standard; } | uniq | sort)
+OBJ := $(shell ../get-objects)
 
 all: image
 
@@ -27,10 +27,10 @@ tag:
 	@echo ${TAG}
 
 hash:
-	@{ \
-	  echo $$(skopeo inspect docker://ghcr.io/eeems/arkes-builder:master --format='{{ .Digest }}' | cut -d':' -f2); \
-	  echo ${OBJ} | xargs sha256sum; \
-	} | sha256sum | cut -d' ' -f1
+	@../get-hash \
+	  --single \
+	  --static=ghcr.io/eeems/arkes-builder:master="$$(skopeo inspect docker://ghcr.io/eeems/arkes-builder:master --format='{{ .Digest }}' | cut -d':' -f2)" \
+	  ${OBJ}
 
 push: image
 	if podman image exists ${TAG}; then \

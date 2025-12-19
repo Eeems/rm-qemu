@@ -1,0 +1,5 @@
+#!/bin/bash
+{
+  git ls-files --other --exclude-standard
+  git ls-files --no-others --exclude-standard
+} | uniq

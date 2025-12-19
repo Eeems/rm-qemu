@@ -1,0 +1,16 @@
+#!/bin/bash
+if [ $# -ne 2 ]; then
+  echo "Usage: $0 image path"
+fi
+if [ -d "$2" ]; then
+  rm -r "$2"
+fi
+podman run --rm \
+  --volume="$(pwd)":/out \
+  --volume=/bin:/bin:ro \
+  --volume=/usr:/usr:ro \
+  --volume=/lib:/lib:ro \
+  --volume=/lib64:/lib64:ro \
+  --entrypoint=/bin/sh \
+  "$1" \
+  -c "cp -r /$2 /out"

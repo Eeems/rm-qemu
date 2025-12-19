@@ -7,7 +7,7 @@ $(error KERNEL is not set)
 endif
 
 TAG := ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL}
-OBJ := $(shell { git ls-files --other --exclude-standard;git ls-files --no-others --exclude-standard; } | uniq | sort)
+OBJ := $(shell ../tools/get-objects)
 
 all: image
 
@@ -29,26 +29,17 @@ image:
 	fi
 
 ${OUTPUTS}: image
-	podman run --rm \
-	  --volume=$$(pwd):/out \
-	  --entrypoint=/bin/bash \
-	  ${TAG} \
-	  -c "cp /artifact/$@ /out"
+	../tools/get-artifact "${TAG}" "$@"
 
 tag:
 	@echo ${TAG}
 
 hash:
-	@{ \
-	  echo ${KERNEL}; \
-	  echo ${OBJ} | xargs sha256sum; \
-	  deps=$$($(MAKE) KERNEL=${KERNEL} depends); \
-	  if [[ "$$deps" != "" ]]; then \
-	    for d in $$deps;do \
-	      echo "$d  $$($(MAKE) KERNEL=${KERNEL} -C "../$$d" hash)";\
-	    done; \
-	  fi; \
-	} | sha256sum | cut -d' ' -f1
+	@@../tools/get-hash \
+	  --single \
+	  --static=kernel=${KERNEL} \
+	  ${OBJ} \
+	  $($$($(MAKE) KERNEL=${KERNEL} depends) | xargs -rI {} echo "--static{}=$$($(MAKE) KERNEL=${KERNEL} -C "../{}" hash)")
 
 depends:
 	@echo kernel busybox rm2fb qemu-system-arm
