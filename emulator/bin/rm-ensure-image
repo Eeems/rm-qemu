@@ -37,7 +37,7 @@ verify() {
   fi
   rm-busybox-start "$1"
   errors=()
-  fstype() { echo "fs-type '/dev/mmcblk2p$1'" | rm-busybox-exec | xargs -n1 | grep ' TYPE=' | cut -d= -f2 | tail -n1; }
+  fstype() { echo "fs-type '/dev/mmcblk2p$1'" | rm-busybox-exec; }
   is_fstype() {
     f=$(fstype "$1")
     if [[ "$f" != "$2" ]]; then

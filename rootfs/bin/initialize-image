@@ -143,6 +143,6 @@ EOT
 trap - EXIT
 rm-stop --wait
 shrink-image "$rootfs"
-if ! rm-ensure-image "$rootfs"; then
+if ! rm-ensure-image "$VERSION"; then
   exit 1
 fi
