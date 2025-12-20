@@ -28,6 +28,7 @@ COPY busybox-kernel.config .config
 
 RUN bash -e <<EOT
   source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
+  sed -i 's/=m/=n/' .config
   make -j $(nproc)
 EOT
 
