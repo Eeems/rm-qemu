@@ -76,7 +76,7 @@ $(foreach T, $(TARGETS), $(eval $(call make-target, \
 define make-target
 .PHONY: $2
 $2:
-	podman pull "$3"
+	podman pull $3
 endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
