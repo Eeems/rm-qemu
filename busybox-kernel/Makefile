@@ -6,7 +6,7 @@ $(error KERNEL is not set)
 endif
 
 TAG := ghcr.io/eeems/rm-qemu-artifact:busybox-kernel-${KERNEL}
-OBJ := $(shell { git ls-files --other --exclude-standard;git ls-files --no-others --exclude-standard; } | uniq | sort)
+OBJ := $(shell ../tools/get-objects)
 OUTPUTS := busybox-zImage
 
 all: image
