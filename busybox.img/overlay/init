@@ -50,9 +50,9 @@ if [ -x /mnt/script/init ]; then
 else
   ${1:-/bin/sh}
 fi
-killall5 -15 -q
+killall5 -15
 sleep 2
-killall5 -9 -q
+killall5 -9
 sync
 swapoff -a
 umount -a -r
