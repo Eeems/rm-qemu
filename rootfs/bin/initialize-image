@@ -29,13 +29,7 @@ codexctl extract --out "$extracted" "$image"
 rootfs="$DATADIR/$VERSION.qcow2"
 echo "Creating $VERSION.qcow2..." >/dev/stderr
 pushd "$DATADIR" >/dev/null
-qemu-img create \
-  --format qcow2 \
-  --backing "${ROOTDIR}/artifact/base.qcow2" \
-  --backing-format qcow2 \
-  --options compression_type=zstd \
-  "$rootfs" \
-  8G
+cp "${ROOTDIR}/artifact/base.qcow2" "$rootfs"
 # shellcheck disable=SC2064,SC2086
 trap "rm -r '$(dirname $extracted)' '${rootfs}'" EXIT
 popd >/dev/null
