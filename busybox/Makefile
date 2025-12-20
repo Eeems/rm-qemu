@@ -12,22 +12,10 @@ endif
 all: image
 
 image:
-	@set -e;\
-	tag=${TAG}; \
-	echo "Checking $$tag"; \
-	local=$$($(MAKE) hash); \
-	image=$$(podman inspect $$tag --format='{{ .Labels.hash }}' 2>/dev/null || skopeo inspect docker://$$tag --format='{{ .Labels.hash }}' || true); \
-	if [[ "$$local" != "$$image" ]];then \
-	  echo "$$local != $$image"; \
-	  podman build \
-	    --pull=missing \
-	    --tag=$$tag \
-	    "--build-arg=KERNEL=${KERNEL}" \
-	    "--build-arg=HASH=$$local" \
-	    .; \
-	else \
-	  echo "Skipped as hash matches"; \
-	fi
+	../tools/make-image \
+	  ${TAG} \
+	  $$($(MAKE) hash) \
+	  "--build-arg=KERNEL=${KERNEL}"
 
 ${OUTPUTS}: image
 	../tools/get-artifact "${TAG}" "$@"
