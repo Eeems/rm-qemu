@@ -11,8 +11,8 @@ all: $(TARGETS)
 .PHONY: tags
 tags: $(foreach T, $(TARGETS), tag-$(T))
 
-.PHONY: hashes
-hashes: $(foreach T, $(TARGETS), hash-$(T))
+.PHONY: hash
+hash: $(foreach T, $(TARGETS), hash-$(T))
 
 .PHONY: push
 push: $(foreach T, $(TARGETS), push-$(T))
@@ -52,12 +52,13 @@ $(foreach T,\
 
 define make-target
 .PHONY: $2
-$2: $1
+$2: $1 $3
 	${MAKE_TARGET} $1 test
 endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	test-$(T), \
+	$(foreach D,$(shell MAKEFLAGS= $(MAKE_TARGET) $(T) depends),test-$(D)), \
 )))
 
 define make-target
@@ -86,21 +87,23 @@ $(foreach T, $(TARGETS), $(eval $(call make-target, \
 
 define make-target
 .PHONY: $2
-$2:
+$2: $3
 	@$(MAKE_TARGET) $1 tag
 endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	tag-$(T), \
+	$(foreach D,$(shell MAKEFLAGS= $(MAKE_TARGET) $(T) depends),tag-$(D)), \
 )))
 
 define make-target
 .PHONY: $2
-$2:
+$2: $3
 	@$(MAKE_TARGET) $1 hash | xargs echo -n
 	@echo "  $1"
 endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	hash-$(T), \
+	$(foreach D,$(shell MAKEFLAGS= $(MAKE_TARGET) $(T) depends),hash-$(D)), \
 )))

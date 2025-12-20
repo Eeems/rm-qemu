@@ -103,7 +103,7 @@ jobs:
           EOF
       - name: Debug information
         run: |
-          make hashes
+          make hash
           make tags
       - name: Build
         run: make -j$(nproc)
