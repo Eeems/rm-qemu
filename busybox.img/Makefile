@@ -118,7 +118,7 @@ hash:
 
 .SILENT: depends
 depends:
-	@echo busybox-kernel
+	@true
 
 .PHONY: \
 	all \
