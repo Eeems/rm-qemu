@@ -45,7 +45,7 @@ hash:
 
 .SILENT: depends
 depends:
-	@echo busybox.img busybox rm2fb qemu-system-arm .WAIT kernel
+	@echo busybox.img busybox rm2fb qemu-system-arm .WAIT busybox-kernel .WAIT kernel
 
 .SILENT: test
 test:
