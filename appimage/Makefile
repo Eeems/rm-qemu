@@ -23,6 +23,7 @@ image: $(OBJ)
 	if [[ "$$local" != "$$image" ]];then \
 	  echo "$$local != $$image"; \
 	  podman build \
+	    --pull=missing \
 	    --tag=$$tag \
 	    "--build-arg=KERNEL=${KERNEL}" \
 	    "--build-arg=HASH=$$local" \
