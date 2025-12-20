@@ -91,13 +91,15 @@ EOF
     rm-busybox-upload "${ROOTDIR}/artifact/dropbear.socket" /mnt/root${dev}/lib/systemd/system/dropbear.socket
     rm-busybox-exec <<EOF
       set -e
-      ln -s /lib/systemd/system/dropbear.socket /mnt/root${dev}/etc/systemd/system/sockets.target.wants/dropbear.socket
+      cd /mnt/root${dev}
+      ln -s /lib/systemd/system/dropbear.socket etc/systemd/system/sockets.target.wants/dropbear.socket
 EOF
   elif version-test "$VERSION" -lt 3.13.0.0; then
     echo "Patching dhcpcd.service..." >/dev/stderr
     rm-busybox-exec <<EOF
       set -e
-      sed -i 's/wlan/eth/' /lib/systemd/system/dhcpcd.service
+      cd /mnt/root${dev}
+      sed -i 's/wlan/eth/' root${dev}/lib/systemd/system/dhcpcd.service
 EOF
   fi
 done
