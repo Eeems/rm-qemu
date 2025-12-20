@@ -28,16 +28,19 @@ rm-qemu-kernel-${KERNEL}-anylinux-x86_64.AppImage: $(OBJ)
 	  "--env=APPDIR=${APPDIR}" \
 	  "${TAG}"
 
+.SILENT: tag
 tag:
 	@echo ${TAG}
 
+.SILENT: hash
 hash:
 	@../tools/get-hash \
 	  --single \
 	  --static=kernel=${KERNEL} \
 	  ${OBJ} \
-	  $($$($(MAKE) KERNEL=${KERNEL} depends) | xargs -rI {} echo "--static{}=$$($(MAKE) KERNEL=${KERNEL} -C "../{}" hash)")
+	  $(get-depends-static-flags)
 
+.SILENT: depends
 depends:
 	@echo emulator
 

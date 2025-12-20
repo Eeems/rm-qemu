@@ -1,0 +1,3 @@
+#!/bin/bash
+MAKE_TARGET=${MAKE_TARGET:?Missing MAKE_TARGET}
+get-depends . | xargs -rI {} echo "--static{}=$($MAKE_TARGET "../{}" hash)"
