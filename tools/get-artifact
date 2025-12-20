@@ -5,8 +5,9 @@ fi
 if [ -d "$2" ]; then
   rm -r "$2"
 fi
+mkdir -p artifact
 podman run --rm \
-  --volume="$(pwd)":/out \
+  --volume="$(pwd)/artifact":/out \
   --volume=/bin:/bin:ro \
   --volume=/usr:/usr:ro \
   --volume=/lib:/lib:ro \

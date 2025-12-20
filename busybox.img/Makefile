@@ -17,8 +17,19 @@ image:
 	  $$($(MAKE) hash) \
 	  "--build-arg=KERNEL=${KERNEL}"
 
-${OUTPUTS}: image
-	../tools/get-artifact "${TAG}" "$@"
+define make-target
+.PHONY: $1
+$1: $2
+$2: image
+	../tools/get-artifact "${TAG}" $1
+endef
+$(foreach O,\
+	$(OUTPUTS),\
+	$(eval $(call make-target, \
+		$(O), \
+		artifact/$(O) \
+	)) \
+)
 
 script.img: script
 	qemu-img create script.img 1M
@@ -40,9 +51,9 @@ run: busybox.img script.img ../appimage/bin/get-free-port
 	  -m \
 	  size=2048 \
 	  -kernel \
-	  ../busybox-kernel/busybox-zImage \
+	  ../busybox-kernel/artifact/busybox-zImage \
 	  -initrd \
-	  busybox.img \
+	  artifact/busybox.img \
 	  -append \
 	  "quiet" \
 	  -device \
@@ -52,7 +63,7 @@ run: busybox.img script.img ../appimage/bin/get-free-port
 	  -device \
 	  virtio-blk-device,drive=hd2 \
 	  -drive \
-	  if=none,file=../rootfs/base.qcow2,format=qcow2,readonly=on,id=hd2 \
+	  if=none,file=../rootfs/artifact/base.qcow2,format=qcow2,readonly=on,id=hd2 \
 	  -device \
 	  virtio-blk-device,drive=hd1 \
 	  -drive \
@@ -65,7 +76,7 @@ run: busybox.img script.img ../appimage/bin/get-free-port
 	  mon:stdio \
 	  -nographic
 
-test: busybox.img script.img ../appimage/bin/get-free-port
+test: artifact/busybox.img script.img ../appimage/bin/get-free-port
 	$(MAKE) -C ../busybox-kernel KERNEL=${KERNEL} busybox-zImage
 	port=$$(../appimage/bin/get-free-port); \
 	cpus=$$(nproc); \
@@ -79,9 +90,9 @@ test: busybox.img script.img ../appimage/bin/get-free-port
 	  -m \
 	  size=2048 \
 	  -kernel \
-	  ../busybox-kernel/busybox-zImage \
+	  ../busybox-kernel/artifact/busybox-zImage \
 	  -initrd \
-	  busybox.img \
+	  artifact/busybox.img \
 	   -device \
 	  virtio-net-device,netdev=net0 \
 	  -netdev \

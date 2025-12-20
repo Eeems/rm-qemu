@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
-tag=${1:?}
+tag=${1:?Tag is missing}
 shift
 echo "Checking $tag"
-local=${2:?}
+local=${1:?Expected hash is missing}
 shift
 image=$(podman inspect $tag --format='{{ .Labels.hash }}' 2>/dev/null || true)
 if [[ "$local" == "$image" ]];then
