@@ -32,7 +32,7 @@ ${OUTPUTS}: image
 	../tools/get-artifact "${TAG}" "$@"
 
 test: busybox
-	@true
+	./busybox --help
 
 
 tag:
