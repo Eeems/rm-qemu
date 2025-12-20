@@ -42,7 +42,7 @@ hash:
 	  $($$($(MAKE) KERNEL=${KERNEL} depends) | xargs -rI {} echo "--static{}=$$($(MAKE) KERNEL=${KERNEL} -C "../{}" hash)")
 
 depends:
-	@echo kernel busybox rm2fb qemu-system-arm
+	@echo kernel busybox.img busybox rm2fb qemu-system-arm
 
 test:
 	@true
