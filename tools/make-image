@@ -3,21 +3,24 @@ set -e
 tag=${1:?Tag is missing}
 shift
 echo "Checking $tag"
-local=${1:?Expected hash is missing}
+hash=${1:?Expected hash is missing}
 shift
-image=$(podman inspect $tag --format='{{ .Labels.hash }}' 2>/dev/null || true)
-if [[ "$local" == "$image" ]];then
+local=$(podman inspect "$tag" --format='{{ .Labels.hash }}' 2>/dev/null || true)
+if [[ "$hash" == "$local" ]]; then
   echo "Skipped as hash matches"
   exit
 fi
-remote=$(skopeo inspect docker://$tag --format='{{ .Labels.hash }}' 2>/dev/null || true)
-if [[ "$local" == "$image" ]];then
-  podman pull $tag
+remote=$(skopeo inspect "docker://$tag" --format='{{ .Labels.hash }}' 2>/dev/null || true)
+if [[ "$hash" == "$remote" ]]; then
+  podman pull "$tag"
   exit
 fi
+echo "Hash: $hash"
+echo "Local: $local"
+echo "Remote: $remote"
 podman build \
   --pull=missing \
-  --tag=$tag \
-  "--build-arg=HASH=$local" \
+  --tag="$tag" \
+  "--build-arg=HASH=$hash" \
   "$@" \
   .
