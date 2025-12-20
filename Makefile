@@ -8,6 +8,33 @@ TARGETS := $(shell find . -mindepth 2 -maxdepth 2 -type f -name Makefile | xargs
 .PHONY: all $(TARGETS)
 all: $(TARGETS)
 
+.PHONY: tags
+tags: $(foreach T, $(TARGETS), tag-$(T))
+
+.PHONY: push
+push: $(foreach T, $(TARGETS), push-$(T))
+
+.PHONY: pull
+pull: $(foreach T, $(TARGETS), pull-$(T))
+
+.PHONY: clean
+clean:
+	git clean --force -dX
+	for t in $$($(MAKE) tags);do \
+	  podman rmi $$t
+	done
+
+.PHONY: run-ui
+run-ui: ${TARGETS}
+	$(MAKE_TARGET) emulator run-ui
+
+.PHONY: run-cli
+run-cli: ${TARGETS}
+	$(MAKE_TARGET) emulator run-cli
+
+.PHONY: run-test
+test: $(foreach T, $(TARGETS),test-$(T))
+
 define make-target
 $1: $2
 	${MAKE_TARGET} $1
@@ -63,27 +90,3 @@ $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	tag-$(T), \
 )))
-
-.PHONY: tags
-tags: $(foreach T, $(TARGETS),tag-$(T))
-
-.PHONY: push
-push: $(foreach T, $(TARGETS),push-$(T))
-
-.PHONY: pull
-pull: $(foreach T, $(TARGETS),pull-$(T))
-
-.PHONY: clean
-clean:
-	rm -rf .data .cache
-
-.PHONY: run-ui
-run-ui: ${TARGETS}
-	$(MAKE_TARGET) emulator run-ui
-
-.PHONY: run-cli
-run-cli: ${TARGETS}
-	$(MAKE_TARGET) emulator run-cli
-
-.PHONY: run-test
-test: $(foreach T, $(TARGETS),test-$(T))
