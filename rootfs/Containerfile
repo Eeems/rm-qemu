@@ -119,6 +119,7 @@ COPY dropbear.socket rm2fb.conf /artifact/
 RUN <<EOT
   ln -s busybox /usr/local/bin/killall
   ln -s busybox /usr/local/bin/lsof
+  ln -s busybox /usr/local/bin/pidof
 EOT
 
 ARG HASH

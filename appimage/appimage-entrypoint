@@ -14,23 +14,11 @@ if [ $# -eq 1 ] && [[ "$1" == "--debug" ]]; then
   exec bash -l </dev/stdin >/dev/stdout 2>/dev/stderr
 fi
 errors=()
-if ! command -v qemu-img >/dev/null; then
-  errors+=("Unable to find qemu-img command, please install qemu-img")
-fi
-if ! command -v qemu-system-arm >/dev/null; then
-  errors+=("Unable to find qemu-system-arm command, please install qemu-system-arm")
-fi
 if ! command -v ssh >/dev/null; then
   errors+=("Unable to find ssh command, please install ssh")
 fi
 if ! command -v ssh-keygen >/dev/null; then
   errors+=("Unable to find ssh-keygen command, please install ssh")
-fi
-if ! command -v pidof >/dev/null; then
-  errors+=("Unable to find pidof command, please install pidof")
-fi
-if ! command -v killall >/dev/null; then
-  errors+=("Unable to find killall command, please install killall")
 fi
 if [ ${#errors[@]} -gt 0 ]; then
   echo "Errors found:"
