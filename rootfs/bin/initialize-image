@@ -93,7 +93,7 @@ EOF
     rm-busybox-exec <<EOF
       set -e
       cd /mnt/root${dev}
-      sed -i 's/wlan/eth/' root${dev}/lib/systemd/system/dhcpcd.service
+      sed -i 's/wlan/eth/' lib/systemd/system/dhcpcd.service
 EOF
   fi
 done
