@@ -46,7 +46,7 @@ $(foreach T,\
 	$(TARGETS),\
 	$(eval $(call make-target, \
 		$(T), \
-		$(shell MAKEFLAGS= $(MAKE_TARGET) $(T) depends), \
+		$(shell MAKEFLAGS= MAKEFLAGS= $(MAKE_TARGET) $(T) depends), \
 	)) \
 )
 
@@ -58,7 +58,7 @@ endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	test-$(T), \
-	$(foreach D,$(shell MAKEFLAGS= $(MAKE_TARGET) $(T) depends),test-$(D)), \
+	$(foreach D,$(shell MAKEFLAGS= MAKE_TARGET="$(MAKE_TARGET)" tools/get-depends $(T)),test-$(D)), \
 )))
 
 define make-target
@@ -71,7 +71,7 @@ endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	push-$(T), \
-	$(shell $(MAKE_TARGET) $(T) tag), \
+	$(shell MAKEFLAGS= $(MAKE_TARGET) $(T) tag), \
 )))
 
 define make-target
@@ -82,7 +82,7 @@ endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	pull-$(T), \
-	$(shell $(MAKE_TARGET) $(T) tag), \
+	$(shell MAKEFLAGS= $(MAKE_TARGET) $(T) tag), \
 )))
 
 define make-target
@@ -93,7 +93,7 @@ endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	tag-$(T), \
-	$(foreach D,$(shell MAKEFLAGS= $(MAKE_TARGET) $(T) depends),tag-$(D)), \
+	$(foreach D,$(shell MAKEFLAGS= MAKE_TARGET="$(MAKE_TARGET)" tools/get-depends $(T)),tag-$(D)), \
 )))
 
 define make-target
@@ -105,5 +105,5 @@ endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	hash-$(T), \
-	$(foreach D,$(shell MAKEFLAGS= $(MAKE_TARGET) $(T) depends),hash-$(D)), \
+	$(foreach D,$(shell MAKEFLAGS= MAKE_TARGET="$(MAKE_TARGET)" tools/get-depends $(T)),hash-$(D)), \
 )))

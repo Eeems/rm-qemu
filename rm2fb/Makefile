@@ -31,18 +31,22 @@ $(foreach O,\
 	)) \
 )
 
+.SILENT: tag
 tag:
 	@echo ${TAG}
 
+.SILENT: hash
 hash:
 	@../tools/get-hash \
 	  --single \
 	  ${OBJ} \
-	  $($$($(MAKE) KERNEL=${KERNEL} depends) | xargs -rI {} echo "--static{}=$$($(MAKE) KERNEL=${KERNEL} -C "../{}" hash)")
+	  $(get-depends-static-flags)
 
+.SILENT: depends
 depends:
 	@true
 
+.SILENT: test
 test:
 	@true
 

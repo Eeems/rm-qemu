@@ -1,0 +1,4 @@
+#!/bin/bash
+T=${1:?Target argument missing}
+MAKE_TARGET=${MAKE_TARGET:?Missing MAKE_TARGET}
+${MAKE_TARGET} $T depends | xargs -rn1 | grep -v .WAIT

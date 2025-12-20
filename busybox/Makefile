@@ -34,16 +34,18 @@ $(foreach O,\
 test: busybox
 	./artifact/busybox --help
 
-
+.SILENT: tag
 tag:
 	@echo ${TAG}
 
+.SILENT: hash
 hash:
 	@../tools/get-hash \
 	  --single \
 	  ${OBJ} \
-	  $($$($(MAKE) KERNEL=${KERNEL} depends) | xargs -rI {} echo "--static{}=$$($(MAKE) KERNEL=${KERNEL} -C "../{}" hash)")
+	  $(get-depends-static-flags)
 
+.SILENT: depends
 depends:
 	@true
 

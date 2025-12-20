@@ -105,16 +105,18 @@ test: artifact/busybox.img script.img ../appimage/bin/get-free-port
 	  mon:stdio \
 	  -nographic
 
-
+.SILENT: tag
 tag:
 	@echo ${TAG}
 
+.SILENT: hash
 hash:
 	@../tools/get-hash \
 	  --single \
 	  ${OBJ} \
-	  $($$($(MAKE) KERNEL=${KERNEL} depends) | xargs -rI {} echo "--static{}=$$($(MAKE) KERNEL=${KERNEL} -C "../{}" hash)")
+	  $(get-depends-static-flags)
 
+.SILENT: depends
 depends:
 	@echo busybox-kernel
 
