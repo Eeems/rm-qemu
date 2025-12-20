@@ -5,12 +5,12 @@ shift
 echo "Checking $tag"
 local=${2:?}
 shift
-image=$(podman inspect $tag --format='{{ .Labels.hash }}' 2>/dev/null)
+image=$(podman inspect $tag --format='{{ .Labels.hash }}' 2>/dev/null || true)
 if [[ "$local" == "$image" ]];then
   echo "Skipped as hash matches"
   exit
 fi
-remote=$(skopeo inspect docker://$tag --format='{{ .Labels.hash }}' 2>/dev/null)
+remote=$(skopeo inspect docker://$tag --format='{{ .Labels.hash }}' 2>/dev/null || true)
 if [[ "$local" == "$image" ]];then
   podman pull $tag
   exit
