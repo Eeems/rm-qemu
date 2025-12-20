@@ -16,6 +16,7 @@ image:
 	if [[ "$$local" != "$$image" ]];then \
 	  echo "$$local != $$image"; \
 	  podman build \
+	    --pull=missing \
 	    --tag=$$tag \
 	    "--build-arg=HASH=$$local" \
 	    .; \
