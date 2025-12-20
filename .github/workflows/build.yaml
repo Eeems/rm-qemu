@@ -101,6 +101,10 @@ jobs:
             echo
             df -h
           EOF
+      - name: Debug information
+        run: |
+          make hashes
+          make tags
       - name: Build
         run: make -j$(nproc)
       - name: rootfs cache

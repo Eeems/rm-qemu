@@ -11,6 +11,9 @@ all: $(TARGETS)
 .PHONY: tags
 tags: $(foreach T, $(TARGETS), tag-$(T))
 
+.PHONY: hashes
+hashes: $(foreach T, $(TARGETS), hash-$(T))
+
 .PHONY: push
 push: $(foreach T, $(TARGETS), push-$(T))
 
@@ -89,4 +92,15 @@ endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	tag-$(T), \
+)))
+
+define make-target
+.PHONY: $2
+$2:
+	@$(MAKE_TARGET) $1 hash | xargs echo -n
+	@echo "  $1"
+endef
+$(foreach T, $(TARGETS), $(eval $(call make-target, \
+	$(T), \
+	hash-$(T), \
 )))
