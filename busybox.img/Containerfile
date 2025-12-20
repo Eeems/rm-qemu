@@ -1,0 +1,139 @@
+ARG HASH KERNEL
+
+FROM eeems/remarkable-toolchain:4.3.98-rm2 AS base
+
+RUN bash -e <<EOT
+  export DEBIAN_FRONTEND="noninteractive"
+  apt-get update
+  apt-get dist-upgrade -y --no-install-recommends
+  apt-get install -y --no-install-recommends \
+    pkg-config \
+    xz-utils \
+    wget \
+    cpio \
+    git
+  apt-get clean
+  rm -rf /var/lib/apt/lists/*
+EOT
+
+FROM base AS e2fsprogs
+
+RUN <<EOT
+  set -e
+  git clone --depth=1 --branch=v1.47.3 https://github.com/tytso/e2fsprogs.git /e2fsprogs
+EOT
+
+WORKDIR /e2fsprogs
+
+RUN bash -e <<EOT
+  source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
+  CONFIGURE_FLAGS=\$(echo "\$CONFIGURE_FLAGS" | sed 's/--target=[^ ]* //')
+  read -ra FLAGS <<< "\$CONFIGURE_FLAGS"
+  ./configure \
+    "\${FLAGS[@]}" \
+    "LDFLAGS=-static -L/usr/arm-linux-gnueabihf/lib" \
+    CFLAGS="-I/usr/arm-linux-gnueabihf/include" \
+    --disable-fsverity
+  make -j$(nproc)
+  make -j$(nproc) DESTDIR=/rootfs install-strip
+EOT
+
+WORKDIR /rootfs
+
+RUN rm -r \
+  etc/cron.d \
+  etc/e2scrub.conf \
+  lib \
+  usr/libexec \
+  usr/share
+
+FROM base AS busybox
+
+RUN <<EOT
+  set -e
+  wget https://www.busybox.net/downloads/busybox-1.36.1.tar.bz2
+  tar -xf busybox-1.36.1.tar.bz2 -C /
+  rm busybox-1.36.1.tar.bz2
+  mv /busybox-1.36.1 /busybox
+EOT
+
+WORKDIR /busybox
+
+COPY busybox.config /busybox/.config
+
+RUN bash -e <<EOT
+  source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
+  sed -i "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"\$CROSS_COMPILE\"|" .config
+  sed -i "s|CONFIG_SYSROOT=\"\"|CONFIG_SYSROOT=\"\$SDKTARGETSYSROOT\"|" .config
+  sed -i "s|CONFIG_EXTRA_CFLAGS=\"\"|CONFIG_EXTRA_CFLAGS=\"\$CFLAGS \$(echo \$CC | cut -d' ' -f2-)\"|" .config
+  sed -i "s|CONFIG_EXTRA_LDFLAGS=\"\"|CONFIG_EXTRA_LDFLAGS=\"\$LDFLAGS \$(echo \$LD | cut -d' ' -f2-) -L/usr/arm-linux-gnueabihf/lib\"|" .config
+EOT
+
+RUN bash -e <<EOT
+  source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
+  make "-j$(nproc)"
+  make "-j$(nproc)" install
+  mv install /rootfs
+  make clean
+EOT
+
+FROM eeems/remarkable-toolchain:4.3.98-rm2 AS rootfs
+
+RUN bash -e <<EOT
+  export DEBIAN_FRONTEND="noninteractive"
+  apt-get update
+  apt-get dist-upgrade -y --no-install-recommends
+  apt-get install -y --no-install-recommends \
+    pkg-config \
+    xz-utils \
+    wget \
+    cpio
+  apt-get clean
+  rm -rf /var/lib/apt/lists/*
+EOT
+
+COPY --from=busybox /rootfs /busybox/
+COPY --from=e2fsprogs /rootfs /e2fsprogs/
+COPY overlay/ /overlay
+
+WORKDIR /rootfs
+
+RUN bash -e <<EOT
+  source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
+  cp -r /busybox/. .
+  cp -r /e2fsprogs/. .
+  cp -r /overlay/. .
+  ln -s udhcpc.hook bin/udhcpc6.hook
+  cp \$SDKTARGETSYSROOT/usr/sbin/dropbearmulti usr/sbin/
+  ln -s ./dropbearmulti usr/sbin/dropbear
+  ln -s ./dropbearmulti usr/sbin/dropbearconvert
+  ln -s ./dropbearmulti usr/sbin/dropbearkey
+  mkdir \
+    {lib,dev,sys,tmp,proc,mnt} \
+    etc/dropbear \
+    usr/libexec
+  cp \
+    \$SDKTARGETSYSROOT/lib/ld-linux-armhf.so.3 \
+    \$SDKTARGETSYSROOT/lib/libz.so.1.2.11 \
+    \$SDKTARGETSYSROOT/lib/libc.so.6 \
+    lib/
+  ln -s libz.so.1.2.11 lib/libz.so.1
+  cp \
+    \$SDKTARGETSYSROOT/usr/lib/libcrypt.so.2.0.0 \
+    \$SDKTARGETSYSROOT/usr/lib/libcrypto.so.3 \
+    usr/lib/
+  ln -s libcrypt.so.2.0.0 usr/lib/libcrypt.so.2
+  cp \
+    \$SDKTARGETSYSROOT/usr/libexec/sftp-server \
+    usr/libexec/
+  find . -print0 | cpio --null -ov --format=newc | gzip -9 > /busybox.img
+EOT
+
+FROM scratch
+
+ARG KERNEL
+
+COPY --from=rootfs /busybox.img /
+
+ARG HASH
+LABEL hash="${HASH:?Hash missing}"

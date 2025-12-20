@@ -87,9 +87,12 @@ COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-${KERNEL} \
 COPY --from=ghcr.io/eeems/rm-qemu-artifact:busybox-kernel-${KERNEL} \
   /busybox-zImage \
   /artifact/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:busybox \
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:busybox.img \
   /busybox.img \
   /artifact/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:busybox \
+  /busybox \
+  /usr/local/bin/
 COPY --from=ghcr.io/eeems/rm-qemu-artifact:qemu-system-arm \
   /qemu-system-arm \
   /qemu-img \
@@ -112,6 +115,11 @@ COPY --from=base /base.qcow2 /artifact/
 COPY --from=codexctl codexctl /usr/local/bin
 COPY bin/* /usr/local/bin/
 COPY dropbear.socket rm2fb.conf /artifact/
+
+RUN <<EOT
+  ln -s busybox /usr/local/bin/killall
+  ln -s busybox /usr/local/bin/lsof
+EOT
 
 ARG HASH
 LABEL hash="${HASH:?Hash missing}"
