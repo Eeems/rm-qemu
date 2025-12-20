@@ -3,7 +3,7 @@ KERNEL := 5.8.18
 MAKEFLAGS += --no-print-directory
 MAKE_TARGET := $(MAKE) KERNEL=${KERNEL} -C
 SHELL := /bin/bash
-TARGETS := $(shell find . -mindepth 2 -maxdepth 2 -type f -name Makefile | xargs dirname | xargs -n1 basename)
+TARGETS := $(shell find . -mindepth 2 -maxdepth 2 -type f -name Makefile | xargs dirname | xargs -n1 basename | LC_ALL=C sort)
 
 .PHONY: all $(TARGETS)
 all: $(TARGETS)
