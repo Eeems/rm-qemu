@@ -36,7 +36,7 @@ for f in "${to_hash[@]}"; do
   hashes["$f"]="$(sha256sum "$f" | cut -d' ' -f1)"
 done
 output=""
-for key in $(echo "${!hashes[@]}" | xargs -rn1 | sort); do
+for key in $(echo "${!hashes[@]}" | xargs -rn1 | LC_ALL=C sort); do
   if [[ "$key" != ".STATIC:"* ]]; then
     output+="${hashes[$key]}  $key\n"
     continue
