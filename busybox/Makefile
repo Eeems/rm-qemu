@@ -17,11 +17,22 @@ image:
 	  $$($(MAKE) hash) \
 	  "--build-arg=KERNEL=${KERNEL}"
 
-${OUTPUTS}: image
-	../tools/get-artifact "${TAG}" "$@"
+define make-target
+.PHONY: $1
+$1: $2
+$2: image
+	../tools/get-artifact "${TAG}" $1
+endef
+$(foreach O,\
+	$(OUTPUTS),\
+	$(eval $(call make-target, \
+		$(O), \
+		artifact/$(O) \
+	)) \
+)
 
 test: busybox
-	./busybox --help
+	./artifact/busybox --help
 
 
 tag:

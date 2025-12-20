@@ -2,4 +2,8 @@
 {
   git ls-files --other --exclude-standard
   git ls-files --no-others --exclude-standard
-} | uniq
+} | uniq | while read -r f; do
+  if [ -f "$f" ];then
+    echo "$f"
+  fi
+done
