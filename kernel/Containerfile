@@ -35,7 +35,6 @@ WORKDIR /linux
 COPY qemu.dts /
 COPY qemu.config /linux/arch/arm/configs/
 
-ARG LOCALVERSION="${LOCALVERSION:?LOCALVERSION missing}"
 
 RUN bash -e <<EOT
   source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
@@ -48,8 +47,14 @@ EOT
 
 RUN bash -e <<EOT
   source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
-  make -j $(nproc) LOCALVERSION="-${LOCALVERSION}"
+  make -j $(nproc)
   make -j $(nproc) imx7d-cl-som-imx7.dtb
+EOT
+
+ARG VERSION="${VERSION:?VERSION missing}"
+RUN bash -e <<EOT
+  source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
+   make -j $(nproc) LOCALVERSION="-${VERSION}-rm11x"
 EOT
 
 FROM scratch

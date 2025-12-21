@@ -13,12 +13,13 @@ all: image $(OUTPUTS)
 image::
 	../tools/make-image \
 	  $(TAG) \
-	  $$(MAKEFLAGS= make hash) \
-	  $(foreach A, $(BUILD_ARGS), --build-arg=$(A))
+	  $(shell MAKEFLAGS= make hash) \
+	  $(shell MAKEFLAGS= ../tools/get-depends-build-context-flags) \
+	  $(foreach A, $(BUILD_ARGS), --build-arg=$(A)) \
 
 define make-target
 .PHONY: $1
-$1: $2
+$1:: $2
 $2: image
 	../tools/get-artifact "${TAG}" $1
 endef

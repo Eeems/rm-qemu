@@ -1,0 +1,4 @@
+#!/bin/bash
+"$(dirname "$0")"/get-depends . | xargs -rn1 | while read -r d; do
+  echo "--build-context=$d=../$d/artifact"
+done

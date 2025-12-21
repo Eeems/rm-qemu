@@ -1,37 +1,43 @@
 KERNEL_TAG ?= RM1XX_5.4.70_v1.6.2
 KERNEL ?= 5.4.70
-LOCALVERSION ?= v1.6.2-rm11x
+VERSION ?= v1.6.2
 TAG := ghcr.io/eeems/rm-qemu-artifact:kernel-${KERNEL_TAG}
 OUTPUTS := zImage qemu.dtb
 
 BUILD_ARGS := "KERNEL=$(KERNEL)"
 BUILD_ARGS += "KERNEL_TAG=$(KERNEL_TAG)"
-BUILD_ARGS += "LOCALVERSION=$(LOCALVERSION)"
+BUILD_ARGS += "VERSION=$(VERSION)"
 
 
-CONFIGS := "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.6.2 LOCALVERSION=v1.6.2-rm11x"
-CONFIGS := "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.6.2 LOCALVERSION=v1.6.1-rm11x"
-CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.3.4 LOCALVERSION=v1.5.1-rm11x"
-CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.3.4 LOCALVERSION=v1.4.1-rm11x"
-CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.3.4 LOCALVERSION=v1.3.4-rm11x"
-CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.3.3 LOCALVERSION=v1.3.3-rm11x"
-CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.2.6 LOCALVERSION=v1.2.6-rm11x"
-CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.2.5 LOCALVERSION=v1.2.5-rm11x"
-CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.2.4 LOCALVERSION=v1.2.4-rm11x"
-# CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.2.3 LOCALVERSION=v1.2.3-rm11x"
-CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.2.2 LOCALVERSION=v1.2.2-rm11x"
-CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.2.1 LOCALVERSION=v1.2.1-rm11x"
-# CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.2.0 LOCALVERSION=v1.2.0-rm11x"
-CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.1.0 LOCALVERSION=v1.1.5-rm11x"
-# CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.1.0 LOCALVERSION=v1.1.0-rm11x"
-# CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.0.0 LOCALVERSION=v1.0.0-rm11x"
+CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.6.2 VERSION=v1.6.2"
+CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.6.1 VERSION=v1.6.1"
+CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.3.4 VERSION=v1.5.1"
+CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.3.4 VERSION=v1.4.1"
+CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.3.4 VERSION=v1.3.4"
+CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.3.3 VERSION=v1.3.3"
+CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.2.6 VERSION=v1.2.6"
+CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.2.5 VERSION=v1.2.5"
+CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.2.4 VERSION=v1.2.4"
+# CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.2.3 VERSION=v1.2.3"
+CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.2.2 VERSION=v1.2.2"
+CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.2.1 VERSION=v1.2.1"
+# CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.2.0 VERSION=v1.2.0"
+CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.1.0 VERSION=v1.1.5"
+# CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.1.0 VERSION=v1.1.0"
+# CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.0.0 VERSION=v1.0.0"
 
-TEST_DEPENDS += busybox.img
+TEST_DEPENDS += busybox.img qemu-system-arm
 
 include ../target.mk
 
+ARTIFACTDIR := artifact/${KERNEL}_${VERSION}
+
+$(OUTPUTS):: %: artifact/%
+	mkdir -p $(ARTIFACTDIR)
+	mv artifact/$* $(ARTIFACTDIR)/
+
 test:: zImage qemu.dtb
-	qemu-system-arm \
+	../qemu-system-arm/artifact/qemu-system-arm \
 	  -machine \
 	  mcimx7d-sabre \
 	  -cpu \
@@ -41,9 +47,9 @@ test:: zImage qemu.dtb
 	  -m \
 	  2048 \
 	  -kernel \
-	  ./artifact/zImage \
+	  $(ARTIFACTDIR)/zImage \
 	  -dtb \
-	  ./artifact/qemu.dtb \
+	  $(ARTIFACTDIR)/qemu.dtb \
 	  -serial \
 	  mon:stdio \
 	  -nographic \
@@ -53,7 +59,7 @@ test:: zImage qemu.dtb
 	  "earlycon=ttymxc0 console=ttymxc0 init=/init -- uname -a"
 
 run: zImage qemu.dtb
-	qemu-system-arm \
+	../qemu-system-arm/artifact/qemu-system-arm \
 	  -machine \
 	  mcimx7d-sabre \
 	  -cpu \
@@ -63,9 +69,9 @@ run: zImage qemu.dtb
 	  -m \
 	  2048 \
 	  -kernel \
-	  ./artifact/zImage \
+	  $(ARTIFACTDIR)/zImage \
 	  -dtb \
-	  ./artifact/qemu.dtb \
+	  $(ARTIFACTDIR)/qemu.dtb \
 	  -serial \
 	  mon:stdio \
 	  -nographic \

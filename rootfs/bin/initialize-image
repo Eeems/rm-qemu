@@ -7,9 +7,11 @@ if rm-is-running && rm-image-path 2>/dev/null && [[ "$DATADIR/rootfs-$VERSION.qc
   echo "Image is in use" >/dev/stderr
   exit
 fi
-
-rootfs=$(initialize-image-base "$VERSION" --no-stop)
+DATADIR="${DATADIR:-/data}"
+rootfs="$DATADIR/$VERSION.qcow2"
 # shellcheck disable=SC2064,SC2086
 trap "rm '${rootfs}'" EXIT
+initialize-image-base "$VERSION" --no-stop
 initialize-image-patch "$VERSION" --no-start
-initialize-image-finalize "$VERISON"
+initialize-image-finalize "$VERSION"
+trap - EXIT

@@ -78,67 +78,26 @@ RUN <<EOT
   mkdir -p /artifact
 EOT
 
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.6.2 \
-  zImage qemu.dtb \
-  /artifact/5.4.70_v1.6.2/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.3.4 \
-  zImage qemu.dtb \
-  /artifact/5.4.70_v1.3.4/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.3.3 \
-  zImage qemu.dtb \
-  /artifact/5.4.70_v1.3.3/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.2.6 \
-  zImage qemu.dtb \
-  /artifact/5.4.70_v1.2.6/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.2.5 \
-  zImage qemu.dtb \
-  /artifact/5.4.70_v1.2.5/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.2.4 \
-  zImage qemu.dtb \
-  /artifact/5.4.70_v1.2.4/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.2.3 \
-  zImage qemu.dtb \
-  /artifact/5.4.70_v1.2.3/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.2.2 \
-  zImage qemu.dtb \
-  /artifact/5.4.70_v1.2.2/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.2.1 \
-  zImage qemu.dtb \
-  /artifact/5.4.70_v1.2.1/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.2.0 \
-  zImage qemu.dtb \
-  /artifact/5.4.70_v1.2.0/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.1.0 \
-  zImage qemu.dtb \
-  /artifact/5.4.70_v1.1.0/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.0.0 \
-  zImage qemu.dtb \
-  /artifact/5.4.70_v1.0.0/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:busybox-kernel-5.8.18 \
-  /busybox-zImage \
-  /artifact/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:busybox.img \
-  /busybox.img \
-  /artifact/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:busybox \
-  /busybox \
-  /usr/local/bin/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:qemu-system-arm \
-  /qemu-system-arm \
-  /qemu-img \
-  /qemu-pr-helper \
-  /qemu-storage-daemon \
+COPY --from=kernel . /artifact/
+COPY --from=busybox-kernel . /artifact/
+COPY --from=busybox.img . /artifact/
+COPY --from=busybox . /usr/local/bin/
+COPY --from=qemu-system-arm \
+  qemu-system-arm \
+  qemu-img \
+  qemu-pr-helper \
+  qemu-storage-daemon \
   /usr/bin/
-# COPY --from=ghcr.io/eeems/rm-qemu-artifact:qemu-system-arm \
+# COPY --from=qemu-system-arm \
 #   /firmware/* \
 #   /usr/share/qemu/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:qemu-system-arm \
+COPY --from=qemu-system-arm \
   qemu-bridge-helper \
   /usr/libexec/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:rm2fb \
+COPY --from=rm2fb \
   /rm2fb.tar.gz \
   /artifact/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:rm2fb \
+COPY --from=rm2fb \
   /rm2fb-emu \
   /usr/bin/
 COPY --from=base /base.qcow2 /artifact/

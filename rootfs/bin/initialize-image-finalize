@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-exec 3>&1 1>&2
+exec 1>&2
 usage() {
   echo "Usage: initialize-image-finalize <version>"
   exit 1
@@ -8,9 +8,10 @@ usage() {
 if [ $# -ne 1 ]; then
   usage
 fi
-VERSION="${1}"
+VERSION="${1:?Error: version is empty}"
 DATADIR="${DATADIR:-/data}"
 rootfs="$DATADIR/$VERSION.qcow2"
+echo "Finalizing $rootfs..."
 if [ ! -f "$rootfs" ]; then
   echo "Error: ${rootfs} not found"
   exit 1
