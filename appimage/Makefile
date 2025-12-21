@@ -7,7 +7,7 @@ include ../target.mk
 
 all: image rm-qemu-anylinux-x86_64.AppImage
 
-rm-qemu-kernel-anylinux-x86_64.AppImage: $(OBJ)
+rm-qemu-anylinux-x86_64.AppImage: $(OBJ)
 	podman run --rm \
 	  --volume=$$(pwd):/workspace \
 	  --workdir=/workspace \

@@ -79,11 +79,41 @@ RUN <<EOT
 EOT
 
 COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.6.2 \
-  zImage \
-  /artifact/5.4.70_v1.6.2-zImage
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.6.2 \
-  qemu.dtb \
-  /artifact/5.4.70_v1.6.2-qemu.dtb
+  zImage qemu.dtb \
+  /artifact/5.4.70_v1.6.2/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.3.4 \
+  zImage qemu.dtb \
+  /artifact/5.4.70_v1.3.4/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.3.3 \
+  zImage qemu.dtb \
+  /artifact/5.4.70_v1.3.3/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.2.6 \
+  zImage qemu.dtb \
+  /artifact/5.4.70_v1.2.6/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.2.5 \
+  zImage qemu.dtb \
+  /artifact/5.4.70_v1.2.5/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.2.4 \
+  zImage qemu.dtb \
+  /artifact/5.4.70_v1.2.4/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.2.3 \
+  zImage qemu.dtb \
+  /artifact/5.4.70_v1.2.3/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.2.2 \
+  zImage qemu.dtb \
+  /artifact/5.4.70_v1.2.2/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.2.1 \
+  zImage qemu.dtb \
+  /artifact/5.4.70_v1.2.1/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.2.0 \
+  zImage qemu.dtb \
+  /artifact/5.4.70_v1.2.0/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.1.0 \
+  zImage qemu.dtb \
+  /artifact/5.4.70_v1.1.0/
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.0.0 \
+  zImage qemu.dtb \
+  /artifact/5.4.70_v1.0.0/
 COPY --from=ghcr.io/eeems/rm-qemu-artifact:busybox-kernel-5.8.18 \
   /busybox-zImage \
   /artifact/
