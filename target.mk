@@ -58,5 +58,7 @@ config:
 ifndef CONFIGS
 	echo "DEFAULT=1"
 else
-	$(foreach C,$(CONFIGS),echo $(C);)
+	for c in $(CONFIGS);do \
+	  echo "$$c"; \
+	done
 endif
