@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-exec 3>&1 1>&2
+exec 1>&2
 usage() {
   echo "Usage: initialize-image-patch <version> [--no-start]"
   exit 1
@@ -8,22 +8,30 @@ usage() {
 if [ $# -ne 1 ] && [ $# -ne 2 ]; then
   usage
 fi
-VERSION="${1}"
+VERSION="${1:?Error: version is empty}"
 shift
-DATADIR="${DATADIR:-/data}"
-rootfs="$DATADIR/$VERSION.qcow2"
-if [ ! -f "$rootfs" ]; then
-  echo "Error: ${rootfs} not found"
-  exit 1
-fi
 start=true
 if [ $# -eq 1 ] && [[ "$1" == "--no-start" ]]; then
   start=false
 elif [ $# -eq 1 ]; then
   usage
 fi
+DATADIR="${DATADIR:-/data}"
+rootfs="$DATADIR/$VERSION.qcow2"
+echo "Patching $rootfs..."
+if [ ! -f "$rootfs" ]; then
+  echo "Error: ${rootfs} not found"
+  exit 1
+fi
 if $start; then
   rm-busybox-start "$rootfs"
+  rm-busybox-exec <<EOF
+    set -e
+    cd /mnt
+    mkdir -p rootA rootB home
+    mount /dev/mmcblk2p2 rootA
+    mount /dev/mmcblk2p3 rootB
+EOF
 fi
 for dev in A B; do
   echo "Setting up root$dev partition..."
@@ -74,4 +82,3 @@ EOF
 done
 echo "Stopping busybox..."
 rm-busybox-stop
-echo "$rootfs" >&3

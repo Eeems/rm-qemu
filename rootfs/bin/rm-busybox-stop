@@ -1,13 +1,5 @@
 #!/bin/bash
 set -e
-rm-busybox-exec <<EOF
-  cd /mnt
-  for x in rootA rootB home;do
-    if mountpoint -q \$x;then
-      umount \$x
-    fi
-  done
-EOF
 echo "poweroff -f" | rm-busybox-exec 2>/dev/null || true
 while rm-busybox-exec true &>/dev/null; do
   sleep 1

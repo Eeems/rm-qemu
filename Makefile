@@ -22,7 +22,9 @@ pull: $(foreach T, $(TARGETS), pull-$(T))
 clean:
 	git clean --force -dX
 	rm -rf $(foreach T, $(TARGETS), $(T)/artifact)
-	$(foreach T, $(shell MAKEFLAGS= ${MAKE} tags),podman rmi -i $(T);)
+	while read t;do \
+	  podman rmi -i $$t; \
+	done < <(MAKEFLAGS= $(MAKE) tags)
 
 .PHONY: run-ui
 run-ui: ${TARGETS}

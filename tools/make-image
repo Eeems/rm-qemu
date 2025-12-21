@@ -7,11 +7,12 @@ hash=${1:?Expected hash is missing}
 shift
 local=$(podman inspect "$tag" --format='{{ .Labels.hash }}' 2>/dev/null || true)
 if [[ "$hash" == "$local" ]]; then
-  echo "Skipped as hash matches"
+  echo "Skipped as local hash matches"
   exit
 fi
 remote=$(skopeo inspect "docker://$tag" --format='{{ .Labels.hash }}' 2>/dev/null || true)
 if [[ "$hash" == "$remote" ]]; then
+  echo "Remote hash matches"
   podman pull "$tag"
   exit
 fi
