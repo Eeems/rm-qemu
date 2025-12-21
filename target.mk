@@ -13,7 +13,7 @@ all: image
 image::
 	../tools/make-image \
 	  $(TAG) \
-	  $$(MAKE_FLAGS= make hash) \
+	  $$(MAKEFLAGS= make hash) \
 	  $(foreach A, $(BUILD_ARGS), --build-arg=$(A))
 
 define make-target
@@ -43,9 +43,9 @@ tag:
 hash:
 	../tools/get-hash \
 	  --single \
-	  $(foreach A, $(HASH_ARGS), --static=$(A)) \
 	  ${OBJ} \
-	  $(../tools/get-depends-static-flags)
+	  $(shell MAKEFLAGS= ../tools/get-depends-static-flags) \
+	  $(foreach A, $(HASH_ARGS), --static=$(A))
 
 .SILENT: depends
 .PHONY: depends
