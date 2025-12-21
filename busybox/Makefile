@@ -3,5 +3,5 @@ OUTPUTS := busybox
 
 include ../target.mk
 
-test: busybox
+test:: busybox
 	./artifact/busybox --help

@@ -14,7 +14,7 @@ rm-qemu-anylinux-x86_64.AppImage: $(OBJ)
 	  "--env=APPDIR=${APPDIR}" \
 	  "${TAG}"
 
-test: rm-qemu-anylinux-x86_64.AppImage
+test:: rm-qemu-anylinux-x86_64.AppImage
 	./rm-qemu-anylinux-x86_64.AppImage \
 	  ${VERSION} \
 	  true

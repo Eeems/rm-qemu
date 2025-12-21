@@ -31,7 +31,7 @@ $(foreach O,\
 )
 
 .PHONY: test
-test:
+test::
 
 .SILENT: tag
 .PHONY: tag

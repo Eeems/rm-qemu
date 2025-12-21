@@ -34,7 +34,7 @@ run-ui: all .data/${VERSION}.qcow2
 	  ${VERSION} \
 	  --display
 
-test: all .data/${VERSION}.qcow2
+test:: all .data/${VERSION}.qcow2
 	podman run --rm \
 	  --volume=.data:/data \
 	  --volume=.cache:/cache \
