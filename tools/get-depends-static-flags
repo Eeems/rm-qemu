@@ -1,3 +1,5 @@
 #!/bin/bash
-MAKE_TARGET=${MAKE_TARGET:?Missing MAKE_TARGET}
-get-depends . | xargs -rI {} echo "--static{}=$($MAKE_TARGET "../{}" hash)"
+KERNEL=${KERNEL:?Missing KERNEL}
+"$(dirname "$0")"/get-depends . | xargs -rn1 | while read -r d; do
+  echo "--static=$d=$(make "KERNEL=${KERNEL}" -C "../$d" hash)"
+done

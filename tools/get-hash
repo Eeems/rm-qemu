@@ -18,6 +18,7 @@ for a in "$@"; do
       ;;
     *)
       echo "Usage: $0 [--singe] [path|--static=name=value]..." >/dev/stderr
+      echo "  Error: Unknown argument: $a"
       exit 1
       ;;
     esac
