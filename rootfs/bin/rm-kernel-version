@@ -1,0 +1,34 @@
+#!/bin/bash
+set -e
+VERSION=${1:?Usage:$0 <version>}
+if version-test "$VERSION" -le 2.10.3.379; then
+  echo "Error: Unknown kernel version for $VERSION" >/dev/stderr
+  exit 1
+elif version-test "$VERSION" -le 2.13.0.758; then
+  echo 5.4.70_v1.1.5
+elif version-test "$VERSION" -le 2.14.0.861; then
+  echo 5.4.70_v1.2.1
+elif version-test "$VERSION" -le 2.14.3.977; then
+  echo 5.4.70_v1.2.2
+elif version-test "$VERSION" -le 2.15.0.1067; then
+  echo 5.4.70_v1.2.4
+elif version-test "$VERSION" -le 2.15.1.1189; then
+  echo 5.4.70_v1.2.5
+elif version-test "$VERSION" -le 3.0.4.1305; then
+  echo 5.4.70_v1.2.6
+elif version-test "$VERSION" -le 3.3.2.1666; then
+  echo 5.4.70_v1.3.3
+elif version-test "$VERSION" -le 3.12.4.4; then
+  echo 5.4.70_v1.3.4
+elif version-test "$VERSION" -le 3.15.4.2; then
+  echo 5.4.70_v1.4.1
+elif version-test "$VERSION" -le 3.16.2.3; then
+  echo 5.4.70_v1.5.1
+elif version-test "$VERSION" -le 3.17.0.72; then
+  echo 5.4.70_v1.6.1
+elif version-test "$VERSION" -gt 3.17.0.72; then
+  echo 5.4.70_v1.6.2
+else
+  echo "Error: version-test may be broken '$VERSION'" >/dev/stderr
+  exit 1
+fi

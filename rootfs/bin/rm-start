@@ -13,35 +13,7 @@ mkdir -p "$STATEDIR"
 
 rootfs="$(rm-image-path)"
 VERSION=$(basename --suffix="$(echo rootfs- | rev)" "$(basename --suffix=.qcow2 "$rootfs" | rev)" | rev)
-if version-test "$VERSION" -le 2.10.3.379; then
-  echo "Unknown kernel version for $VERSION ($rootfs)"
-  exit 1
-elif version-test "$VERSION" -le 2.13.0.758; then
-  KERNEL=5.4.70-v1.1.5
-elif version-test "$VERSION" -le 2.14.0.861; then
-  KERNEL=5.4.70-v1.2.1
-elif version-test "$VERSION" -le 2.14.3.977; then
-  KERNEL=5.4.70-v1.2.2
-elif version-test "$VERSION" -le 2.15.0.1067; then
-  KERNEL=5.4.70-v1.2.4
-elif version-test "$VERSION" -le 2.15.1.1189; then
-  KERNEL=5.4.70-v1.2.5
-elif version-test "$VERSION" -le 3.0.4.1305; then
-  KERNEL=5.4.70-v1.2.6
-elif version-test "$VERSION" -le 3.3.2.1666; then
-  KERNEL=5.4.70_v1.3.3
-elif version-test "$VERSION" -le 3.12.4.4; then
-  KERNEL=5.4.70_v1.3.4
-elif version-test "$VERSION" -le 3.15.4.2; then
-  KERNEL=5.4.70_v1.4.1
-elif version-test "$VERSION" -le 3.16.2.3; then
-  KERNEL=5.4.70_v1.5.1
-elif version-test "$VERSION" -le 3.17.0.72; then
-  KERNEL=5.4.70_v1.6.1
-elif version-test "$VERISON" -gt 3.17.0.72; then
-  KERNEL=5.4.70_v1.6.2
-fi
-
+KERNEL=$(rm-kernel-version "$VERSION")
 args=(
   -machine
   mcimx7d-sabre
