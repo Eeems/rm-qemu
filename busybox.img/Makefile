@@ -48,7 +48,7 @@ run: busybox.img script.img ../appimage/bin/get-free-port
 	  mon:stdio \
 	  -nographic
 
-test: artifact/busybox.img script.img ../appimage/bin/get-free-port
+test:: artifact/busybox.img script.img ../appimage/bin/get-free-port
 	$(MAKE) -C ../busybox-kernel busybox-zImage
 	port=$$(../appimage/bin/get-free-port); \
 	cpus=$$(nproc); \

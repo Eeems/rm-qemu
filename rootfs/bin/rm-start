@@ -12,9 +12,9 @@ STATEDIR=${STATEDIR:-/run/rm}
 mkdir -p "$STATEDIR"
 
 rootfs="$(rm-image-path)"
-VERSION=$(basename --suffix="$(echo rootfs- | rev) $(basename --suffix=.qcow2 "$rootfs" | rev)" | rev)
+VERSION=$(basename --suffix="$(echo rootfs- | rev)" "$(basename --suffix=.qcow2 "$rootfs" | rev)" | rev)
 if version-test "$VERSION" -le 2.10.3.379; then
-  echo "Unknown kernel version for $VERSION"
+  echo "Unknown kernel version for $VERSION ($rootfs)"
   exit 1
 elif version-test "$VERSION" -le 2.13.0.758; then
   KERNEL=5.4.70-v1.1.5
