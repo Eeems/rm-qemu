@@ -50,16 +50,16 @@ $(foreach T,\
 )
 
 define make-target
-.PHONY: $2
-$2: $1 $3
+.PHONY:$2
+$2:$1 $3
 	while read -r c;do \
-	  $(MAKE_TARGET) $1 $$$$c test; \
+	  $(MAKE_TARGET)$1 $$$$c test; \
 	done < <(${MAKE_TARGET} $1 config)
 endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	test-$(T), \
-	$(foreach D,$(shell MAKEFLAGS= tools/get-depends $(T)),test-$(D)), \
+	$(foreach D,$(shell MAKEFLAGS= tools/get-test-depends $(T)),$(D)), \
 )))
 
 define make-target

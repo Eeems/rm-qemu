@@ -7,7 +7,7 @@ $(error TAG must be defined)
 endif
 
 .PHONY: all
-all: image
+all: image $(OUTPUTS)
 
 .PHONY: image
 image::
@@ -51,6 +51,17 @@ hash:
 .PHONY: depends
 depends:
 	echo $(DEPENDS)
+
+.SILENT: test-depends
+.PHONY: test-depends
+test-depends:
+ifndef TEST_DEPENDS
+	echo -n
+else
+	for d in $(TEST_DEPENDS);do \
+	  echo "$$d"; \
+	done
+endif
 
 .SILENT: config
 .PHONY: config

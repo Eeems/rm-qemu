@@ -30,7 +30,7 @@ args=(
   -drive
   "if=sd,file=$rootfs,format=qcow2,index=2"
   -append
-  "console=ttymxc0 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init"
+  "earlycon=ttymxc0 console=ttymxc0 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init"
   -nic
   "user,model=imx.enet,hostfwd=tcp::${RM_SSH_PORT:-2222}-:22,hostfwd=tcp::${RM_EMU_PORT:-8888}-:8888"
   -monitor
