@@ -1,5 +1,6 @@
 TAG := ghcr.io/eeems/rm-qemu-artifact:busybox.img
 OUTPUTS := busybox.img
+TEST_DEPENDS += buxybox-kernel
 
 include ../target.mk
 
@@ -49,7 +50,6 @@ run: busybox.img script.img ../appimage/bin/get-free-port
 	  -nographic
 
 test:: artifact/busybox.img script.img ../appimage/bin/get-free-port
-	$(MAKE) -C ../busybox-kernel busybox-zImage
 	port=$$(../appimage/bin/get-free-port); \
 	cpus=$$(nproc); \
 	echo "RM_BUSYBOX_PORT=$${port}"; \
