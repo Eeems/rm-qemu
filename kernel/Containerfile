@@ -44,12 +44,11 @@ RUN bash -e <<EOT
   make imx_v6_v7_defconfig
   make qemu.config
   sed -i 's/=m/=n/' .config
-  echo "CONFIG_LOCALVERSION=-${LOCALVERSION}" >> .config
 EOT
 
 RUN bash -e <<EOT
   source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
-  make -j $(nproc)
+  make -j $(nproc) LOCALVERSION="-${LOCALVERSION}"
   make -j $(nproc) imx7d-cl-som-imx7.dtb
 EOT
 

@@ -1,0 +1,77 @@
+#!/bin/bash
+set -e
+exec 3>&1 1>&2
+usage() {
+  echo "Usage: initialize-image-patch <version> [--no-start]"
+  exit 1
+}
+if [ $# -ne 1 ] && [ $# -ne 2 ]; then
+  usage
+fi
+VERSION="${1}"
+shift
+DATADIR="${DATADIR:-/data}"
+rootfs="$DATADIR/$VERSION.qcow2"
+if [ ! -f "$rootfs" ]; then
+  echo "Error: ${rootfs} not found"
+  exit 1
+fi
+start=true
+if [ $# -eq 1 ] && [[ "$1" == "--no-start" ]]; then
+  start=false
+elif [ $# -eq 1 ]; then
+  usage
+fi
+if $start; then
+  rm-busybox-start "$rootfs"
+fi
+for dev in A B; do
+  echo "Setting up root$dev partition..."
+  rm-busybox-upload "${ROOTDIR}/artifact/rm2fb.tar.gz" /tmp
+  rm-busybox-exec <<EOF
+    set -e
+    cd /mnt/root${dev}
+    tar xzhf /tmp/rm2fb.tar.gz -C .
+    ln -s /lib/systemd/system/rm2fb.socket etc/systemd/system/sockets.target.wants/rm2fb.socket
+    ln -s /dev/null etc/systemd/system/remarkable-fail.service
+    ln -s /dev/null etc/systemd/system/system-hardening.service
+    ln -s /dev/null etc/systemd/system/wacom_flash.service
+    ln -s /dev/null etc/systemd/system/memfaultd.service
+    ln -s /dev/null etc/systemd/system/crashuploader.service
+    ln -s /dev/null etc/systemd/system/wpa_supplicant.service
+    ln -s /dev/null etc/systemd/system/migrate_wifi.service
+    ln -s /dev/null etc/systemd/system/swupdate.service
+    ln -s /dev/null etc/systemd/system/swupdate.socket
+    ln -sf /dev/null etc/systemd/system/update-engine.service
+    ln -s /dev/null etc/systemd/system/prepare_wifi.service
+    ln -s /dev/null etc/systemd/system/dropbear-wlan.socket
+    ln -s /dev/null etc/systemd/system/dropbear-wlan@.service
+    ln -s /dev/null etc/systemd/system/dropbear-usb0.socket
+    ln -s /dev/null etc/systemd/system/dropbear-usb0@.service
+    ln -s /dev/null etc/systemd/system/dropbear-usb1.socket
+    ln -s /dev/null etc/systemd/system/dropbear-usb1.service
+    ln -s /dev/null etc/systemd/system/xochitl.service
+    sed -i 's|/dev/unknown|#/dev/mmcblk2p4|' etc/fstab
+    mkdir -p etc/systemd/system/xochitl.service.d
+EOF
+  rm-busybox-upload "${ROOTDIR}/artifact/rm2fb.conf" /mnt/root${dev}/etc/systemd/system/xochitl.service.d/rm2fb.conf
+  if version-test "$VERSION" -ge 3.22.0.0; then
+    echo "Adding dropbear.socket..."
+    rm-busybox-upload "${ROOTDIR}/artifact/dropbear.socket" /mnt/root${dev}/lib/systemd/system/dropbear.socket
+    rm-busybox-exec <<EOF
+      set -e
+      cd /mnt/root${dev}
+      ln -s /lib/systemd/system/dropbear.socket etc/systemd/system/sockets.target.wants/dropbear.socket
+EOF
+  elif version-test "$VERSION" -lt 3.13.0.0; then
+    echo "Patching dhcpcd.service..."
+    rm-busybox-exec <<EOF
+      set -e
+      cd /mnt/root${dev}
+      sed -i 's/wlan/eth/' lib/systemd/system/dhcpcd.service
+EOF
+  fi
+done
+echo "Stopping busybox..."
+rm-busybox-stop
+echo "$rootfs" >&3

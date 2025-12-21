@@ -46,9 +46,13 @@ dropbear -REB -W 524288
 dmesg -n 1
 
 if [ -x /mnt/script/init ]; then
-  /mnt/script/init
+  /mnt/script/init "$@"
 else
-  ${1:-/bin/sh}
+  cmd=${1:-/bin/sh}
+  if [ $# -gt 0 ]; then
+    shift
+  fi
+  $cmd "$@"
 fi
 killall5 -15
 sleep 2
