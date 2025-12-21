@@ -10,7 +10,7 @@ endif
 all: image
 
 .PHONY: image
-image:
+image::
 	../tools/make-image \
 	  $(TAG) \
 	  $$(MAKE_FLAGS= make hash) \
@@ -51,3 +51,12 @@ hash:
 .PHONY: depends
 depends:
 	echo $(DEPENDS)
+
+.SILENT: config
+.PHONY: config
+config:
+ifndef CONFIGS
+	echo "DEFAULT=1"
+else
+	$(foreach C,$(CONFIGS),echo $(C);)
+endif

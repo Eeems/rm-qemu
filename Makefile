@@ -37,61 +37,62 @@ test: $(foreach T, $(TARGETS),test-$(T))
 
 define make-target
 $1: $2
-	${MAKE_TARGET} $1
+	$3
 endef
 $(foreach T,\
 	$(TARGETS),\
 	$(eval $(call make-target, \
 		$(T), \
-		$(shell MAKEFLAGS= MAKEFLAGS= $(MAKE_TARGET) $(T) depends), \
+		$(shell MAKEFLAGS= $(MAKE_TARGET) $(T) depends), \
+		$(foreach C,$(shell MAKEFLAGS= ${MAKE_TARGET} $(T) config), ${MAKE_TARGET} $(T) $(C);), \
 	)) \
 )
 
 define make-target
 .PHONY: $2
 $2: $1 $3
-	${MAKE_TARGET} $1 test
+	$4
 endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	test-$(T), \
 	$(foreach D,$(shell MAKEFLAGS= tools/get-depends $(T)),test-$(D)), \
+	$(foreach C,$(shell MAKEFLAGS= ${MAKE_TARGET} $(T) config), ${MAKE_TARGET} $(T) $(C) test;), \
 )))
 
 define make-target
 .PHONY: $2
 $2: $1
-	if podman image exists $3; then \
-	  podman push $3; \
-	fi
+	$(foreach T, $3,if podman image exists $(T); then podman push $(T);fi;)
 endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	push-$(T), \
-	$(shell MAKEFLAGS= $(MAKE_TARGET) $(T) tag), \
+	$(foreach C,$(shell MAKEFLAGS= ${MAKE_TARGET} $(T) config),$(shell MAKEFLAGS= $(MAKE_TARGET) $(T) $(C) tag))\
 )))
 
 define make-target
 .PHONY: $2
 $2:
-	podman pull $3
+	$3
 endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	pull-$(T), \
-	$(shell MAKEFLAGS= $(MAKE_TARGET) $(T) tag), \
+	$(foreach C,$(shell MAKEFLAGS= ${MAKE_TARGET} $(T) config), podman pull $(shell MAKEFLAGS= $(MAKE_TARGET) $(T) $(C) tag);)\
 )))
 
 define make-target
 .SILENT: $2
 .PHONY: $2
 $2: $3
-	@$(MAKE_TARGET) $1 tag
+	$4
 endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	tag-$(T), \
 	$(foreach D,$(shell MAKEFLAGS= tools/get-depends $(T)),tag-$(D)), \
+	$(foreach C,$(shell MAKEFLAGS= ${MAKE_TARGET} $(T) config), ${MAKE_TARGET} $(T) $(C) tag;), \
 )))
 
 define make-target
