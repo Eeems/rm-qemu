@@ -13,27 +13,38 @@ RUN bash -e <<EOT
   rm -rf /var/lib/apt/lists/*
 EOT
 
+
+# ARG KERNEL_TAG="${KERNEL_TAG:?KERNEL_TAG missing}"
+# RUN git clone \
+#   --branch=${KERNEL_TAG} \
+#   --depth=1 \
+#   https://github.com/reMarkable/linux.git \
+#   /linux
+
 ARG KERNEL="${KERNEL:?KERNEL missing}"
 
-RUN git clone \
-  --branch=${KERNEL} \
-  --depth=1 \
-  https://github.com/reMarkable/linux.git \
-  /linux
-
+RUN <<EOT
+  set -e
+  curl https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${KERNEL}.tar.xz \
+  | tar -xJf - -C /
+  mv /linux-${KERNEL} /linux
+EOT
 
 WORKDIR /linux
 
 COPY qemu.dts /
 COPY qemu.config /linux/arch/arm/configs/
 
+ARG LOCALVERSION="${LOCALVERSION:?LOCALVERSION missing}"
+
 RUN bash -e <<EOT
   source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
   mv arch/arm/boot/dts/imx7d-cl-som-imx7{,-factory}.dts
   mv /qemu.dts arch/arm/boot/dts/imx7d-cl-som-imx7.dts
-  make zero-sugar_defconfig
+  make imx_v6_v7_defconfig
   make qemu.config
   sed -i 's/=m/=n/' .config
+  echo "CONFIG_LOCALVERSION=-${LOCALVERSION}" >> .config
 EOT
 
 RUN bash -e <<EOT
