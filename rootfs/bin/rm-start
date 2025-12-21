@@ -21,9 +21,9 @@ args=(
   -m
   2048
   -kernel
-  "${ROOTDIR}/artifact/zImage"
+  "${ROOTDIR}/artifact/5.4.70_v1.6.2-zImage"
   -dtb
-  "${ROOTDIR}/artifact/qemu.dtb"
+  "${ROOTDIR}/artifact/5.4.70_v1.6.2-qemu.dtb"
   -drive
   "if=sd,file=$(rm-image-path),format=qcow2,index=2"
   -append

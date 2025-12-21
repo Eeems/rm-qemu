@@ -1,6 +1,6 @@
-ARG HASH KERNEL
+ARG HASH
 
-FROM ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL}
+FROM ghcr.io/eeems/rm-qemu-rootfs:latest
 
 COPY bin/* /usr/local/bin
 

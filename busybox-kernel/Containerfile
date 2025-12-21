@@ -13,7 +13,7 @@ RUN bash -e <<EOT
   rm -rf /var/lib/apt/lists/*
 EOT
 
-ARG KERNEL
+ARG KERNEL="${KERNEL:?KERNEL missing}"
 
 RUN <<EOT
   set -e

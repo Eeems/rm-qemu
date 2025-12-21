@@ -1,7 +1,5 @@
-KERNEL := 5.8.18
-
 MAKEFLAGS += --no-print-directory
-MAKE_TARGET := $(MAKE) KERNEL=${KERNEL} -C
+MAKE_TARGET := $(MAKE) -C
 SHELL := /bin/bash
 TARGETS := $(shell find . -mindepth 2 -maxdepth 2 -type f -name Makefile | xargs dirname | xargs -n1 basename | LC_ALL=C sort)
 
@@ -57,7 +55,7 @@ endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	test-$(T), \
-	$(foreach D,$(shell MAKEFLAGS= KERNEL="${KERNEL}" tools/get-depends $(T)),test-$(D)), \
+	$(foreach D,$(shell MAKEFLAGS= tools/get-depends $(T)),test-$(D)), \
 )))
 
 define make-target
@@ -93,7 +91,7 @@ endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	tag-$(T), \
-	$(foreach D,$(shell MAKEFLAGS= KERNEL="${KERNEL}" tools/get-depends $(T)),tag-$(D)), \
+	$(foreach D,$(shell MAKEFLAGS= tools/get-depends $(T)),tag-$(D)), \
 )))
 
 define make-target
@@ -106,5 +104,5 @@ endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	hash-$(T), \
-	$(foreach D,$(shell MAKEFLAGS= KERNEL="${KERNEL}" tools/get-depends $(T)),hash-$(D)), \
+	$(foreach D,$(shell MAKEFLAGS= tools/get-depends $(T)),hash-$(D)), \
 )))

@@ -131,8 +131,6 @@ EOT
 
 FROM scratch
 
-ARG KERNEL
-
 COPY --from=rootfs /busybox.img /
 
 ARG HASH

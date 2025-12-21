@@ -78,13 +78,13 @@ RUN <<EOT
   mkdir -p /artifact/{rm-,}kernel
 EOT
 
-ARG KERNEL
-
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-${KERNEL} \
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.6.2 \
   zImage \
+  /artifact/5.4.70_v1.6.2-zImage
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:kernel-RM1XX_5.4.70_v1.6.2 \
   qemu.dtb \
-  /artifact/
-COPY --from=ghcr.io/eeems/rm-qemu-artifact:busybox-kernel-${KERNEL} \
+  /artifact/5.4.70_v1.6.2-qemu.dtb
+COPY --from=ghcr.io/eeems/rm-qemu-artifact:busybox-kernel-5.8.18 \
   /busybox-zImage \
   /artifact/
 COPY --from=ghcr.io/eeems/rm-qemu-artifact:busybox.img \

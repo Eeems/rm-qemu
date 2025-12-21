@@ -1,5 +1,4 @@
 #!/bin/bash
-KERNEL=${KERNEL:?Missing KERNEL}
 "$(dirname "$0")"/get-depends . | xargs -rn1 | while read -r d; do
-  echo "--static=$d=$(make "KERNEL=${KERNEL}" -C "../$d" hash)"
+  echo "--static=$d=$(make -C "../$d" hash)"
 done
