@@ -1,0 +1,71 @@
+#!/bin/bash
+set -e
+exec 3>&1 1>&2
+usage() {
+  echo "Usage: initialize-image-base <version> [--no-stop]"
+  exit 1
+}
+if [ $# -ne 1 ] && [ $# -ne 2 ]; then
+  usage
+fi
+VERSION="${1}"
+shift
+stop=true
+if [ $# -eq 1 ] && [[ "$1" == "--no-stop" ]]; then
+  stop=false
+elif [ $# -eq 1 ]; then
+  usage
+fi
+DATADIR="${DATADIR:-/data}"
+
+if rm-is-running && rm-image-path 2>/dev/null && [[ "$DATADIR/$VERSION.qcow2" == "$(rm-image-path)" ]]; then
+  echo "Image is in use"
+  exit
+fi
+
+CACHEDIR="${CACHEDIR:-/cache}"
+image="$CACHEDIR/$VERSION"
+mkdir -p "$CACHEDIR"
+if ! [ -f "$image" ]; then
+  echo "Downloading update image..."
+  download=$(mktemp -d)
+  trap 'rmdir $download' EXIT
+  codexctl download --hardware rm2 --out "$download" "$VERSION"
+  mv "$download"/* "$image"
+  trap - EXIT
+  rmdir "$download"
+fi
+echo "Extracting image..."
+extracted=$(mktemp -d)/image
+# Remove the extracted image when we are done
+# shellcheck disable=SC2064,SC2086
+trap "rm -r '$(dirname $extracted)'" EXIT
+codexctl extract --out "$extracted" "$image"
+rootfs="$DATADIR/$VERSION.qcow2"
+echo "Creating $VERSION.qcow2..."
+pushd "$DATADIR" >/dev/null
+cp "${ROOTDIR}/artifact/base.qcow2" "$rootfs"
+# shellcheck disable=SC2064,SC2086
+trap "rm -r '$(dirname $extracted)' '${rootfs}'" EXIT
+popd >/dev/null
+rm-busybox-start "$rootfs"
+echo "Initializing $VERSION.qcow2..."
+hash=$(sha256sum "$extracted" | cut -d' ' -f1)
+dd if="$extracted" bs=160000 | gzip -1 | rm-busybox-exec "gunzip -c | dd of=/dev/mmcblk2p2 bs=160000"
+rm-busybox-exec <<EOF
+  set -e
+  cd /mnt
+  echo "$hash  /dev/mmcblk2p2" | sha256sum -c
+  dd if=/dev/mmcblk2p2 of=/dev/mmcblk2p3 bs=160000
+  echo "$hash  /dev/mmcblk2p3" | sha256sum -c
+  mkdir -p rootA rootB home
+  mount /dev/mmcblk2p2 rootA
+  mount /dev/mmcblk2p3 rootB
+EOF
+rm -r "$(dirname "$extracted")"
+if $stop; then
+  echo "Stopping busybox..."
+  rm-busybox-stop
+fi
+trap - EXIT
+echo "$rootfs" >&3

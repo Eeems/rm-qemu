@@ -50,4 +50,26 @@ test:: zImage qemu.dtb
 	  -initrd \
 	  ../busybox.img/artifact/busybox.img \
 	  -append \
-	  "earlycon=ttymxc0 console=ttymxc0 init=/init -- true"
+	  "earlycon=ttymxc0 console=ttymxc0 init=/init -- uname -a"
+
+run: zImage qemu.dtb
+	qemu-system-arm \
+	  -machine \
+	  mcimx7d-sabre \
+	  -cpu \
+	  cortex-a9 \
+	  -smp \
+	  2 \
+	  -m \
+	  2048 \
+	  -kernel \
+	  ./artifact/zImage \
+	  -dtb \
+	  ./artifact/qemu.dtb \
+	  -serial \
+	  mon:stdio \
+	  -nographic \
+	  -initrd \
+	  ../busybox.img/artifact/busybox.img \
+	  -append \
+	  "earlycon=ttymxc0 console=ttymxc0 init=/init"

@@ -1,0 +1,59 @@
+#!/bin/bash
+set -e
+exec 3>&1 1>&2
+usage() {
+  echo "Usage: initialize-image-finalize <version>"
+  exit 1
+}
+if [ $# -ne 1 ]; then
+  usage
+fi
+VERSION="${1}"
+DATADIR="${DATADIR:-/data}"
+rootfs="$DATADIR/$VERSION.qcow2"
+if [ ! -f "$rootfs" ]; then
+  echo "Error: ${rootfs} not found"
+  exit 1
+fi
+echo "Setting temporary boot image..."
+STATEDIR=${STATEDIR:-/run/rm}
+mkdir -p "$STATEDIR"
+if [ -f "${STATEDIR}/rootfs.qcow2" ]; then
+  previous="$(rm-image-path)"
+  # shellcheck disable=SC2064,SC2086
+  trap "rm '${rootfs}'; ln -sf '${previous}' '${STATEDIR}/rootfs.qcow2'" EXIT
+fi
+ln -sf "$rootfs" "${STATEDIR}/rootfs.qcow2"
+
+echo "Starting QEMU for setup..."
+
+RM_EXEC_ENABLED_PASSWORD=1 \
+  rm-start --detached --wait
+
+echo "Finalizing mmcblk2p2..."
+
+RM_EXEC_ENABLED_PASSWORD=1 \
+  rm-exec <<EOT
+  set -e
+  sed -i 's|#/dev/mmcblk2p4|/dev/mmcblk2p4|' /etc/fstab
+  rm /etc/systemd/system/xochitl.service
+EOT
+
+echo "Finalizing mmcblk2p3..."
+rm-exec <<EOT
+  mount /dev/mmcblk2p3 /mnt
+  sed -i 's|#/dev/mmcblk2p4|/dev/mmcblk2p4|' /mnt/etc/fstab
+  rm /mnt/etc/systemd/system/xochitl.service
+  umount /mnt
+EOT
+
+echo "Setting up mmcblk2p4 partition..."
+rm-exec <<EOT
+  mkfs.ext4 -E nodiscard /dev/mmcblk2p4
+EOT
+trap - EXIT
+rm-stop --wait
+shrink-image "$rootfs"
+if ! rm-ensure-image "$VERSION"; then
+  exit 1
+fi
