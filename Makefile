@@ -37,62 +37,70 @@ test: $(foreach T, $(TARGETS),test-$(T))
 
 define make-target
 $1: $2
-	$3
+	while read -r c;do \
+	  $(MAKE_TARGET) $1 $$$$c; \
+	done < <(${MAKE_TARGET} $1 config)
 endef
 $(foreach T,\
 	$(TARGETS),\
 	$(eval $(call make-target, \
 		$(T), \
 		$(shell MAKEFLAGS= $(MAKE_TARGET) $(T) depends), \
-		$(foreach C,$(shell MAKEFLAGS= ${MAKE_TARGET} $(T) config), ${MAKE_TARGET} $(T) $(C);), \
 	)) \
 )
 
 define make-target
 .PHONY: $2
 $2: $1 $3
-	$4
+	while read -r c;do \
+	  $(MAKE_TARGET) $1 $$$$c test; \
+	done < <(${MAKE_TARGET} $1 config)
 endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	test-$(T), \
 	$(foreach D,$(shell MAKEFLAGS= tools/get-depends $(T)),test-$(D)), \
-	$(foreach C,$(shell MAKEFLAGS= ${MAKE_TARGET} $(T) config), ${MAKE_TARGET} $(T) $(C) test;), \
 )))
 
 define make-target
 .PHONY: $2
 $2: $1
-	$(foreach T, $3,if podman image exists $(T); then podman push $(T);fi;)
+	while read -r c;do \
+	  t=$$$$($(MAKE_TARGET) $1 $$$$c tag); \
+	  if podman image exists $$$$t;then \
+	    podman push $$$$t; \
+	  fi; \
+	done < <(${MAKE_TARGET} $1 config)
 endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	push-$(T), \
-	$(foreach C,$(shell MAKEFLAGS= ${MAKE_TARGET} $(T) config),$(shell MAKEFLAGS= $(MAKE_TARGET) $(T) $(C) tag))\
 )))
 
 define make-target
 .PHONY: $2
 $2:
-	$3
+	while read -r c;do \
+	  $(MAKE_TARGET) $1 $$$$c tag | xargs -rn1 podman pull; \
+	done < <(${MAKE_TARGET} $1 config)
 endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	pull-$(T), \
-	$(foreach C,$(shell MAKEFLAGS= ${MAKE_TARGET} $(T) config), podman pull $(shell MAKEFLAGS= $(MAKE_TARGET) $(T) $(C) tag);)\
 )))
 
 define make-target
 .SILENT: $2
 .PHONY: $2
 $2: $3
-	$4
+	while read -r c;do \
+	  $(MAKE_TARGET) $1 $$$$c tag; \
+	done < <(${MAKE_TARGET} $1 config)
 endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	tag-$(T), \
 	$(foreach D,$(shell MAKEFLAGS= tools/get-depends $(T)),tag-$(D)), \
-	$(foreach C,$(shell MAKEFLAGS= ${MAKE_TARGET} $(T) config), ${MAKE_TARGET} $(T) $(C) tag;), \
 )))
 
 define make-target
