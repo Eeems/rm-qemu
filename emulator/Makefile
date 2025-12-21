@@ -1,20 +1,8 @@
 VERSION := 3.22.0.64
-
-SHELL := /bin/bash
-MAKEFLAGS += --no-print-directory
-
-ifndef KERNEL
-$(error KERNEL is not set)
-endif
-
 TAG := ghcr.io/eeems/rm-qemu:kernel-${KERNEL}
-OBJ := $(shell ../tools/get-objects)
+DEPENDS := rootfs
 
-all:
-	../tools/make-image \
-	  ${TAG} \
-	  $$($(MAKE) hash) \
-	  "--build-arg=KERNEL=${KERNEL}"
+include ../target.mk
 
 .data/${VERSION}.qcow2: ../rootfs/bin/initialize-image
 	mkdir -p .data .cache
@@ -25,22 +13,7 @@ all:
 	  ghcr.io/eeems/rm-qemu:kernel-${KERNEL} \
 	  ${VERSION}
 
-.SILENT: tag
-tag:
-	@echo ${TAG}
-
-.SILENT: hash
-hash:
-	@../tools/get-hash \
-	  --single \
-	  --static=kernel=${KERNEL} \
-	  ${OBJ} \
-	  $(get-depends-static-flags)
-
-.SILENT: depends
-depends:
-	@echo rootfs
-
+.PHONY: run-cli
 run-cli: all .data/${VERSION}.qcow2
 	podman run --rm -it \
 	  --volume=.data:/data \
@@ -48,6 +21,7 @@ run-cli: all .data/${VERSION}.qcow2
 	  ${TAG} \
 	  ${VERSION}
 
+.PHONY: run-ui
 run-ui: all .data/${VERSION}.qcow2
 	xhost +local:$(shell hostnamectl hostname); \
 	podman run --rm -it \
@@ -67,12 +41,3 @@ test: all .data/${VERSION}.qcow2
 	  ${TAG} \
 	  ${VERSION} \
 	  true
-
-.PHONY: \
-	all \
-	tag \
-	hash \
-	depends \
-	run-cli \
-	run-ui \
-	test

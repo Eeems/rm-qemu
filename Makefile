@@ -59,7 +59,7 @@ endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	test-$(T), \
-	$(foreach D,$(shell MAKEFLAGS= MAKE_TARGET="$(MAKE_TARGET)" tools/get-depends $(T)),test-$(D)), \
+	$(foreach D,$(shell MAKEFLAGS= KERNEL="${KERNEL}" tools/get-depends $(T)),test-$(D)), \
 )))
 
 define make-target
@@ -87,6 +87,7 @@ $(foreach T, $(TARGETS), $(eval $(call make-target, \
 )))
 
 define make-target
+.SILENT: $2
 .PHONY: $2
 $2: $3
 	@$(MAKE_TARGET) $1 tag
@@ -94,10 +95,11 @@ endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	tag-$(T), \
-	$(foreach D,$(shell MAKEFLAGS= MAKE_TARGET="$(MAKE_TARGET)" tools/get-depends $(T)),tag-$(D)), \
+	$(foreach D,$(shell MAKEFLAGS= KERNEL="${KERNEL}" tools/get-depends $(T)),tag-$(D)), \
 )))
 
 define make-target
+.SILENT: $2
 .PHONY: $2
 $2: $3
 	@$(MAKE_TARGET) $1 hash | xargs echo -n
@@ -106,5 +108,5 @@ endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	hash-$(T), \
-	$(foreach D,$(shell MAKEFLAGS= MAKE_TARGET="$(MAKE_TARGET)" tools/get-depends $(T)),hash-$(D)), \
+	$(foreach D,$(shell MAKEFLAGS= KERNEL="${KERNEL}" tools/get-depends $(T)),hash-$(D)), \
 )))
