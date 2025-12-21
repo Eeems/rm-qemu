@@ -1,5 +1,5 @@
-VERSION := 3.22.0.64
-TAG := ghcr.io/eeems/rm-qemu:kernel-${KERNEL}
+VERSION ?= 3.22.0.64
+TAG := ghcr.io/eeems/rm-qemu:latest
 DEPENDS := rootfs
 
 include ../target.mk
@@ -10,7 +10,7 @@ include ../target.mk
 	  --volume=.data:/data \
 	  --volume=.cache:/cache \
 	  --entrypoint=initialize-image \
-	  ghcr.io/eeems/rm-qemu:kernel-${KERNEL} \
+	  $(TAG) \
 	  ${VERSION}
 
 .PHONY: run-cli

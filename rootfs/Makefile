@@ -1,4 +1,4 @@
-TAG := ghcr.io/eeems/rm-qemu-rootfs:kernel-${KERNEL}
+TAG := ghcr.io/eeems/rm-qemu-rootfs:latest
 OUTPUTS := base.qcow2
 DEPENDS := busybox.img busybox rm2fb qemu-system-arm
 DEPENDS += .WAIT busybox-kernel

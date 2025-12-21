@@ -30,8 +30,6 @@ EOT
 
 FROM scratch
 
-ARG KERNEL
-
 COPY --from=builder /busybox/install/bin/busybox /
 
 ARG HASH

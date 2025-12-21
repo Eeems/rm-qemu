@@ -1,10 +1,6 @@
 TAG := ghcr.io/eeems/rm-qemu-artifact:busybox.img
 OUTPUTS := busybox.img
 
-ifndef KERNEL
-KERNEL := 5.8.18
-endif
-
 include ../target.mk
 
 script.img: script
@@ -13,8 +9,8 @@ script.img: script
 	mcopy -i script.img script ::init
 
 run: busybox.img script.img ../appimage/bin/get-free-port
-	$(MAKE) -C ../busybox-kernel KERNEL=${KERNEL} busybox-zImage
-	$(MAKE) -C ../rootfs KERNEL=${KERNEL} base.qcow2
+	$(MAKE) -C ../busybox-kernel busybox-zImage
+	$(MAKE) -C ../rootfs base.qcow2
 	port=$$(../appimage/bin/get-free-port); \
 	cpus=$$(nproc); \
 	echo "RM_BUSYBOX_PORT=$${port}"; \
@@ -53,7 +49,7 @@ run: busybox.img script.img ../appimage/bin/get-free-port
 	  -nographic
 
 test: artifact/busybox.img script.img ../appimage/bin/get-free-port
-	$(MAKE) -C ../busybox-kernel KERNEL=${KERNEL} busybox-zImage
+	$(MAKE) -C ../busybox-kernel busybox-zImage
 	port=$$(../appimage/bin/get-free-port); \
 	cpus=$$(nproc); \
 	echo "RM_BUSYBOX_PORT=$${port}"; \

@@ -1,6 +1,6 @@
-ARG HASH KERNEL
+ARG HASH
 
-FROM ghcr.io/eeems/rm-qemu:kernel-${KERNEL}
+FROM ghcr.io/eeems/rm-qemu:latest
 
 RUN bash -e <<EOT
   export DEBIAN_FRONTEND="noninteractive"

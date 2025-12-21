@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-KERNEL=${KERNEL:?KERNEL environment variable must be specified}
 APPDIR="rm-qemu.AppDir"
 rm -rf "${APPDIR}"
 
@@ -65,5 +64,4 @@ cp \
 
 # Create AppImage
 APPDIR="${APPDIR}" \
-  VERSION="kernel-${KERNEL}" \
   uruntime2appimage
