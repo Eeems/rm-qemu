@@ -24,9 +24,7 @@ pull: $(foreach T, $(TARGETS), pull-$(T))
 clean:
 	git clean --force -dX
 	rm -rf $(foreach T, $(TARGETS), $(T)/artifact)
-	for t in $$($(MAKE) tags);do \
-	  podman rmi $$t; \
-	done
+	$(foreach T, $(shell MAKEFLAGS= ${MAKE} tags),podman rmi -i $(T);)
 
 .PHONY: run-ui
 run-ui: ${TARGETS}
