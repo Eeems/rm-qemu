@@ -38,6 +38,7 @@ while [ $ret -ne 0 ]; do
       echo "$output" >/dev/stderr
       exit 1
     fi
+    echo "Warning $ret: Unable to connect, retrying..."
     echo "root" | rm-serial
     echo "mkdir -p /home/root" | rm-serial
   fi

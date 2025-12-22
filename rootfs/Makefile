@@ -1,8 +1,9 @@
-TAG := ghcr.io/eeems/rm-qemu-rootfs:latest
-OUTPUT_ROOT := /artifact
+TAG := ghcr.io/eeems/rm-qemu-artifact:rootfs
 OUTPUTS := base.qcow2
-DEPENDS := busybox.img busybox rm2fb qemu-system-arm
-DEPENDS += .WAIT busybox-kernel
-DEPENDS += .WAIT kernel
+
+all:: .shrink-image .WAIT image $(OUTPUTS)
 
 include ../target.mk
+
+.shrink-image:
+	cp ../emulator/bin/shrink-image .shrink-image
