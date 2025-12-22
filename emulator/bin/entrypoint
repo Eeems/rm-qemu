@@ -14,8 +14,11 @@ usage="Usage: entrypoint --help
   Environment variables:
     RM_ENSURE_IMAGE: Set to 1 to verify the image before starting the emulator
     RM_EMU_PORT: Port to run rm2fb-emu on. Defaults to 8888
+    RM_BUSYBOX_PORT: SSH port when running the busybox image.
+    RM_SSH_PORT: SSH port to use for the device.
     STATEDIR: Directory to store current state.
-    DATADIR: Directory to store images in."
+    DATADIR: Directory to store images in.
+    CACHEDIR: Directory to cache update files in."
 if [ "$#" -eq 0 ]; then
     echo "$usage"
     exit 1
