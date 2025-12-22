@@ -1,6 +1,6 @@
 TAG := ghcr.io/eeems/rm-qemu-artifact:busybox.img
 OUTPUTS := busybox.img
-TEST_DEPENDS += buxybox-kernel
+TEST_DEPENDS += busybox-kernel
 
 include ../target.mk
 
