@@ -1,6 +1,7 @@
 ARG HASH
 
-FROM ghcr.io/toltec-dev/base:v4.0 AS rm2fb-src
+FROM eeems/remarkable-toolchain:3.1.15-rm2 AS rm2fb-src
+# FROM ghcr.io/toltec-dev/toolchain:v3.3 AS rm2fb-src
 
 RUN bash -e <<EOT
   export DEBIAN_FRONTEND="noninteractive"
@@ -9,7 +10,8 @@ RUN bash -e <<EOT
   apt-get install -y --no-install-recommends \
     xxd \
     git \
-    git-lfs
+    git-lfs \
+    cmake
   apt-get autoremove -y
   apt-get clean
   rm -rf /var/lib/apt/lists/*
@@ -32,14 +34,18 @@ EOT
 FROM rm2fb-src AS rm2fb
 
 RUN bash -e <<EOT
-  source /opt/x-tools/switch-arm.sh
+  # source /opt/x-tools/switch-arm.sh
+  source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
   srcdir=/src
+  sed -i 's/Evdev::Static/evdev/g' libs/rm2fb/CMakeLists.txt
   mkdir build install
   cd build
-  cmake \
-    -DCMAKE_TOOLCHAIN_FILE="/usr/share/cmake/\$CHOST.cmake" \
+  TOOLCHAIN_ROOT=/opt/codex/rm11x/3.1.15 \
+  /usr/bin/cmake \
+    -DCMAKE_TOOLCHAIN_FILE=../cmake/rm-toolchain.cmake \
     -DCMAKE_INSTALL_PREFIX="\$srcdir/install" \
     -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_VERBOSE_MAKEFILE=ON \
     "\$srcdir"
   cd libs/rm2fb
   make
@@ -103,7 +109,7 @@ RUN bash -e <<EOT
     libsdl2-dev \
     libevdev-dev \
     libsystemd-dev \
-    libclang-rt-14-dev
+    libclang-rt-18-dev
   apt-get autoremove -y
   apt-get clean
   rm -rf /var/lib/apt/lists/*

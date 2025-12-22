@@ -1,7 +1,7 @@
 #!/bin/bash
 usage() {
   echo "Usage: rm-wait-ssh [--help]" >/dev/stderr
-  exit ${1:-0}
+  exit "${1:-0}"
 }
 if [ $# -ge 1 ]; then
   if [[ "$1" != "--help" ]]; then
@@ -10,6 +10,7 @@ if [ $# -ge 1 ]; then
   usage 1
 fi
 ret=1
+retry=1
 while [ $ret -ne 0 ]; do
   output=$(rm-exec true 2>&1)
   ret=$?
@@ -26,6 +27,17 @@ while [ $ret -ne 0 ]; do
     echo "Error: rm is no longer running" >/dev/stderr
     rm-is-running --verbose >/dev/null
     exit 1
+  elif [ $ret -ne 255 ]; then
+    retry=$((retry - 1))
+    if [ $retry -ge 0 ]; then
+      echo "root" | rm-serial
+      echo "mkdir -p /home/root" | rm-serial
+    else
+      echo "Error: Unable to connect, likely /home/root does not exist" >/dev/stderr
+      echo "  You may need to use rm-serial to login on the serial console to fix things" >/dev/stderr
+      echo "$output" >/dev/stderr
+      exit 1
+    fi
   fi
   sleep 1
 done
