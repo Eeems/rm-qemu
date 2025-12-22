@@ -78,6 +78,9 @@ case "$1" in
   qemu-system-arm "${args[@]}"
   if $paused; then
     rm-monitor commit sd2
+  else
+    echo "root" | rm-serial
+    echo "mkdir -p /home/root" | rm-serial
   fi
   if [[ "$2" == "--wait" ]]; then
     echo "Waiting for ssh to start..." >/dev/stderr
