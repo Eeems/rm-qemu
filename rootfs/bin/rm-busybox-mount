@@ -1,0 +1,9 @@
+#!/bin/bash
+exec rm-busybox-exec <<EOF
+  set -e
+  cd /mnt
+  mkdir -p rootA rootB home
+  mount /dev/mmcblk2p2 rootA
+  mount /dev/mmcblk2p3 rootB
+  mount /dev/mmcblk2p4 home
+EOF

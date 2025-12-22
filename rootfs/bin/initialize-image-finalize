@@ -50,7 +50,9 @@ EOT
 
 echo "Setting up mmcblk2p4 partition..."
 rm-exec <<EOT
-  mkfs.ext4 -E nodiscard /dev/mmcblk2p4
+  if [ ! mountpoint -q /home ];then
+    mkfs.ext4 -E nodiscard /dev/mmcblk2p4
+  fi
 EOT
 trap - EXIT
 rm-stop --wait

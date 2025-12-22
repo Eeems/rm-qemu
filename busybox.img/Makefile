@@ -49,7 +49,7 @@ run: busybox.img script.img ../appimage/bin/get-free-port
 	  mon:stdio \
 	  -nographic
 
-test:: artifact/busybox.img script.img ../appimage/bin/get-free-port
+test:: busybox.img script.img ../appimage/bin/get-free-port
 	port=$$(../appimage/bin/get-free-port); \
 	cpus=$$(nproc); \
 	echo "RM_BUSYBOX_PORT=$${port}"; \
