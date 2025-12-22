@@ -9,7 +9,13 @@ usage="Usage: entrypoint --help
   entrypoint --shell
   entrypoint <version> --serial
   entrypoint <version> [--pause] --display
-  entrypoint <version> [--pause] [<command>]..."
+  entrypoint <version> [--pause] [<command>]...
+
+  Environment variables:
+    RM_ENSURE_IMAGE: Set to 1 to verify the image before starting the emulator
+    RM_EMU_PORT: Port to run rm2fb-emu on. Defaults to 8888
+    STATEDIR: Directory to store current state.
+    DATADIR: Directory to store images in."
 if [ "$#" -eq 0 ]; then
     echo "$usage"
     exit 1
