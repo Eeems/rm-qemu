@@ -10,7 +10,7 @@ if [ $# -ge 1 ]; then
   usage 1
 fi
 ret=1
-retry=1
+retry=5
 while [ $ret -ne 0 ]; do
   output=$(rm-exec true 2>&1)
   ret=$?
@@ -30,14 +30,13 @@ while [ $ret -ne 0 ]; do
   elif [ $ret -ne 255 ]; then
     retry=$((retry - 1))
     if [ $retry -ge 0 ]; then
-      echo "root" | rm-serial
-      echo "mkdir -p /home/root" | rm-serial
-    else
       echo "Error: Unable to connect, likely /home/root does not exist" >/dev/stderr
       echo "  You may need to use rm-serial to login on the serial console to fix things" >/dev/stderr
       echo "$output" >/dev/stderr
       exit 1
     fi
+    echo "root" | rm-serial
+    echo "mkdir -p /home/root" | rm-serial
   fi
   sleep 1
 done
