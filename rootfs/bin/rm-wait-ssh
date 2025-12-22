@@ -30,7 +30,7 @@ while [ $ret -ne 0 ]; do
   elif [ $ret -ne 255 ]; then
     retry=$((retry - 1))
     if [ $retry -ge 0 ]; then
-      echo "Error: Unable to connect, likely /home/root does not exist" >/dev/stderr
+      echo "Error $ret: Unable to connect, likely /home/root does not exist" >/dev/stderr
       echo "  You may need to use rm-serial to login on the serial console to fix things" >/dev/stderr
       echo "$output" >/dev/stderr
       exit 1
