@@ -58,6 +58,7 @@ test:: zImage qemu.dtb
 	  -append \
 	  "earlycon=ttymxc0 console=ttymxc0 init=/init -- uname -a"
 
+.PHONY: run
 run: zImage qemu.dtb
 	../qemu-system-arm/artifact/qemu-system-arm \
 	  -machine \
