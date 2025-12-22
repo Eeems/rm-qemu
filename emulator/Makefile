@@ -7,7 +7,7 @@ DEPENDS += .WAIT kernel
 
 include ../target.mk
 
-.data/${VERSION}.qcow2: ../rootfs/bin/initialize-image
+.data/${VERSION}.qcow2: $(shell find bin -name 'initialize-image*')
 	mkdir -p .data .cache
 	podman run --rm \
 	  --volume=.data:/data \
