@@ -42,6 +42,7 @@ EOT
 
 echo "Finalizing mmcblk2p3..."
 rm-exec <<EOT
+  set -e
   mount /dev/mmcblk2p3 /mnt
   sed -i 's|#/dev/mmcblk2p4|/dev/mmcblk2p4|' /mnt/etc/fstab
   rm /mnt/etc/systemd/system/xochitl.service
@@ -50,7 +51,8 @@ EOT
 
 echo "Setting up mmcblk2p4 partition..."
 rm-exec <<EOT
-  if [ ! mountpoint -q /home ];then
+  set -e
+  if ! mountpoint -q /home ;then
     mkfs.ext4 -E nodiscard /dev/mmcblk2p4
   fi
 EOT
