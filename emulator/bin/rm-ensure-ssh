@@ -8,6 +8,15 @@ fi
 rm-busybox-start
 rm-wait-busybox
 rm-busybox-exec <<EOF
+  set -e
+  if [[ "\$(fs-type /dev/mmcblk2p4)" != "ext4" ]];then
+    /sbin/mkfs.ext4 -E nodiscard /dev/mmcblk2p4
+  fi
+EOF
+rm-busybox-mount
+rm-busybox-exec <<EOF
+  set -e
+  cd /mnt
   mkdir -p \
     home/root/.ssh \
     rootA/home/root/.ssh \
@@ -19,10 +28,12 @@ rm-busybox-exec <<EOF
 EOF
 rm-busybox-upload "$HOME/.ssh/id_rsa.pub" /tmp/id_rsa.pub
 rm-busybox-exec <<EOF
+  set -e
+  cd /mnt
   chmod 0600 /tmp/id_rsa.pub
-  cp -a /tmp/id_rsa.pub home/root/.ssh/authorized_keys
   cp -a /tmp/id_rsa.pub rootA/home/root/.ssh/authorized_keys
   cp -a /tmp/id_rsa.pub rootB/home/root/.ssh/authorized_keys
+  cp -a /tmp/id_rsa.pub home/root/.ssh/authorized_keys
   rm /tmp/id_rsa.pub
 EOF
 rm-busybox-stop

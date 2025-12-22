@@ -21,13 +21,14 @@ define make-target
 .PHONY: $1
 $1:: $2
 $2: image
-	../tools/get-artifact "${TAG}" $1
+	../tools/get-artifact "${TAG}" $3
 endef
 $(foreach O,\
 	$(OUTPUTS),\
 	$(eval $(call make-target, \
 		$(O), \
-		artifact/$(O) \
+		artifact/$(O), \
+		$$(OUTPUT_ROOT)/$(O), \
 	)) \
 )
 

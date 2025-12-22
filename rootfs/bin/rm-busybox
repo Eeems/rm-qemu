@@ -14,12 +14,6 @@ if rm-is-running; then
   exit 1
 fi
 rm-busybox-start "${1:-$(rm-image-path)}"
-rm-busybox-exec <<EOF
-  cd /mnt
-  mkdir -p rootA rootB home
-  mount /dev/mmcblk2p2 rootA
-  mount /dev/mmcblk2p3 rootB
-  mount /dev/mmcblk2p4 home
-EOF
+rm-busybox-mount
 rm-busybox-exec </dev/stdin >/dev/stdout 2>/dev/stderr
 rm-busybox-stop
