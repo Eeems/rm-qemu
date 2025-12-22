@@ -1,14 +1,5 @@
 ARG HASH
 
-FROM alpine:latest AS codexctl
-
-RUN <<EOT
-  wget https://github.com/Jayy001/codexctl/releases/download/1765093380/ubuntu-latest.zip
-  unzip ubuntu-latest.zip
-  rm ubuntu-latest.zip
-  chmod +x codexctl
-EOT
-
 FROM debian:13-slim as guestfs
 
 RUN <<EOT
@@ -28,88 +19,42 @@ EOT
 
 FROM guestfs AS base
 
-COPY \
-  bin/shrink-image \
-  bin/rm-is-running \
-  bin/rm-image-path \
-  /usr/local/bin/
+COPY .shrink-image /usr/local/bin/shrink-image
 
 RUN <<EOT
   set -e
+  ln -s /bin/false /usr/local/bin/rm-is-running
+  ln -s /bin/false /usr/local/bin/rm-image-path
+EOT
+
+RUN <<EOT
+  set -e
+
   qemu-img create \
     --format qcow2 \
     --options compression_type=zstd \
     /base.qcow2 \
     8G
-    guestfish --rw --blocksize=512 --add /base.qcow2 <<EOF
-  run
 
-  part-init /dev/sda mbr
-  part-add /dev/sda p 2048    43007
-  part-add /dev/sda p 43008   595967
-  part-add /dev/sda p 595968  1148927
-  part-add /dev/sda p 1148928 14942207
+  guestfish --rw --blocksize=512 --add /base.qcow2 <<EOF
+    run
 
-  mkfs vfat /dev/sda1
-  mkfs ext4 /dev/sda2
-  mkfs ext4 /dev/sda3
+    part-init /dev/sda mbr
+    part-add /dev/sda p 2048    43007
+    part-add /dev/sda p 43008   595967
+    part-add /dev/sda p 595968  1148927
+    part-add /dev/sda p 1148928 14942207
+
+    mkfs vfat /dev/sda1
+    mkfs ext4 /dev/sda2
+    mkfs ext4 /dev/sda3
 EOF
   shrink-image /base.qcow2
 EOT
 
-FROM debian:13-slim
+FROM scratch
 
-RUN <<EOT
-  set -e
-  export DEBIAN_FRONTEND="noninteractive"
-  apt-get update
-  apt-get dist-upgrade -y --no-install-recommends
-  apt-get install -y --no-install-recommends \
-    ssh \
-    socat \
-    netcat-openbsd \
-    libevdev2 \
-    libsdl2-2.0-0 \
-    psmisc \
-    util-linux
-  apt-get autoremove -y
-  apt-get clean
-  rm -rf /var/lib/apt/lists/*
-  mkdir -p /artifact
-EOT
-
-COPY --from=kernel . /artifact/
-COPY --from=busybox-kernel . /artifact/
-COPY --from=busybox.img . /artifact/
-COPY --from=busybox . /usr/local/bin/
-COPY --from=qemu-system-arm \
-  qemu-system-arm \
-  qemu-img \
-  qemu-pr-helper \
-  qemu-storage-daemon \
-  /usr/bin/
-# COPY --from=qemu-system-arm \
-#   /firmware/* \
-#   /usr/share/qemu/
-COPY --from=qemu-system-arm \
-  qemu-bridge-helper \
-  /usr/libexec/
-COPY --from=rm2fb \
-  /rm2fb.tar.gz \
-  /artifact/
-COPY --from=rm2fb \
-  /rm2fb-emu \
-  /usr/bin/
-COPY --from=base /base.qcow2 /artifact/
-COPY --from=codexctl codexctl /usr/local/bin
-COPY bin/* /usr/local/bin/
-COPY dropbear.socket rm2fb.conf /artifact/
-
-RUN <<EOT
-  ln -s busybox /usr/local/bin/killall
-  ln -s busybox /usr/local/bin/lsof
-  ln -s busybox /usr/local/bin/pidof
-EOT
+COPY --from=base /base.qcow2 /
 
 ARG HASH
 LABEL hash="${HASH:?Hash missing}"
