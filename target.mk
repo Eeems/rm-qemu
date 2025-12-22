@@ -7,7 +7,7 @@ $(error TAG must be defined)
 endif
 
 .PHONY: all
-all: image $(OUTPUTS)
+all:: image $(OUTPUTS)
 
 .PHONY: image
 image::
