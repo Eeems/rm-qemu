@@ -14,6 +14,9 @@ retry=5
 while [ $ret -ne 0 ]; do
   output=$(rm-exec true 2>&1)
   ret=$?
+  if [ $ret -eq 0 ]; then
+    break
+  fi
   if [[ "$output" == "root@localhost: Permission denied (publickey)." ]]; then
     echo "Error: Unable to connect with publickey." >/dev/stderr
     echo "  Please rm-monitor q && rm-ensure-ssh and then try again." >/dev/stderr
