@@ -38,6 +38,7 @@ run-cli: ${TARGETS}
 test: $(foreach T, $(TARGETS),test-$(T))
 
 define make-target
+.PHONY:$1
 $1: $2
 	while read -r c;do \
 	  $(MAKE_TARGET) $1 $$$$c; \
@@ -66,7 +67,21 @@ $(foreach T, $(TARGETS), $(eval $(call make-target, \
 
 define make-target
 .PHONY: $2
-$2: $1
+$2: $3
+	while read -r c;do \
+	  $(MAKE_TARGET) $1 $$$$c image; \
+	done < <(${MAKE_TARGET} $1 config)
+endef
+$(foreach T, $(TARGETS), $(eval $(call make-target, \
+	$(T), \
+	image-$(T), \
+	$(foreach D,$(shell MAKEFLAGS= tools/get-depends $(T)),image-$(D)), \
+)))
+# TODO make get-depends handle setting prefix and no longer filter out .WAIT statements
+
+define make-target
+.PHONY: $2
+$2:
 	while read -r c;do \
 	  t=$$$$($(MAKE_TARGET) $1 $$$$c tag); \
 	  if podman image exists $$$$t;then \
