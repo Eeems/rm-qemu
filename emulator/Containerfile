@@ -2,8 +2,12 @@ ARG HASH
 
 FROM alpine:latest AS codexctl
 
+RUN apk add --no-cache curl
+
 RUN <<EOT
-  wget https://github.com/Jayy001/codexctl/releases/download/1765093380/ubuntu-latest.zip
+  wget -q -nv -O - https://api.github.com/repos/Jayy001/codexctl/releases/latest \
+  | awk -F': ' '/browser_download_url/ && /ubuntu-latest\.zip/ \
+  {gsub(/"/, "", $(NF)); system("curl -LO " $(NF))}'
   unzip ubuntu-latest.zip
   rm ubuntu-latest.zip
   chmod +x codexctl
@@ -36,23 +40,23 @@ COPY --from=busybox-kernel . /artifact/
 COPY --from=busybox.img . /artifact/
 COPY --from=busybox . /usr/local/bin/
 COPY --from=qemu-system-arm \
-	qemu-system-arm \
-	qemu-img \
-	qemu-pr-helper \
-	qemu-storage-daemon \
-	/usr/bin/
+  qemu-system-arm \
+  qemu-img \
+  qemu-pr-helper \
+  qemu-storage-daemon \
+  /usr/bin/
 # COPY --from=qemu-system-arm \
 #   /firmware/* \
 #   /usr/share/qemu/
 COPY --from=qemu-system-arm \
-	qemu-bridge-helper \
-	/usr/libexec/
+  qemu-bridge-helper \
+  /usr/libexec/
 COPY --from=rm2fb \
-	/rm2fb.tar.gz \
-	/artifact/
+  /rm2fb.tar.gz \
+  /artifact/
 COPY --from=rm2fb \
-	/rm2fb-emu \
-	/usr/bin/
+  /rm2fb-emu \
+  /usr/bin/
 COPY --from=codexctl codexctl /usr/local/bin
 COPY dropbear.socket rm2fb.conf /artifact/
 
