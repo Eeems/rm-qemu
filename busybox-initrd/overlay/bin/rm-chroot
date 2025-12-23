@@ -1,0 +1,35 @@
+#!/bin/sh
+set -e
+usage() {
+  echo "Usage: $0 [partition] [args]..." >/dev/stderr
+  echo "  partition: one of a b 2 3" >/dev/stderr
+}
+mp=$(mktemp -d)
+# shellcheck disable=SC2064
+trap "rmdir $mp" EXIT
+case "$1" in
+"a" | "A" | "2")
+  mount /dev/mmcblk2p2 "$mp"
+  ;;
+"b" | "B" | "3")
+  mount /dev/mmcblk2p3 "$mp"
+  ;;
+"--help" | "-h")
+  usage
+  exit
+  ;;
+*)
+  usage
+  exit 1
+  ;;
+esac
+shift
+mount -t proc /proc "$mp/proc/"
+mount -t sysfs /sys "$mp/sys/"
+mount --rbind /dev "$mp/dev/"
+mount --bin /tmp "$mp/tmp"
+set +e
+chroot "$mp" "$@"
+ret=$?
+grep "$mp" /proc/mounts | cut -d' ' -f2 | xargs | awk '{ for (i=NF; i>0; i--) printf("%s ",$i); printf("\n")}' | xargs umount
+exit "$ret"
