@@ -47,7 +47,7 @@ if [ "$#" -ge 1 ] && [[ "$1" == "--pause" ]]; then
 fi
 trap 'rm-pause || true' EXIT
 rm-start --detached
-socat UNIX-CONNECT:"$STATEDIR/serial" STDOUT &
+rm-serial >/dev/stderr &
 rm-wait-ssh
 if [ "$#" -eq 0 ]; then
     echo "Started!" >/dev/stderr

@@ -19,7 +19,9 @@ while [ $ret -ne 0 ]; do
   if [ $ret -eq 0 ]; then
     break
   fi
-  if [[ "$output" == "root@localhost: Permission denied (publickey)." ]]; then
+  if [[ "$output" == *"root@localhost: Permission denied (publickey)."* ]] ||
+    [[ "$output" == *"root@localhost: Permission denied (publickey,password)."* ]] ||
+    [[ "$output" == *"root@localhost: Permission denied (password)."* ]]; then
     deny_retry=$((deny_retry - 1))
     if [ $deny_retry -lt 0 ]; then
       echo "Error: Unable to connect with publickey." >/dev/stderr

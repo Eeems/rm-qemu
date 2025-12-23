@@ -1,13 +1,17 @@
 #!/bin/sh
 set -e
 if [ "$#" -eq 0 ]; then
-  echo "Usage: serial-client <path-to-socket>" >/dev/stderr
+  echo "Usage: serial-client <path-to-socket> [text]..." >/dev/stderr
   exit 1
 fi
 socket="$1"
 shift
 if [ "$#" -ne 0 ]; then
-  echo "$@" | nc -NU "$socket" >/dev/stdout 2>/dev/stderr
+  printf "%s\n" "$*" | socat STDIO UNIX-CONNECT:"$socket"
+elif [ -t 0 ]; then
+  exec socat STDIO UNIX-CONNECT:"$socket"
+elif [ -r /dev/stdin ]; then
+  socat STDIO UNIX-CONNECT:"$socket"
 else
-  exec nc -NU "$socket" </dev/stdin >/dev/stdout 2>/dev/stderr
+  exec socat STDIO UNIX-CONNECT:"$socket"
 fi

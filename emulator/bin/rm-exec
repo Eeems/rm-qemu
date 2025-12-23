@@ -6,7 +6,7 @@ args=(
 )
 socket="${STATEDIR:-/run/rm}/ssh"
 if [ -S "$socket" ]; then
-  args+=(-o ProxyCommand="nc -U $socket")
+  args+=(-o ProxyCommand="socat STDIO UNIX-CONNECT:$socket")
 else
   echo "Warning: $socket missing, falling back to port" >/dev/stderr
   args+=(-p "${RM_SSH_PORT:-2222}")
