@@ -47,7 +47,7 @@ for dev in A B; do
   echo "Setting up root$dev partition..."
   rm-busybox-upload "${ROOTDIR}/artifact/rm2fb.tar.gz" /tmp
   rm-busybox-exec <<EOF
-    set -xe
+    set -e
     cd /mnt/root${dev}
     tar xzhf /tmp/rm2fb.tar.gz -C .
     rm-chroot ${dev} <<EOT
@@ -71,7 +71,7 @@ for dev in A B; do
         dropbear-usb0@.service \
         dropbear-usb1.socket \
         dropbear-usb1.service
-      sytemctl enable rm2fb.socket
+      systemctl enable rm2fb.socket
   EOT
 
     sed -i 's|/dev/unknown|/dev/mmcblk2p4|' etc/fstab
@@ -92,10 +92,10 @@ EOF
     rm-busybox-exec sed -i 's/wlan/eth/' /mnt/root${dev}/lib/systemd/system/dhcpcd.service
   fi
 done
-rm-busybox-exec rm-chroot a <<EOT
+rm-busybox-exec <<EOF
   set -e
-  mount /dev/mmcblk2p4 /home
-  cp -a /etc/skel/. /home
-EOT
+  cd /mnt
+  cp -a rootA/etc/skel/. home/
+EOF
 echo "Stopping busybox..."
 rm-busybox-stop
