@@ -7,7 +7,7 @@ fi
 socket="$1"
 shift
 if [ "$#" -ne 0 ]; then
-  echo "$@" | nc -NU "$socket"
+  echo "$@" | nc -NU "$socket" >/dev/stdout 2>/dev/stderr
 else
-  exec nc -NU "$socket"
+  exec nc -NU "$socket" </dev/stdin >/dev/stdout 2>/dev/stderr
 fi
