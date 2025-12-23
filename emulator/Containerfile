@@ -23,7 +23,6 @@ RUN <<EOT
   apt-get install -y --no-install-recommends \
     ssh \
     socat \
-    netcat-openbsd \
     libevdev2 \
     libsdl2-2.0-0 \
     psmisc \
