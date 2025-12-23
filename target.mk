@@ -75,3 +75,9 @@ else
 	  echo "$$c"; \
 	done
 endif
+
+.PHONY: clean
+clean::
+	git clean --force -dX
+	rm -rf artifact/
+	podman rmi -i ${TAG}

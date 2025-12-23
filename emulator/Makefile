@@ -44,3 +44,6 @@ test:: all .data/${VERSION}.qcow2
 	  ${TAG} \
 	  ${VERSION} \
 	  true
+
+clean::
+	rm -rf .cache .data
