@@ -19,12 +19,8 @@ push: $(foreach T, $(TARGETS), push-$(T))
 pull: $(foreach T, $(TARGETS), pull-$(T))
 
 .PHONY: clean
-clean:
+clean: $(foreach T, $(TARGETS), clean-$(T))
 	git clean --force -dX
-	rm -rf $(foreach T, $(TARGETS), $(T)/artifact)
-	while read t;do \
-	  podman rmi -i $$t; \
-	done < <(MAKEFLAGS= $(MAKE) tags)
 
 .PHONY: run-ui
 run-ui: ${TARGETS}
@@ -131,4 +127,15 @@ $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	hash-$(T), \
 	$(foreach D,$(shell MAKEFLAGS= tools/get-depends $(T)),hash-$(D)), \
+)))
+
+define make-target
+.SILENT: $2
+.PHONY: $2
+$2:
+	@$(MAKE_TARGET) $1 clean
+endef
+$(foreach T, $(TARGETS), $(eval $(call make-target, \
+	$(T), \
+	clean-$(T), \
 )))
