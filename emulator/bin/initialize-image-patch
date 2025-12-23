@@ -83,18 +83,10 @@ EOF
   if version-test "$VERSION" -ge 3.22.0.0; then
     echo "Adding dropbear.socket..."
     rm-busybox-upload "${ROOTDIR}/artifact/dropbear.socket" /mnt/root${dev}/lib/systemd/system/dropbear.socket
-    rm-busybox-exec <<EOF
-      set -e
-      cd /mnt/root${dev}
-      ln -s /lib/systemd/system/dropbear.socket etc/systemd/system/sockets.target.wants/dropbear.socket
-EOF
+    rm-busybox-exec ln -s /lib/systemd/system/dropbear.socket /mnt/root${dev}/etc/systemd/system/sockets.target.wants/dropbear.socket
   elif version-test "$VERSION" -lt 3.13.0.0; then
     echo "Patching dhcpcd.service..."
-    rm-busybox-exec <<EOF
-      set -e
-      cd /mnt/root${dev}
-      sed -i 's/wlan/eth/' lib/systemd/system/dhcpcd.service
-EOF
+    rm-busybox-exec sed -i 's/wlan/eth/' /mnt/root${dev}/lib/systemd/system/dhcpcd.service
   fi
 done
 echo "Stopping busybox..."

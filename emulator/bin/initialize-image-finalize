@@ -35,7 +35,8 @@ echo "Finalizing mmcblk2p2..."
 rm-exec <<EOT
   set -e
   sed -i 's|#/dev/mmcblk2p4|/dev/mmcblk2p4|' /etc/fstab
-  rm /etc/systemd/system/xochitl.service
+  systemctl unmask xochitl.service
+  systemctl mask remarkable-fail.serivce
 EOT
 
 echo "Finalizing mmcblk2p3..."
