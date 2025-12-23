@@ -57,7 +57,7 @@ EOF
 fi
 
 # Copy static files
-cp -a /artifact/. "$APPDIR/share/rm-qemu/artifact"
+cp -a /artifact/. "$APPDIR/share/rm-qemu/artifact/"
 cp -a \
   /usr/local/bin/. \
   "${APPDIR}/bin"

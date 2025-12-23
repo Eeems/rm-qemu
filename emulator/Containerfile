@@ -34,7 +34,7 @@ RUN <<EOT
   mkdir -p /artifact
 EOT
 
-COPY --from=codexctl codexctl /usr/local/bin
+COPY --from=codexctl codexctl /usr/local/bin/
 COPY --from=rootfs . /artifact/
 COPY --from=kernel . /artifact/
 COPY --from=busybox-kernel . /artifact/
