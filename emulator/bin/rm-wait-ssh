@@ -9,6 +9,7 @@ if [ $# -ge 1 ]; then
   fi
   usage 1
 fi
+echo "Waiting for ssh to start..." >/dev/stderr
 ret=1
 fail_retry=5
 deny_retry=2

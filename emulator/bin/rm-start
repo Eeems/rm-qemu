@@ -80,7 +80,6 @@ case "$1" in
     rm-monitor commit sd2
   fi
   if [[ "$2" == "--wait" ]]; then
-    echo "Waiting for ssh to start..." >/dev/stderr
     exec rm-wait-ssh
   fi
   ;;
