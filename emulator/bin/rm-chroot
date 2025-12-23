@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e
+usage() {
+  echo "Usage: $0 [partition] [args]..." >/dev/stderr
+  echo "  partition: one of a b 2 3" >/dev/stderr
+}
+case "$1" in
+"a" | "A" | "2" | "b" | "B" | "3") ;;
+"--help" | "-h")
+  usage
+  exit
+  ;;
+*)
+  usage
+  exit 1
+  ;;
+esac
+if ! rm-image-path >/dev/null; then
+  exit 1
+fi
+exec rm-busybox "$(rm-image-path)" rm-chroot "$1" "$@"

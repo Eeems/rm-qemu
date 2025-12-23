@@ -13,5 +13,5 @@ rootfs="$DATADIR/$VERSION.qcow2"
 trap "rm '${rootfs}'" EXIT
 initialize-image-base "$VERSION" --no-stop
 initialize-image-patch "$VERSION" --no-start
-initialize-image-finalize "$VERSION"
 trap - EXIT
+shrink-image "$rootfs"

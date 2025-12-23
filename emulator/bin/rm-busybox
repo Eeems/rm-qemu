@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-if [ $# -gt 1 ] || [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
+if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
   echo "Usage: rm-busybox [<disk>] <<EOF" >/dev/stderr
   echo "  ln-s /dev/null /etc/systemd/system/xochitl.service" >/dev/stderr
   echo "EOF" >/dev/stderr
@@ -15,5 +15,5 @@ if rm-is-running; then
 fi
 rm-busybox-start "${1:-$(rm-image-path)}"
 rm-busybox-mount
-rm-busybox-exec </dev/stdin >/dev/stdout 2>/dev/stderr
+rm-busybox-exec "$@" </dev/stdin >/dev/stdout 2>/dev/stderr
 rm-busybox-stop
