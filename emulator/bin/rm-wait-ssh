@@ -10,7 +10,8 @@ if [ $# -ge 1 ]; then
   usage 1
 fi
 ret=1
-retry=5
+fail_retry=5
+deny_retry=2
 while [ $ret -ne 0 ]; do
   output=$(rm-exec true 2>&1)
   ret=$?
@@ -18,10 +19,20 @@ while [ $ret -ne 0 ]; do
     break
   fi
   if [[ "$output" == "root@localhost: Permission denied (publickey)." ]]; then
-    echo "Error: Unable to connect with publickey." >/dev/stderr
-    echo "  Please rm-monitor q && rm-ensure-ssh and then try again." >/dev/stderr
-    echo "$output" >/dev/stderr
-    exit 1
+    deny_retry=$((deny_retry - 1))
+    if [ $deny_retry -lt 0 ]; then
+      echo "Error: Unable to connect with publickey." >/dev/stderr
+      echo "  Please rm-monitor q && rm-ensure-ssh and then try again." >/dev/stderr
+      echo "$output" >/dev/stderr
+      exit 1
+    fi
+    echo "Warning $ret: Connection denied, retrying..."
+    echo "root" | rm-serial
+    echo "mkdir -p /home/root/.ssh" | rm-serial
+    echo "chmod 0700 /home/root/.ssh" | rm-serial
+    echo "cp /etc/dropbear/authorized_keys /home/root/.ssh/authorized_keys" | rm-serial
+    echo "chmod 0600 /home/root/.ssh/authorized_keys" | rm-serial
+    echo "exit" | rm-serial
   elif [[ "$output" == *"Segmentation fault"* ]] || [ $ret -eq 139 ]; then
     echo "Error: ssh executable is broken." >/dev/stderr
     echo "$output" >/dev/stderr
@@ -31,8 +42,8 @@ while [ $ret -ne 0 ]; do
     rm-is-running --verbose >/dev/null
     exit 1
   elif [ $ret -ne 255 ]; then
-    retry=$((retry - 1))
-    if [ $retry -lt 0 ]; then
+    fail_retry=$((fail_retry - 1))
+    if [ $fail_retry -lt 0 ]; then
       echo "Error $ret: Unable to connect, likely /home/root does not exist" >/dev/stderr
       echo "  You may need to use rm-serial to login on the serial console to fix things" >/dev/stderr
       echo "$output" >/dev/stderr
