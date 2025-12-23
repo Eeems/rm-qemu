@@ -37,7 +37,7 @@ RUN <<EOT
 EOT
 
 COPY entrypoint /usr/bin
-COPY bin/* /usr/local/bin
+COPY bin/. /usr/local/bin/
 
 ENTRYPOINT [ "/usr/bin/entrypoint" ]
 

@@ -57,11 +57,13 @@ EOF
 fi
 
 # Copy static files
-cp -r /artifact/* "$APPDIR/share/rm-qemu/artifact"
-cp \
-  /usr/local/bin/* \
+cp -a /artifact/. "$APPDIR/share/rm-qemu/artifact"
+cp -a \
+  /usr/local/bin/. \
   "${APPDIR}/bin"
 
 # Create AppImage
 APPDIR="${APPDIR}" \
+  OUTNAME=rm-qemu.AppImage \
+  VERSION="$(date +%Y.%m.%d-%H%M)" \
   uruntime2appimage

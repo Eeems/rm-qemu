@@ -1,0 +1,43 @@
+ARG HASH KERNEL
+
+FROM alpine:latest AS builder
+
+RUN apk add --no-cache \
+  build-base \
+  make \
+  pkgconfig \
+  git \
+  autoconf
+
+RUN <<EOT
+  set -e
+  git clone \
+     --branch=bash-5.3 \
+     --depth=1 \
+     https://https.git.savannah.gnu.org/git/bash.git \
+     /bash
+EOT
+
+WORKDIR /bash
+
+RUN <<EOT
+  set -e
+  autoconf -f
+  ./configure \
+    --without-bash-malloc \
+    --prefix=/
+EOT
+
+RUN <<EOT
+  set -e
+  make -s -j$(nproc) CFLAGS="-Os -static -Wno-error=implicit-function-declaration"
+  make DESTDIR=install install
+  make clean
+EOT
+
+FROM scratch
+
+COPY --from=builder /bash/install/bin/bash /
+
+ARG HASH
+LABEL hash="${HASH:?Hash missing}"

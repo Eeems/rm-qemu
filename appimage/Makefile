@@ -6,16 +6,17 @@ TAG := ghcr.io/eeems/rm-qemu-appimage-builder:latest
 
 include ../target.mk
 
-all:: image rm-qemu-anylinux-x86_64.AppImage
+all:: image rm-qemu.AppImage
 
-rm-qemu-anylinux-x86_64.AppImage: $(OBJ)
+rm-qemu.AppImage: $(OBJ)
 	podman run --rm \
 	  --volume=$$(pwd):/workspace \
 	  --workdir=/workspace \
 	  "--env=APPDIR=${APPDIR}" \
+	  "--env=GITHUB_REPOSITORY=${GITHUB_REPOSITORY}" \
 	  "${TAG}"
 
-test:: rm-qemu-anylinux-x86_64.AppImage
-	./rm-qemu-anylinux-x86_64.AppImage \
+test:: rm-qemu.AppImage
+	./rm-qemu.AppImage \
 	  ${VERSION} \
 	  true

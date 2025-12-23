@@ -26,7 +26,7 @@ CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.1.0 VERSION=v1.1.5"
 # CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.1.0 VERSION=v1.1.0"
 # CONFIGS += "KERNEL=5.4.70 KERNEL_TAG=RM1XX_5.4.70_v1.0.0 VERSION=v1.0.0"
 
-TEST_DEPENDS += busybox.img qemu-system-arm
+TEST_DEPENDS += busybox-initrd qemu-system-arm
 
 include ../target.mk
 

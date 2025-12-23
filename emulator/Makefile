@@ -1,7 +1,7 @@
 VERSION ?= 3.22.0.64
 TAG := ghcr.io/eeems/rm-qemu:latest
 
-DEPENDS := busybox.img busybox rm2fb qemu-system-arm rootfs
+DEPENDS := busybox-initrd busybox rm2fb qemu-system-arm rootfs bash
 DEPENDS += .WAIT busybox-kernel
 DEPENDS += .WAIT kernel
 

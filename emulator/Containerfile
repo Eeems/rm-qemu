@@ -34,41 +34,43 @@ RUN <<EOT
   mkdir -p /artifact
 EOT
 
+COPY --from=codexctl codexctl /usr/local/bin
 COPY --from=rootfs . /artifact/
 COPY --from=kernel . /artifact/
 COPY --from=busybox-kernel . /artifact/
-COPY --from=busybox.img . /artifact/
+COPY --from=busybox-initrd . /artifact/
 COPY --from=busybox . /usr/local/bin/
+COPY --from=bash . /usr/local/bin/
+
 COPY --from=qemu-system-arm \
   qemu-system-arm \
   qemu-img \
   qemu-pr-helper \
   qemu-storage-daemon \
   /usr/bin/
+
 # COPY --from=qemu-system-arm \
 #   /firmware/* \
 #   /usr/share/qemu/
+
 COPY --from=qemu-system-arm \
   qemu-bridge-helper \
   /usr/libexec/
+
 COPY --from=rm2fb \
   /rm2fb.tar.gz \
   /artifact/
+
 COPY --from=rm2fb \
   /rm2fb-emu \
   /usr/bin/
-COPY --from=codexctl codexctl /usr/local/bin
+
 COPY dropbear.socket rm2fb.conf /artifact/
-
-RUN <<EOT
-  ln -s busybox /usr/local/bin/killall
-  ln -s busybox /usr/local/bin/lsof
-  ln -s busybox /usr/local/bin/pidof
-EOT
-
-COPY bin/* /usr/local/bin
+COPY bin/. /usr/local/bin/
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
 
 ARG HASH
 LABEL hash="${HASH:?Hash missing}"
+
+RUN /usr/local/bin/busybox --list-full
