@@ -1,15 +1,15 @@
 #!/bin/bash
 set -e
-if [ $# -ne 1 ];then
+if [ $# -ne 1 ]; then
   echo "Usage: shrink-image <image>" >/dev/stderr
   exit 1
 fi
-IMAGE="$(readlink --canonicalize-existing "$1")"
-if rm-is-running && rm-image-path 2>/dev/null && [[ "$IMAGE" == "$(rm-image-path)" ]];then
+IMAGE="$(readlink -f "$1")"
+if rm-is-running && rm-image-path 2>/dev/null && [[ "$IMAGE" == "$(rm-image-path)" ]]; then
   echo "Image is in use" >/dev/stderr
   exit
 fi
-if [[ "$(qemu-img snapshot -l "$IMAGE")" != "" ]];then
+if [[ "$(qemu-img snapshot -l "$IMAGE")" != "" ]]; then
   echo "Image has snapshots" >/dev/stderr
   exit
 fi

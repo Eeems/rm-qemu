@@ -4,3 +4,4 @@
 *.dtb
 *.profraw
 */artifact/
+*.img

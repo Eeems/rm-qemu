@@ -8,4 +8,4 @@ if [ ! -f "$(readlink "${STATEDIR}/rootfs.qcow2")" ]; then
   echo "${STATEDIR}/rootfs.qcow2 is invalid" >/dev/stderr
   exit 1
 fi
-exec readlink --canonicalize-existing "${STATEDIR}/rootfs.qcow2"
+exec readlink -f "${STATEDIR}/rootfs.qcow2"

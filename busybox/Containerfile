@@ -30,7 +30,7 @@ EOT
 
 FROM scratch
 
-COPY --from=builder /busybox/install/bin/busybox /
+COPY --from=builder /busybox/install/bin/. /
 
 ARG HASH
 LABEL hash="${HASH:?Hash missing}"

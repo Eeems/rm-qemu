@@ -1,4 +1,4 @@
-TAG := ghcr.io/eeems/rm-qemu-artifact:busybox.img
+TAG := ghcr.io/eeems/rm-qemu-artifact:busybox-initrd
 OUTPUTS := busybox.img
 TEST_DEPENDS += busybox-kernel
 
