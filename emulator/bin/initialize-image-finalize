@@ -53,6 +53,8 @@ rm-exec <<EOT
   if ! mountpoint -q /home ;then
     mkfs.ext4 -E nodiscard /dev/mmcblk2p4
   fi
+  mount /home
+  cp -a /etc/skel/. /home
 EOT
 trap - EXIT
 rm-stop --wait
