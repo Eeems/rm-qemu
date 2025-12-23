@@ -20,7 +20,9 @@ rm-busybox-exec <<EOF
   mkdir -p \
     home/root/.ssh \
     rootA/home/root/.ssh \
-    rootB/home/root/.ssh
+    rootA/etc/dropbear \
+    rootB/home/root/.ssh \
+    rootB/etc/dropbear
   chmod 0700 \
     home/root/.ssh \
     rootA/home/root/.ssh \
@@ -32,7 +34,9 @@ rm-busybox-exec <<EOF
   cd /mnt
   chmod 0600 /tmp/id_rsa.pub
   cp -a /tmp/id_rsa.pub rootA/home/root/.ssh/authorized_keys
+  cp -a /tmp/id_rsa.pub rootA/etc/dropbear/authorized_keys
   cp -a /tmp/id_rsa.pub rootB/home/root/.ssh/authorized_keys
+  cp -a /tmp/id_rsa.pub rootB/etc/dropbear/authorized_keys
   cp -a /tmp/id_rsa.pub home/root/.ssh/authorized_keys
   rm /tmp/id_rsa.pub
 EOF

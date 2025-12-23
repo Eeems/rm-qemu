@@ -40,7 +40,11 @@ while [ $ret -ne 0 ]; do
     fi
     echo "Warning $ret: Unable to connect, retrying..."
     echo "root" | rm-serial
-    echo "mkdir -p /home/root" | rm-serial
+    echo "mkdir -p /home/root/.ssh" | rm-serial
+    echo "chmod 0700 /home/root/.ssh" | rm-serial
+    echo "cp /etc/dropbear/authorized_keys /home/root/.ssh/authorized_keys" | rm-serial
+    echo "chmod 0600 /home/root/.ssh/authorized_keys" | rm-serial
+    echo "exit" | rm-serial
   fi
   sleep 1
 done
