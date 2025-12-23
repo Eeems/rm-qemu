@@ -10,4 +10,5 @@ if [ ! -f "$pidfile" ]; then
 fi
 rm -f "${STATEDIR}/ssh"
 pid="$(cat "$pidfile")"
+rm "$pidfile"
 exec kill "$pid"
