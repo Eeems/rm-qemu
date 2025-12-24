@@ -18,4 +18,4 @@ esac
 if ! rm-image-path >/dev/null; then
   exit 1
 fi
-exec rm-busybox "$(rm-image-path)" rm-chroot "$1" "$@"
+exec rm-busybox "$(rm-image-path)" rm-chroot "$1" "$@" </dev/stdin >/dev/stdout 2>/dev/stderr

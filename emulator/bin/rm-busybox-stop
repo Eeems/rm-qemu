@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
-echo "poweroff -f" | rm-busybox-exec 2>/dev/null || true
+# shellcheck disable=SC2016
+echo 'kill -9 "$(pgrep -P 1 sh)"' | rm-busybox-exec 2>/dev/null || true
 while rm-busybox-exec true &>/dev/null; do
   sleep 1
 done
