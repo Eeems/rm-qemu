@@ -3,7 +3,7 @@ set -e
 STATEDIR=${STATEDIR:-/run/rm}
 mkdir -p "${STATEDIR}"
 if [ "$#" -eq 1 ] && [[ "$1" == "--shell" ]]; then
-    exec bash -l
+  exec bash -l
 fi
 usage="Usage: entrypoint --help
   entrypoint --shell
@@ -20,52 +20,55 @@ usage="Usage: entrypoint --help
     DATADIR: Directory to store images in.
     CACHEDIR: Directory to cache update files in."
 if [ "$#" -eq 0 ]; then
-    echo "$usage"
-    exit 1
+  echo "$usage"
+  exit 1
 fi
 if [ "$#" -eq 1 ] && [[ "$1" == "--help" ]]; then
-    echo "$usage"
-    exit
+  echo "$usage"
+  exit
 fi
 rm-select "$1"
 shift
 if [[ "$RM_ENSURE_IMAGE" == "1" ]]; then
-    echo "Ensuring image is in a good state..."
-    rm-ensure-image "$1" || true
+  echo "Ensuring image is in a good state..."
+  rm-ensure-image "$1" || true
 fi
 if ! rm-is-paused; then
-    echo "Ensuring SSH key is configured..."
-    rm-ensure-ssh
+  echo "Ensuring SSH key is configured..."
+  rm-ensure-ssh
 fi
 if [ "$#" -eq 1 ] && [[ "$1" == "--serial" ]]; then
-    exec rm-start </dev/stdin >/dev/stdout 2>/dev/stderr
+  exec rm-start </dev/stdin >/dev/stdout 2>/dev/stderr
 fi
 pause=false
 if [ "$#" -ge 1 ] && [[ "$1" == "--pause" ]]; then
-    pause=true
-    shift
+  pause=true
+  shift
 fi
 trap 'rm-pause || true' EXIT
 rm-start --detached
+while rm-is-running && [ ! -f "${STATEDIR:-/run/rm}/serial" ]; do
+  sleep 0.2
+done
 socat STDIO,ignoreeof UNIX-CONNECT:"${STATEDIR:-/run/rm}/serial" >/dev/stderr 2>&1 &
 rm-wait-ssh
 if [ "$#" -eq 0 ]; then
-    echo "Started!" >/dev/stderr
-    rm-exec </dev/stdin >/dev/stdout 2>/dev/stderr
+  echo "Started!" >/dev/stderr
+  rm-exec </dev/stdin >/dev/stdout 2>/dev/stderr
 elif [ "$#" -eq 1 ] && [[ "$1" == "--display" ]]; then
-    rm2fb-emu 127.0.0.1 "${RM_EMU_PORT:-8888}"
+  rm2fb-emu 127.0.0.1 "${RM_EMU_PORT:-8888}"
 else
-    rm-exec "$@"
+  rm-exec "$@"
 fi
 trap - EXIT
 if ! $pause; then
-    echo "Stopping..." >/dev/stderr
-    rm-stop --wait
-    if rm-has-snapshot running; then
-        rm-commit running
-    fi
-    shrink-image "$(rm-image-path)"
+  echo "Stopping..." >/dev/stderr
+  rm-stop --wait
+  if rm-has-snapshot running; then
+    rm-commit running
+  fi
+  shrink-image "$(rm-image-path)"
 else
-    echo "Pausing..." >/dev/stderr
-    rm-pause
+  echo "Pausing..." >/dev/stderr
+  rm-pause
 fi
