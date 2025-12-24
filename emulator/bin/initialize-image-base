@@ -39,14 +39,14 @@ echo "Extracting image..."
 extracted=$(mktemp -d)/image
 # Remove the extracted image when we are done
 # shellcheck disable=SC2064,SC2086
-trap "rm -r '$(dirname $extracted)'" EXIT
+trap "rm -rf '$(dirname \"$extracted\")'" EXIT
 codexctl extract --out "$extracted" "$image"
 rootfs="$DATADIR/$VERSION.qcow2"
 echo "Creating $VERSION.qcow2..."
 pushd "$DATADIR" >/dev/null
 cp "${ROOTDIR}/artifact/base.qcow2" "$rootfs"
 # shellcheck disable=SC2064,SC2086
-trap "rm -r '$(dirname $extracted)' '${rootfs}'" EXIT
+trap "rm -r '$(dirname \"$extracted\")' '${rootfs}'" EXIT
 popd >/dev/null
 rm-busybox-start "$rootfs"
 echo "Initializing $VERSION.qcow2..."
@@ -54,15 +54,16 @@ hash=$(sha256sum "$extracted" | cut -d' ' -f1)
 dd if="$extracted" bs=160000 | gzip -1 | rm-busybox-exec "gunzip -c | dd of=/dev/mmcblk2p2 bs=160000"
 rm-busybox-exec <<EOF
   set -e
-  cd /mnt
   echo "$hash  /dev/mmcblk2p2" | sha256sum -c
   dd if=/dev/mmcblk2p2 of=/dev/mmcblk2p3 bs=160000
   echo "$hash  /dev/mmcblk2p3" | sha256sum -c
-  mkdir -p rootA rootB home
-  mount /dev/mmcblk2p2 rootA
-  mount /dev/mmcblk2p3 rootB
+  cd /mnt
+  mkdir boot
+  mount /dev/mmcblk2p1 boot
+  dd if=/dev/zero of=boot/uboot.env count=1024
+  # rm-chroot a mkdir -p /run/lock && /usr/sbin/fw_setenv active_partition 2
 EOF
-rm -r "$(dirname "$extracted")"
+rm -rf "$(dirname "$extracted")"
 if $stop; then
   echo "Stopping busybox..."
   rm-busybox-stop

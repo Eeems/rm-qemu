@@ -27,8 +27,12 @@ shift
 mount -t proc /proc "$mp/proc/"
 mount -t sysfs /sys "$mp/sys/"
 mount --rbind /dev "$mp/dev/"
-mount --bin /tmp "$mp/tmp"
+mount --bin /tmp "$mp/tmp/"
+if [ -d "$mp/var/lib/uboot/" ]; then
+  mount /dev/mmcblk2p1 "$mp/var/lib/uboot/"
+fi
 set +e
+mount /dev/mmcblk2p4 "$mp/home"
 chroot "$mp" "$@"
 ret=$?
 grep "$mp" /proc/mounts | cut -d' ' -f2 | xargs | awk '{ for (i=NF; i>0; i--) printf("%s ",$i); printf("\n")}' | xargs umount

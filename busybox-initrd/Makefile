@@ -1,6 +1,6 @@
 TAG := ghcr.io/eeems/rm-qemu-artifact:busybox-initrd
 OUTPUTS := busybox.img
-TEST_DEPENDS += busybox-kernel
+TEST_DEPENDS += busybox-kernel qemu-system-arm
 
 include ../target.mk
 
@@ -12,11 +12,12 @@ script.img: script
 run: busybox.img script.img ../appimage/bin/get-free-port
 	$(MAKE) -C ../busybox-kernel busybox-zImage
 	$(MAKE) -C ../rootfs base.qcow2
+	$(MAKE) -C ../qemu-system-arm qemu-system-arm
 	port=$$(../appimage/bin/get-free-port); \
 	cpus=$$(nproc); \
 	echo "RM_BUSYBOX_PORT=$${port}"; \
 	echo "cpus=$${cpus}"; \
-	qemu-system-arm \
+	PATH="$$(pwd)/qemu-system-arm/artifact:$$PATH" qemu-system-arm \
 	  -machine \
 	  virt \
 	  -smp \
@@ -32,7 +33,7 @@ run: busybox.img script.img ../appimage/bin/get-free-port
 	  -device \
 	  virtio-net-device,netdev=net0 \
 	  -netdev \
-	  user,id=net0,hostfwd=tcp::$${RM_BUSYBOX_PORT:-2221}-:22 \
+	  user,id=net0,hostfwd=tcp::$$port-:22 \
 	  -device \
 	  virtio-blk-device,drive=hd2 \
 	  -drive \
@@ -54,7 +55,7 @@ test:: busybox.img script.img ../appimage/bin/get-free-port
 	cpus=$$(nproc); \
 	echo "RM_BUSYBOX_PORT=$${port}"; \
 	echo "cpus=$${cpus}"; \
-	qemu-system-arm \
+	PATH="$$(pwd)/qemu-system-arm/artifact:$$PATH" qemu-system-arm \
 	  -machine \
 	  virt \
 	  -smp \
@@ -68,7 +69,7 @@ test:: busybox.img script.img ../appimage/bin/get-free-port
 	   -device \
 	  virtio-net-device,netdev=net0 \
 	  -netdev \
-	  user,id=net0,hostfwd=tcp::$${RM_BUSYBOX_PORT:-2221}-:22 \
+	  user,id=net0,hostfwd=tcp::$port-:22 \
 	  -device \
 	  virtio-blk-device,drive=hd0 \
 	  -drive \
