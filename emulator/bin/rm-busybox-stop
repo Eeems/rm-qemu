@@ -14,13 +14,14 @@ if [ -f "$serial" ];then
 fi
 tries=10
 signal=15
-while lsof "${ROOTDIR}/artifact/busybox.img" 2>/dev/null | grep -q qemu-system-arm; do
+image="$(readlink -f "$STATEDIR/busybox-rootfs.qcow2")"
+while lsof "$image" 2>/dev/null | grep -q qemu-system-arm; do
   tries=$((tries - 1))
   if [ $tries -le 0 ];then
     if [ -f "$monitor" ];then
       echo "q" | serial-client "$monitor"
     else
-      lsof "${ROOTDIR}/artifact/busybox.img" 2>/dev/null \
+      lsof "$image" 2>/dev/null \
       | grep -q qemu-system-arm \
       | awk '{print 1}' \
       | xargs -r kill -$signal
