@@ -26,6 +26,9 @@ COPY busybox.config .config
 RUN <<EOT
   make -j$(nproc)
   make install
+  for f in install/usr/bin/*;do
+    ln -s busybox "install/bin/$(basename "$f")"
+  done
 EOT
 
 FROM scratch

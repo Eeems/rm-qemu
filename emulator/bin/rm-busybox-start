@@ -11,6 +11,8 @@ if [ ! -f "$image" ]; then
   echo "Error: $image is not found" >/dev/stderr
   exit 1
 fi
+STATEDIR=${STATEDIR:-/run/rm}
+mkdir -p "$STATEDIR"
 qemu-system-arm \
   -machine \
   virt \
@@ -46,6 +48,8 @@ qemu-system-arm \
   null \
   -display \
   none \
+  -monitor \
+  "unix:$STATEDIR/busybox-monitor,server=on,wait=off" \
   -daemonize
 
 echo "Waiting for busybox to be ready..."
