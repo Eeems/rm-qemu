@@ -193,7 +193,7 @@ jobs:
           path: |
             emulator/.cache
             emulator/.data
-      - name: Upload AppImage
+      - name: Download AppImage
         uses: actions/download-artifact@v4
         with:
           name: rm-qemu.AppImage
