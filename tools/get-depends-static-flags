@@ -1,4 +1,4 @@
 #!/bin/bash
-"$(dirname "$0")"/get-depends . | xargs -rn1 | while read -r d; do
+"$(dirname "$0")"/get-depends . --no-wait | xargs -rn1 | while read -r d; do
   echo "--static=$d=$(make -C "../$d" hash)"
 done

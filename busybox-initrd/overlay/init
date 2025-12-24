@@ -1,4 +1,5 @@
 #!/bin/sh
+echo "[init] Mounting filesystems..."
 mount -t devtmpfs devtmpfs /dev
 mkdir /dev/pts
 mount -t devpts devpts /dev/pts
@@ -11,7 +12,7 @@ mv_blk() {
   if [ ! -b "/dev/$1" ]; then
     return
   fi
-  echo "Renaming /dev/$1 -> /dev/$2"
+  echo "[init] Renaming /dev/$1 -> /dev/$2"
   mv "/dev/$1" "/dev/$2"
   for p in "/dev/$1"[0-9]*; do
     if [ -e "$p" ]; then
@@ -37,27 +38,41 @@ if [ -b /dev/mmcblk0 ] && [ ! -b /dev/mmcblk0p1 ]; then
   fi
 fi
 
+echo "[init] Starting network..."
 ip link set lo up
 ip link set eth0 up
 udhcpc
 
+echo "[init] Starting dropbear..."
 dropbear -REB -W 524288
 
 dmesg -n 1
 
 if [ -x /mnt/script/init ]; then
+  echo "[init] Starting /mnt/script/init..."
   /mnt/script/init "$@"
 else
   cmd=${1:-/bin/sh}
   if [ $# -gt 0 ]; then
     shift
   fi
+  echo "[init] Starting $cmd..."
   $cmd "$@"
 fi
+echo "[init] Sending SIGTERM to all child processes..."
 killall5 -15
-sleep 2
+wait=10
+while pgrep $$ >/dev/null && [ $wait -gt 0 ];do
+  sleep 0.1
+  wait=$((wait - 1))
+done
+echo "[init] Sending SIGKILL to all child processes..."
 killall5 -9
+echo "[init] Syncing disks..."
 sync
+sync
+echo "[init] Disabling swap..."
 swapoff -a
+echo "[init] Unmounting all filesystems..."
 umount -a -r
 poweroff -f

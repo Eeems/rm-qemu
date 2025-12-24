@@ -43,7 +43,7 @@ qemu-system-arm \
   -drive \
   if=none,file=null-co://,format=raw,id=hd0 \
   -serial \
-  null \
+  "unix:$STATEDIR/busybox-serial,server=on,wait=off" \
   -parallel \
   null \
   -display \

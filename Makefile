@@ -71,9 +71,8 @@ endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	image-$(T), \
-	$(foreach D,$(shell MAKEFLAGS= tools/get-depends $(T)),image-$(D)), \
+	$(shell MAKEFLAGS= tools/get-depends $(T) --prefix=image-), \
 )))
-# TODO make get-depends handle setting prefix and no longer filter out .WAIT statements
 
 define make-target
 .PHONY: $2
@@ -113,7 +112,7 @@ endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	tag-$(T), \
-	$(foreach D,$(shell MAKEFLAGS= tools/get-depends $(T)),tag-$(D)), \
+	$(shell MAKEFLAGS= tools/get-depends $(T) --prefix=tag-), \
 )))
 
 define make-target
@@ -126,7 +125,7 @@ endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	hash-$(T), \
-	$(foreach D,$(shell MAKEFLAGS= tools/get-depends $(T)),hash-$(D)), \
+	$(shell MAKEFLAGS= tools/get-depends $(T) --prefix=hash-), \
 )))
 
 define make-target
