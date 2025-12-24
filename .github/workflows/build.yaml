@@ -101,19 +101,19 @@ jobs:
             echo
             df -h
           EOF
+      - name: rootfs cache
+        uses: actions/cache@v4
+        with:
+          key: rootfs-${{ hashFiles('busybox-initrd/overlay/**', 'emulator/bin/**') }}
+          path: |
+            emulator/.cache
+            emulator/.data
       - name: Debug information
         run: |
           make hash
           make tags
       - name: Build
         run: make -j$(nproc)
-      - name: rootfs cache
-        uses: actions/cache@v4
-        with:
-          key: rootfs-${{ hashFiles('kernel/**', 'rootfs/**', 'emulator/**') }}
-          path: |
-            emulator/.cache
-            emulator/.data
       - name: Test
         run: make -j$(nproc) test
       - name: push
