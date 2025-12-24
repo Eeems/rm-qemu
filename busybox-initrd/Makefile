@@ -69,7 +69,7 @@ test:: busybox.img script.img ../appimage/bin/get-free-port
 	   -device \
 	  virtio-net-device,netdev=net0 \
 	  -netdev \
-	  user,id=net0,hostfwd=tcp::$port-:22 \
+	  user,id=net0,hostfwd=tcp::$$port-:22 \
 	  -device \
 	  virtio-blk-device,drive=hd0 \
 	  -drive \
