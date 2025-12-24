@@ -187,13 +187,12 @@ jobs:
           - 3.24.0.149
     steps:
       - *setup-container
-      - name: rootfs cache
+      - name: update cache
         uses: actions/cache@v4
         with:
-          key: rootfs-${{ matrix.version }}-${{ hashFiles('kernel/**', 'rootfs/**', 'emulator/**') }}
+          key: update-${{ matrix.version }}
           path: |
-            emulator/.cache
-            emulator/.data
+            /github/home/.cache/rm-qemu/cache/**
       - name: Download AppImage
         uses: actions/download-artifact@v4
         with:
