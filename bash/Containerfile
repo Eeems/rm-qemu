@@ -1,4 +1,4 @@
-ARG HASH KERNEL
+ARG KERNEL
 
 FROM alpine:latest AS builder
 
@@ -38,6 +38,3 @@ EOT
 FROM scratch
 
 COPY --from=builder /bash/install/bin/bash /
-
-ARG HASH
-LABEL hash="${HASH:?Hash missing}"

@@ -1,5 +1,3 @@
-ARG HASH
-
 FROM eeems/remarkable-toolchain:4.3.98-rm2 AS builder
 
 RUN bash -e <<EOT
@@ -61,6 +59,3 @@ FROM scratch
 
 COPY --from=builder /linux/arch/arm/boot/zImage /
 COPY --from=builder /linux/arch/arm/boot/dts/imx7d-cl-som-imx7.dtb /qemu.dtb
-
-ARG HASH
-LABEL hash="${HASH:?Hash missing}"

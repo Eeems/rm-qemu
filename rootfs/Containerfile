@@ -1,5 +1,3 @@
-ARG HASH
-
 FROM debian:13-slim as guestfs
 
 RUN <<EOT
@@ -55,6 +53,3 @@ EOT
 FROM scratch
 
 COPY --from=base /base.qcow2 /
-
-ARG HASH
-LABEL hash="${HASH:?Hash missing}"

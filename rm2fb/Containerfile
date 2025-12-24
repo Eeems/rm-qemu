@@ -1,5 +1,3 @@
-ARG HASH
-
 FROM eeems/remarkable-toolchain:3.1.15-rm2 AS rm2fb-src
 # FROM ghcr.io/toltec-dev/toolchain:v3.3 AS rm2fb-src
 
@@ -128,6 +126,3 @@ FROM scratch
 
 COPY --from=rm2fb /rm2fb.tar.gz /
 COPY --from=rm2fb-host /rm2fb-emu /
-
-ARG HASH
-LABEL hash="${HASH:?Hash missing}"

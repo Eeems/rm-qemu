@@ -22,7 +22,7 @@ echo "Remote: $remote"
 podman build \
   --pull=missing \
   --tag="$tag" \
-  "--build-arg=HASH=$hash" \
+  "--label=hash=$hash" \
   "$@" \
   .
 touch .image-marker
