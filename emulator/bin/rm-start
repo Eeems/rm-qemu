@@ -55,12 +55,14 @@ else
   }
 fi
 start_ssh_socket() {
+  rm -f "${STATEDIR}/ssh"
   socat UNIX-LISTEN:"${STATEDIR}/ssh",fork TCP-CONNECT:localhost:"${RM_SSH_PORT:-2222}" &
   pid=$!
   disown "$pid"
   echo "$pid" >"${STATEDIR}/ssh.pid"
 }
 start_serial_socket() {
+  rm -f "${STATEDIR}/serial"
   socat UNIX-LISTEN:"${STATEDIR}/serial",fork UNIX-CONNECT:"$1" &
   pid=$!
   disown "$pid"

@@ -5,3 +5,4 @@
 *.profraw
 */artifact/
 *.img
+.image-marker

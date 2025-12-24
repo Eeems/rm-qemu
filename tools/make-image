@@ -25,3 +25,4 @@ podman build \
   "--build-arg=HASH=$hash" \
   "$@" \
   .
+touch .image-marker
