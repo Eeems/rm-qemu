@@ -1,4 +1,4 @@
-ARG HASH KERNEL
+ARG KERNEL
 
 FROM alpine:latest AS builder
 
@@ -34,6 +34,3 @@ EOT
 FROM scratch
 
 COPY --from=builder /busybox/install/bin/. /
-
-ARG HASH
-LABEL hash="${HASH:?Hash missing}"

@@ -1,4 +1,4 @@
-ARG HASH KERNEL
+ARG KERNEL
 
 FROM eeems/remarkable-toolchain:4.3.98-rm2 AS base
 
@@ -132,6 +132,3 @@ EOT
 FROM scratch
 
 COPY --from=rootfs /busybox.img /
-
-ARG HASH
-LABEL hash="${HASH:?Hash missing}"

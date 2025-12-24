@@ -1,5 +1,3 @@
-ARG HASH
-
 FROM ghcr.io/eeems/rm-qemu:latest
 
 RUN bash -e <<EOT
@@ -40,6 +38,3 @@ COPY entrypoint /usr/bin
 COPY bin/. /usr/local/bin/
 
 ENTRYPOINT [ "/usr/bin/entrypoint" ]
-
-ARG HASH
-LABEL hash="${HASH:?Hash missing}"

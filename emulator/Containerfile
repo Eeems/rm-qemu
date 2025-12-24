@@ -1,5 +1,3 @@
-ARG HASH
-
 FROM alpine:latest AS codexctl
 
 RUN apk add --no-cache curl
@@ -68,8 +66,5 @@ COPY files/. /artifact/
 COPY bin/. /usr/local/bin/
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
-
-ARG HASH
-LABEL hash="${HASH:?Hash missing}"
 
 RUN /usr/local/bin/busybox --list-full
