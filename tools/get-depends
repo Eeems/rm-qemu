@@ -28,13 +28,13 @@ depends(){
   while read -r d;do
     if [[ "$d" == ".WAIT" ]];then
       echo ".WAIT"
-    else
+    elif [[ "$d" != "" ]];then
       echo "${prefix}${d}"
     fi
-  done < <(make -C "$T" depends)
+  done < <(make -C "$T" depends | xargs -n1)
 }
 if $wait;then
-  depends
+  depends | xargs
 else
-  depends | xargs -n1 | grep -v .WAIT | xargs
+  depends | grep -v .WAIT | xargs
 fi
