@@ -1,6 +1,7 @@
 VERSION ?= 3.22.0.64
 APPDIR := "rm-qemu.AppDir"
 DEPENDS := emulator
+OBJ += $(shell find ../emulator/bin -type f)
 
 TAG := ghcr.io/eeems/rm-qemu-appimage-builder:latest
 
