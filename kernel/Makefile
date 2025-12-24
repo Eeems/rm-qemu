@@ -54,7 +54,7 @@ test:: zImage qemu.dtb
 	  mon:stdio \
 	  -nographic \
 	  -initrd \
-	  ../busybox.img/artifact/busybox.img \
+	  ../busybox-initrd/artifact/busybox.img \
 	  -append \
 	  "earlycon=ttymxc0 console=ttymxc0 init=/init -- uname -a"
 
@@ -77,6 +77,6 @@ run: zImage qemu.dtb
 	  mon:stdio \
 	  -nographic \
 	  -initrd \
-	  ../busybox.img/artifact/busybox.img \
+	  ../busybox-initrd/artifact/busybox.img \
 	  -append \
 	  "earlycon=ttymxc0 console=ttymxc0 init=/init"
