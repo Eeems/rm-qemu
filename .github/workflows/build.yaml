@@ -115,7 +115,7 @@ jobs:
             emulator/.cache
             emulator/.data
       - name: Test
-        run: make test
+        run: make -j$(nproc) test
       - name: push
         if: github.event_name != 'pull_request'
         run: make -j$(nproc) push
@@ -123,7 +123,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: rm-qemu.AppImage
-          path: appimage/rm-qemu-*.AppImage
+          path: appimage/*.AppImage
+          if-no-files-found: error
 
   test:
     name: Test various versions
