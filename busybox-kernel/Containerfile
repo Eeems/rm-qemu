@@ -1,3 +1,5 @@
+ARG KERNEL
+
 FROM eeems/remarkable-toolchain:4.3.98-rm2 AS builder
 
 RUN bash -e <<EOT
