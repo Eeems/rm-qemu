@@ -83,7 +83,7 @@ EOF
     echo "Adding dropbear.socket..."
     rm-busybox-upload "${ROOTDIR}/artifact/dropbear.socket" /mnt/root${dev}/lib/systemd/system/dropbear.socket
     rm-busybox-exec rm-chroot ${dev} systemctl enable dropbear.socket
-  elif version-test "$VERSION" -lt 3.13.0.0; then
+  elif version-test "$VERSION" -lt 3.12.4.3; then
     echo "Patching dhcpcd.service..."
     rm-busybox-exec sed -i 's/wlan/eth/' /mnt/root${dev}/lib/systemd/system/dhcpcd.service
   fi
