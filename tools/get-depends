@@ -1,3 +1,40 @@
 #!/bin/bash
-T=${1:?Target argument missing}
-make -C "$T" depends | xargs -rn1 | grep -v .WAIT | xargs
+usage(){
+  echo "Usage: $0 <target> [--prefix=prefix] [--no-wait]" >/dev/stderr
+}
+if [ $# -eq 0 ];then
+  usage
+  exit 1
+fi
+T=${1}
+shift
+wait=true
+prefix=""
+while [ $# -gt 0 ];do
+  case "$1" in
+  "--prefix="*)
+    prefix="${1:9}"
+    ;;
+  "--no-wait")
+    wait=false
+    ;;
+  *)
+    usage
+    exit 1
+  esac
+  shift
+done
+depends(){
+  while read -r d;do
+    if [[ "$d" == ".WAIT" ]];then
+      echo ".WAIT"
+    else
+      echo "${prefix}${d}"
+    fi
+  done < <(make -C "$T" depends)
+}
+if $wait;then
+  depends
+else
+  depends | xargs -n1 | grep -v .WAIT | xargs
+fi

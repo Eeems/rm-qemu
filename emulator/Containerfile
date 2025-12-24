@@ -64,7 +64,7 @@ COPY --from=rm2fb \
   /rm2fb-emu \
   /usr/bin/
 
-COPY dropbear.socket rm2fb.conf /artifact/
+COPY files/. /artifact/
 COPY bin/. /usr/local/bin/
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]

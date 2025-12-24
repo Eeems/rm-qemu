@@ -47,6 +47,7 @@ if [ "$#" -ge 1 ] && [[ "$1" == "--pause" ]]; then
 fi
 trap 'rm-pause || true' EXIT
 rm-start --detached
+echo "Waiting for serial connection..."
 while rm-is-running && [ ! -f "${STATEDIR:-/run/rm}/serial" ]; do
   sleep 0.2
 done
