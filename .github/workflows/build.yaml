@@ -200,6 +200,6 @@ jobs:
           name: rm-qemu.AppImage
           path: .
       - name: Make executable
-        run: chmod +x ./rm-qemu-*.AppImage
+        run: chmod +x ./*.AppImage
       - name: Test
         run: ./rm-qemu-*.AppImage ${{ matrix.version }} true
