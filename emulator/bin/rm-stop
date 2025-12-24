@@ -6,6 +6,7 @@ case "$1" in
     rm-serial >/dev/null
     rm-wait-stop
     rm-stop-ssh
+    rm-stop-serial
   fi
   ;;
 "")
