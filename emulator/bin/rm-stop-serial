@@ -1,0 +1,14 @@
+#!/bin/sh
+if rm-is-running; then
+  echo "Error: rm is running" >/dev/stderr
+  exit 1
+fi
+STATEDIR=${STATEDIR:-/run/rm}
+pidfile="${STATEDIR}/serial.pid"
+if [ ! -f "$pidfile" ]; then
+  exit
+fi
+rm -f "${STATEDIR}/serial"
+pid="$(cat "$pidfile")"
+rm "$pidfile"
+exec kill "$pid"

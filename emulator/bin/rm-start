@@ -60,11 +60,18 @@ start_ssh_socket() {
   disown "$pid"
   echo "$pid" >"${STATEDIR}/ssh.pid"
 }
+start_serial_socket() {
+  socat UNIX-LISTEN:"${STATEDIR}/serial",fork UNIX-CONNECT:"$1" &
+  pid=$!
+  disown "$pid"
+  echo "$pid" >"${STATEDIR}/serial.pid"
+}
 case "$1" in
 -D | --detached)
+  tmpfile=$(mktemp -u)
   args+=(
     -chardev
-    "socket,id=serial0,path=$STATEDIR/serial,server=on,wait=off"
+    "socket,id=serial0,path=$tmpfile,server=on,wait=off"
     -serial
     chardev:serial0
     -parallel
@@ -75,6 +82,7 @@ case "$1" in
   )
   print_args
   start_ssh_socket
+  start_serial_socket "$tmpfile"
   qemu-system-arm "${args[@]}"
   if $paused; then
     rm-monitor commit sd2
@@ -97,7 +105,8 @@ case "$1" in
   )
   print_args
   start_ssh_socket
-  exec qemu-system-arm "${args[@]}"
+  trap 'rm-stop --wait' EXIT
+  qemu-system-arm "${args[@]}"
   ;;
 *)
   echo "Usage: rm-start [--verbose] [-D|--detached  [--wait]]" >/dev/stderr
