@@ -7,12 +7,6 @@ if ! [ -f ~/.ssh/id_rsa ]; then
 fi
 rm-busybox-start
 rm-wait-busybox
-rm-busybox-exec <<EOF
-  set -e
-  if [[ "\$(fs-type /dev/mmcblk2p4)" != "ext4" ]];then
-    /sbin/mkfs.ext4 -E nodiscard /dev/mmcblk2p4
-  fi
-EOF
 rm-busybox-mount
 rm-busybox-exec <<EOF
   set -e
@@ -37,9 +31,9 @@ rm-busybox-exec <<EOF
   for d in A B;do
     cp -a /tmp/id_rsa.pub root\$d/home/root/.ssh/authorized_keys
     cp -a /tmp/id_rsa.pub root\$d/etc/dropbear/authorized_keys
-    rm /tmp/id_rsa.pub
     rm-chroot \$d systemctl unmask dropbear.socket
     rm-chroot \$d systemctl enable dropbear.socket
   done
+  rm /tmp/id_rsa.pub
 EOF
 rm-busybox-stop
