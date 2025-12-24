@@ -202,4 +202,4 @@ jobs:
       - name: Make executable
         run: chmod +x ./*.AppImage
       - name: Test
-        run: ./rm-qemu-*.AppImage ${{ matrix.version }} true
+        run: ./*.AppImage ${{ matrix.version }} true
