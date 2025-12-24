@@ -31,3 +31,4 @@ while lsof "$image" 2>/dev/null | grep -q qemu-system-arm; do
   fi
   sleep 1
 done
+rm -f "$STATEDIR/busybox-rootfs.qcow2"
