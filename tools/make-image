@@ -8,12 +8,16 @@ shift
 local=$(podman inspect "$tag" --format='{{ .Labels.hash }}' 2>/dev/null || true)
 if [[ "$hash" == "$local" ]]; then
   echo "Skipped as local hash matches"
+  if [ ! -f .image-marker ];then
+    touch .image-marker
+  fi
   exit
 fi
 remote=$(skopeo inspect "docker://$tag" --format='{{ .Labels.hash }}' 2>/dev/null || true)
 if [[ "$hash" == "$remote" ]]; then
   echo "Remote hash matches"
   podman pull "$tag"
+  touch .image-marker
   exit
 fi
 echo "Hash: $hash"
