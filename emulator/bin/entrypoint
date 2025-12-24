@@ -48,7 +48,7 @@ fi
 trap 'rm-pause || true' EXIT
 rm-start --detached
 echo "Waiting for serial connection..."
-while rm-is-running && [ ! -f "${STATEDIR:-/run/rm}/serial" ]; do
+while rm-is-running && [ ! -S "${STATEDIR:-/run/rm}/serial" ]; do
   sleep 0.2
 done
 socat STDIO,ignoreeof UNIX-CONNECT:"${STATEDIR:-/run/rm}/serial" >/dev/stderr 2>&1 &
