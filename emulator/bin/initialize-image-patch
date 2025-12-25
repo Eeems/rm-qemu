@@ -60,25 +60,27 @@ EOF
   rm-busybox-exec rm-chroot ${dev} <<EOF
       rm -f /etc/systemd/system/update-engine.service
       systemctl mask \
-        remarkable-fail.service \
-        system-hardening.service \
-        wacom_flash.service \
-        memfaultd.service \
         crashuploader.service \
-        wpa_supplicant.service \
-        migrate_wifi.service \
-        swupdate.service \
-        swupdate.socket \
-        kdump.service \
-        factory-reset.service \
-        update-engine.service \
-        prepare_wifi.service \
-        dropbear-wlan.socket \
-        dropbear-wlan@.service \
         dropbear-usb0.socket \
         dropbear-usb0@.service \
+        dropbear-usb1.service \
         dropbear-usb1.socket \
-        dropbear-usb1.service
+        dropbear-wlan.socket \
+        dropbear-wlan@.service \
+        factory-reset.service \
+        kdump.service \
+        memfaultd.service \
+        migrate_wifi.service \
+        prepare_wifi.service \
+        remarkable-fail.service \
+        remarkable-shutdown.service \
+        swupdate.service \
+        swupdate.socket \
+        system-hardening.service \
+        update-engine.service \
+        wacom_flash.service \
+        wpa_supplicant.service \
+        systemd-fsck@.service
       systemctl enable \
         rm2fb.socket \
         rm-qemu-emergency.service
