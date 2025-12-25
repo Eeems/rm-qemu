@@ -52,7 +52,7 @@ popd >/dev/null
 rm-busybox-start "$rootfs"
 echo "Initializing $VERSION.qcow2..."
 hash=$(sha256sum "$extracted" | cut -d' ' -f1)
-size=$(stat --printf="%s" "$extracted")
+size=$(stat -c "%s" "$extracted")
 dd if="$extracted" bs=160000 | gzip -1 | rm-busybox-exec "gunzip -c | dd of=/dev/mmcblk2p2 bs=160000"
 rm-busybox-exec <<EOF
   set -e
@@ -62,7 +62,7 @@ rm-busybox-exec <<EOF
     echo "  Expected: $hash" >/dev/stderr
     echo "  actual: \$hash" >/dev/stderr
     echo "  size: $size" >/dev/stderr
-    echo "  actual size: \$(stat --printf="%s" /dev/mmcblk2p2)" >/dev/stderr
+    echo "  actual size: \$(stat -c "%s" /dev/mmcblk2p2)" >/dev/stderr
     exit 1
   fi
   /sbin/fsck.ext4 -p /dev/mmcblk2p2
@@ -73,7 +73,7 @@ rm-busybox-exec <<EOF
     echo "  Expected: $hash" >/dev/stderr
     echo "  actual: \$hash" >/dev/stderr
     echo "  size: $size" >/dev/stderr
-    echo "  actual size: \$(stat --printf="%s" /dev/mmcblk2p3)" >/dev/stderr
+    echo "  actual size: \$(stat -c "%s" /dev/mmcblk2p3)" >/dev/stderr
     exit 1
   fi
   /sbin/fsck.ext4 -p /dev/mmcblk2p3
