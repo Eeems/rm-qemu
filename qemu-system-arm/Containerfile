@@ -26,8 +26,6 @@ RUN apk add --no-cache \
   zstd-dev \
   zstd-static
 
-ARG VERSION
-
 RUN <<EOT
   set -e
   wget \
@@ -44,6 +42,8 @@ RUN <<EOT
   ninja -C build install
   meson clean
 EOT
+
+ARG VERSION
 
 RUN <<EOT
   set -e
