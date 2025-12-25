@@ -64,10 +64,6 @@ rm-busybox-exec <<EOF
     echo "  size: $size"
     exit 1
   fi
-  if ! /sbin/fsck.ext4 -p /dev/mmcblk2p2;then
-    echo "Error: mmcblk2p2 fsck failed"
-    exit 1
-  fi
   if ! dd if=/dev/mmcblk2p2 of=/dev/mmcblk2p3 bs=160000;then
     echo "Error: Failed to copy mmcblk2p2 to mmcblk2p3"
   fi
@@ -77,6 +73,10 @@ rm-busybox-exec <<EOF
     echo "  Expected: $hash"
     echo "  actual: \$hash"
     echo "  size: $size"
+    exit 1
+  fi
+  if ! /sbin/fsck.ext4 -p /dev/mmcblk2p2;then
+    echo "Error: mmcblk2p2 fsck failed"
     exit 1
   fi
   if ! /sbin/fsck.ext4 -p /dev/mmcblk2p3;then
