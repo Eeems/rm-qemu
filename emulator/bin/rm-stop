@@ -4,7 +4,7 @@ case "$1" in
   if rm-is-running; then
     rm-exec poweroff
     rm-serial >/dev/null
-    rm-wait-stop
+    timeout 15m rm-wait-stop
     rm-stop-ssh
     rm-stop-serial
   fi

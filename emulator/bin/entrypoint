@@ -52,7 +52,7 @@ while rm-is-running && [ ! -S "${STATEDIR:-/run/rm}/serial" ]; do
   sleep 0.2
 done
 socat STDIO,ignoreeof UNIX-CONNECT:"${STATEDIR:-/run/rm}/serial" >/dev/stderr 2>&1 &
-rm-wait-ssh
+timeout 15m rm-wait-ssh
 if [ "$#" -eq 0 ]; then
   echo "Started!" >/dev/stderr
   rm-exec </dev/stdin >/dev/stdout 2>/dev/stderr
