@@ -1,5 +1,13 @@
 [Unit]
-ExecStart=/usr/bin/systemctl poweroff
+Description=Automatic shutdown on emergency target
+Description=Shutdown instead of going to emergency console
+DefaultDependencies=no
+Before=shutdown.target
+Conflicts=emergency.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'if [ -x /sbin/poweroff ]; then /sbin/poweroff -f; elif [ -x /usr/sbin/poweroff ]; then /usr/sbin/poweroff -f; elif [ -w /proc/sysrq-trigger ]; then echo 1 > /proc/sys/kernel/sysrq 2>/dev/null; echo o > /proc/sysrq-trigger; elif [ -w /sys/power/state ]; then echo shutdown > /sys/power/state; else echo "No shutdown method available"; fi'
 
 [Install]
 WantedBy=emergency.target
