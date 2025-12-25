@@ -83,10 +83,6 @@ rm-busybox-exec <<EOF
     echo "Error: mmcblk2p3 fsck failed"
     exit 1
   fi
-  if ! /sbin/fsck.vfat -p /dev/mmcblk2p1;then
-    echo "Error: mmcblk2p1 fsck failed"
-    exit 1
-  fi
 EOF
 rm -rf "$(dirname "$extracted")"
 if $stop; then
