@@ -65,6 +65,7 @@ rm-busybox-exec <<EOF
     echo "  actual size: \$(stat --printf="%s" /dev/mmcblk2p2)" >/dev/stderr
     exit 1
   fi
+  /sbin/fsck.ext4 -p /dev/mmcblk2p2
   dd if=/dev/mmcblk2p2 of=/dev/mmcblk2p3 bs=160000
   hash=\$(head -c $size /dev/mmcblk2p3 | sha256sum | cut -d' ' -f1)
   if [[ "\$hash" != "$hash" ]];then
@@ -75,8 +76,10 @@ rm-busybox-exec <<EOF
     echo "  actual size: \$(stat --printf="%s" /dev/mmcblk2p3)" >/dev/stderr
     exit 1
   fi
+  /sbin/fsck.ext4 -p /dev/mmcblk2p3
   cd /mnt
   mkdir boot
+  /sbin/fsck.vfat -p /dev/mmcblk2p1
   mount /dev/mmcblk2p1 boot
   dd if=/dev/zero of=boot/uboot.env count=1024
   # rm-chroot a mkdir -p /run/lock && /usr/sbin/fw_setenv active_partition 2
