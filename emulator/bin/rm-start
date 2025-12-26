@@ -22,7 +22,7 @@ if ! [ -f "$logs" ]; then
     --format qcow2 \
     --options compression_type=zstd \
     "$logs" \
-    128M
+    64M
   popd >/dev/null
   rm-busybox-start "$logs"
   rm-wait-busybox
