@@ -99,6 +99,9 @@ rm-busybox-exec <<EOF
   set -e
   cd /mnt
   cp -a rootA/etc/skel/. home/
+  mkdir -p home/.config/remarkable/
+  echo "[General]" > home/.config/remarkable/xochitl.conf
+  echo "DeveloperPassword=$(rm-askpass)" >> home/.config/remarkable/xochitl.conf
 EOF
 echo "Stopping busybox..."
 rm-busybox-stop

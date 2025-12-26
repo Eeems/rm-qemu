@@ -22,9 +22,6 @@ if [ -t 0 ]; then
 else
   args+=(-T)
 fi
-if [[ "$RM_EXEC_ENABLED_PASSWORD" != "1" ]]; then
-  args+=(-o PasswordAuthentication=no)
-fi
 args+=(root@localhost)
 if [ "$#" -ne 0 ]; then
   args+=(
@@ -33,4 +30,4 @@ if [ "$#" -ne 0 ]; then
     "'$*'"
   )
 fi
-exec ssh "${args[@]}" </dev/stdin >/dev/stdout 2>/dev/stderr
+SSH_ASKPASS="rm-askpass" exec ssh "${args[@]}" </dev/stdin >/dev/stdout 2>/dev/stderr

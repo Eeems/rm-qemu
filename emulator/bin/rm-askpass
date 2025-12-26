@@ -1,0 +1,2 @@
+#!/bin/bash
+echo "${RM_PASSWORD:-reMarkable}"
