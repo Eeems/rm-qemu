@@ -125,6 +125,14 @@ jobs:
           name: rm-qemu.AppImage
           path: appimage/*.AppImage
           if-no-files-found: error
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.version }}-logs
+          path: |
+            /github/home/.local/share/rm-qemu/logs-*.qcow2
+            emulator/.data/logs-*.qcow2
 
   test:
     name: Test various versions
@@ -202,3 +210,9 @@ jobs:
         run: chmod +x ./*.AppImage
       - name: Test
         run: ./*.AppImage ${{ matrix.version }} true
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.version }}-logs
+          path: /github/home/.local/share/rm-qemu/logs-*.qcow2
