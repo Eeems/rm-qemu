@@ -3,6 +3,8 @@ args=(
   -o StrictHostKeyChecking=no
   -o UserKnownHostsFile=/dev/null
   -o LogLevel=ERROR
+  -o HostKeyAlgorithms=+ssh-rsa
+  -o PubkeyAcceptedKeyTypes=+ssh-rsa
 )
 socket="${STATEDIR:-/run/rm}/ssh"
 if [ -S "$socket" ]; then

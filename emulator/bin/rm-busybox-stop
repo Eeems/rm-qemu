@@ -3,13 +3,14 @@ set -e
 # shellcheck disable=SC2016
 serial="${STATEDIR:-/run/rm}/busybox-serial"
 monitor="${STATEDIR:-/run/rm}/busybox-monitor"
-if [ -f "$serial" ];then
+if [ -f "$serial" ]; then
   echo "exit" | serial-client "$serial"
 else
+  # shellcheck disable=SC2016
   echo 'kill -9 "$(pgrep -P 1 sh)"' | rm-busybox-exec 2>/dev/null || true
 fi
 echo "Waiting for busybox to stop..."
-if [ -f "$serial" ];then
+if [ -f "$serial" ]; then
   socat STDIO,ignoreeof UNIX-CONNECT:"$serial" >/dev/null 2>&1
 fi
 tries=10
@@ -17,14 +18,14 @@ signal=15
 image="$(readlink -f "$STATEDIR/busybox-rootfs.qcow2")"
 while lsof "$image" 2>/dev/null | grep -q qemu-system-arm; do
   tries=$((tries - 1))
-  if [ $tries -le 0 ];then
-    if [ -f "$monitor" ];then
+  if [ $tries -le 0 ]; then
+    if [ -f "$monitor" ]; then
       echo "q" | serial-client "$monitor"
     else
-      lsof "$image" 2>/dev/null \
-      | grep -q qemu-system-arm \
-      | awk '{print 1}' \
-      | xargs -r kill -$signal
+      lsof "$image" 2>/dev/null |
+        grep -q qemu-system-arm |
+        awk '{print 1}' |
+        xargs -r kill -$signal
       signal=9
     fi
     break
