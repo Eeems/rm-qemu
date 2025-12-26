@@ -2,8 +2,7 @@
 set -e
 STATEDIR=${STATEDIR:-/run/rm}
 mkdir -p "${STATEDIR}"
-usage="Usage: rm-select --help
-  entrypoint <version>"
+usage="Usage: $0 [--help] <version>"
 if [ "$#" -eq 0 ]; then
 	echo "$usage"
 	exit 1

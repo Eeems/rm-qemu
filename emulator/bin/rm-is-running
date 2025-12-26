@@ -19,7 +19,7 @@ is-running() {
 if [ $# -eq 1 ]; then
   case "$1" in
   "--help")
-    echo "Usage: rm-is-running [--verbose|--help]"
+    echo "Usage: $0 [--verbose|--help]"
     exit
     ;;
   "--verbose")

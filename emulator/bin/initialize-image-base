@@ -2,7 +2,7 @@
 set -e
 exec 1>&2
 usage() {
-  echo "Usage: initialize-image-base <version> [--no-stop]"
+  echo "Usage: $0 <version> [--no-stop]"
   exit 1
 }
 if [ $# -ne 1 ] && [ $# -ne 2 ]; then

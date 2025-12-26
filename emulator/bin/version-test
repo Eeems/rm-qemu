@@ -1,6 +1,6 @@
 #!/bin/sh
 if [ $# -ne 3 ]; then
-  echo "Usage: version-test <version1> <condition> <version2>" >/dev/stderr
+  echo "Usage: $0 <version1> <condition> <version2>" >/dev/stderr
   echo "  Examples:" >/dev/stderr
   echo '    version-test 10.1 -eq $version' >/dev/stderr
   echo '    version-test $version -gt 19.0.0.1' >/dev/stderr
