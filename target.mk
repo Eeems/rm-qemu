@@ -49,6 +49,39 @@ hash:
 	  $(shell MAKEFLAGS= ../tools/get-depends-static-flags) \
 	  $(foreach A, $(HASH_ARGS), --static=$(A))
 
+.SILENT: hash-debug
+.PHONY: hash-debug
+hash-debug:
+	../tools/get-hash \
+	  ${OBJ} \
+	  $(shell MAKEFLAGS= ../tools/get-depends-static-flags) \
+	  $(foreach A, $(HASH_ARGS), --static=$(A))
+
+.SILENT: debug
+.PHONY: debug
+debug:
+	echo "Tag: $$(MAKEFLAGS= make tag)"
+	echo "Depends: $$(MAKEFLAGS= make depends)"
+	echo "Test depends: $$(MAKEFLAGS= make test-depends)"
+	echo "Hashes:"
+	echo "--------"
+	echo "$$(MAKEFLAGS= make hash-debug)"
+	echo "--------"
+	for d in $(DEPENDS);do \
+	  echo "$$d hashes:"; \
+	  echo "--------"; \
+	  echo "$$(MAKEFLAGS= make -C ../$$d hash-debug)"; \
+	  echo "--------"; \
+	done
+	echo "Configs:"
+	echo "--------"
+	echo "$$(MAKEFLAGS= make config)"
+	echo "--------"
+	echo "OBJ:"
+	echo "--------"
+	echo $(OBJ)
+	echo "--------"
+
 .SILENT: depends
 .PHONY: depends
 depends:
