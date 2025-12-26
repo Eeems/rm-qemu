@@ -2,7 +2,7 @@
 set -e
 set -o pipefail
 if [ $# -eq 0 ] || [ $(($# % 2)) -ne 0 ]; then
-  echo "Usage: $0 [source destination]..." >/dev/stderr
+  echo "Usage: $0 [<source> <destination>]..." >/dev/stderr
   echo "  mmcblk2p1 is mounted to /mnt/boot" >/dev/stderr
   echo "  mmcblk2p2 is mounted to /mnt/rootA" >/dev/stderr
   echo "  mmcblk2p3 is mounted to /mnt/rootB" >/dev/stderr
