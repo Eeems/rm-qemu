@@ -101,7 +101,7 @@ rm-busybox-exec <<EOF
   cd /mnt
   cp -a rootA/etc/skel/. home/
   mkdir -p home/.config/remarkable/ home/.log
-  echo "/home/root/.log  /var/log  none  defaults,bind 0 0" >> /etc/fstab
+  echo "/dev/mmcblk1  /var/log  ext4  defaults,bind,x-systemd.before=systemd-journald.service 0 0" >> /etc/fstab
   echo "[General]" > home/.config/remarkable/xochitl.conf
   echo "DeveloperPassword=$(rm-askpass)" >> home/.config/remarkable/xochitl.conf
 EOF

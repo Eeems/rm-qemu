@@ -14,6 +14,21 @@ mkdir -p "$STATEDIR"
 rootfs="$(rm-image-path)"
 VERSION=$(basename --suffix="$(echo rootfs- | rev)" "$(basename --suffix=.qcow2 "$rootfs" | rev)" | rev)
 KERNEL=$(rm-kernel-version "$VERSION")
+logs="${DATADIR:-/data}/logs-$VERSION.qcow2"
+if ! [ -f "$logs" ]; then
+  echo "Creating logs image..."
+  pushd "${DATADIR:-/data}" >/dev/null
+  qemu-img create \
+    --format qcow2 \
+    --options compression_type=zstd \
+    "$logs" \
+    128M
+  popd >/dev/null
+  rm-busybox-start "$logs"
+  rm-wait-busybox
+  rm-busybox-exec /sbin/mkfs.ext4 -F /dev/mmcblk2
+  rm-busybox-stop
+fi
 args=(
   -machine
   mcimx7d-sabre
@@ -29,6 +44,8 @@ args=(
   "${ROOTDIR}/artifact/${KERNEL}/qemu.dtb"
   -drive
   "if=sd,file=$rootfs,format=qcow2,index=2"
+  -drive
+  "if=sd,file=$logs,format=qcow2,index=1"
   -append
   "earlycon=ttymxc0 console=ttymxc0 rootfstype=ext4 root=/dev/mmcblk2p2 rw rootwait init=/sbin/init"
   -nic
