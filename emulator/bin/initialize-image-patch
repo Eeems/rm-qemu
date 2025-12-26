@@ -80,7 +80,8 @@ EOF
         update-engine.service \
         wacom_flash.service \
         wpa_supplicant.service \
-        systemd-fsck@.service
+        systemd-fsck@.service \
+        usb-ether-once.service
       systemctl enable \
         rm2fb.socket \
         rm-qemu-emergency.service
@@ -99,7 +100,8 @@ rm-busybox-exec <<EOF
   set -e
   cd /mnt
   cp -a rootA/etc/skel/. home/
-  mkdir -p home/.config/remarkable/
+  mkdir -p home/.config/remarkable/ home/.log
+  echo "/home/root/.log  /var/log  none  defaults,bind 0 0" >> /etc/fstab
   echo "[General]" > home/.config/remarkable/xochitl.conf
   echo "DeveloperPassword=$(rm-askpass)" >> home/.config/remarkable/xochitl.conf
 EOF
