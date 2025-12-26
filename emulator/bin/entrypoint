@@ -5,11 +5,11 @@ mkdir -p "${STATEDIR}"
 if [ "$#" -eq 1 ] && [[ "$1" == "--shell" ]]; then
   exec bash -l
 fi
-usage="Usage: entrypoint --help
-  entrypoint --shell
-  entrypoint <version> --serial
-  entrypoint <version> [--pause] --display
-  entrypoint <version> [--pause] [<command>]...
+usage="Usage: $0 --help
+  $0 --shell
+  $0 <version> --serial
+  $0 <version> [--pause] --display
+  $0 <version> [--pause] [<command>]...
 
   Environment variables:
     RM_ENSURE_IMAGE: Set to 1 to verify the image before starting the emulator

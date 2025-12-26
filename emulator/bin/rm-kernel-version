@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-VERSION=${1:?Usage:$0 <version>}
+VERSION=${1:?Usage: $0 <version>}
 if version-test "$VERSION" -le 2.10.3.379; then
   echo "Error: Unknown kernel version for $VERSION" >/dev/stderr
   exit 1

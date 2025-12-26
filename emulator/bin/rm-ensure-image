@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 usage() {
-  echo "Usage: rm-ensure-image <version>" >/dev/stderr
+  echo "Usage: $0 <version>" >/dev/stderr
   exit "${1:-0}"
 }
 if [ $# -eq 0 ]; then

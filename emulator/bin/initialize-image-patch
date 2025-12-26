@@ -2,7 +2,7 @@
 set -e
 exec 1>&2
 usage() {
-  echo "Usage: initialize-image-patch <version> [--no-start]"
+  echo "Usage: $0 <version> [--no-start]"
   exit 1
 }
 if [ $# -ne 1 ] && [ $# -ne 2 ]; then

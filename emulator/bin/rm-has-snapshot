@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
-NAME=${1:?Usage: rm-has-snapshot <name>}
+NAME=${1:?Usage: $0 <name>}
 if rm-is-running;then
   rm-monitor info snapshots | tail -n+5 | head -n-1 | awk '{print $2}'  | grep -q "$NAME"
 else

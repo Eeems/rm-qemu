@@ -1,9 +1,10 @@
 #!/bin/bash
 set -e
 if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]]; then
-  echo "Usage: rm-busybox [<disk>] <<EOF" >/dev/stderr
+  echo "Usage: $0 [<disk> [cmd]...] <<EOF" >/dev/stderr
   echo "  ln-s /dev/null /etc/systemd/system/xochitl.service" >/dev/stderr
   echo "EOF" >/dev/stderr
+  echo "  mmcblk2p1 is mounted to /mnt/boot" >/dev/stderr
   echo "  mmcblk2p2 is mounted to /mnt/rootA" >/dev/stderr
   echo "  mmcblk2p3 is mounted to /mnt/rootB" >/dev/stderr
   echo "  mmcblk2p4 is mounted to /mnt/home" >/dev/stderr
@@ -14,6 +15,7 @@ if rm-is-running; then
   exit 1
 fi
 rm-busybox-start "${1:-$(rm-image-path)}"
+shift
 rm-busybox-mount
 rm-busybox-exec "$@" </dev/stdin >/dev/stdout 2>/dev/stderr
 rm-busybox-stop

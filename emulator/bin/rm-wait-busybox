@@ -1,6 +1,6 @@
 #!/bin/bash
 usage() {
-  echo "Usage: rm-wait-ssh [--help]" >/dev/stderr
+  echo "Usage: $0 [--help]" >/dev/stderr
   exit ${1:-0}
 }
 if [ $# -ge 1 ]; then
