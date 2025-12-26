@@ -4,7 +4,7 @@ set -e
 serial="${STATEDIR:-/run/rm}/busybox-serial"
 monitor="${STATEDIR:-/run/rm}/busybox-monitor"
 if [ -f "$serial" ]; then
-  echo "exit" | serial-client "$serial"
+  serial-client "$serial" exit
 else
   # shellcheck disable=SC2016
   echo 'kill -9 "$(pgrep -P 1 sh)"' | rm-busybox-exec 2>/dev/null || true
@@ -20,7 +20,7 @@ while lsof "$image" 2>/dev/null | grep -q qemu-system-arm; do
   tries=$((tries - 1))
   if [ $tries -le 0 ]; then
     if [ -f "$monitor" ]; then
-      echo "q" | serial-client "$monitor"
+      serial-client "$monitor" q
     else
       lsof "$image" 2>/dev/null |
         grep -q qemu-system-arm |
