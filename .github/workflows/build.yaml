@@ -109,11 +109,11 @@ jobs:
             emulator/.cache
             emulator/.data
       - name: Debug information
-        run: |
-          make hash
-          make tags
+        run: make debug
       - name: Build
         run: make -j$(nproc)
+      - name: Debug information
+        run: make debug
       - name: Test
         run: make test
       - name: push

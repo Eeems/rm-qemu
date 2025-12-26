@@ -30,8 +30,11 @@ run-ui: ${TARGETS}
 run-cli: ${TARGETS}
 	$(MAKE_TARGET) emulator run-cli
 
-.PHONY: run-test
+.PHONY: test
 test: $(foreach T, $(TARGETS),test-$(T))
+
+.PHONY: debug
+debug: $(foreach T, $(TARGETS),debug-$(T))
 
 define make-target
 .PHONY:$1
@@ -137,4 +140,18 @@ endef
 $(foreach T, $(TARGETS), $(eval $(call make-target, \
 	$(T), \
 	clean-$(T), \
+)))
+
+define make-target
+.SILENT: $2
+.PHONY: $2
+$2:
+	@echo "$1 debug:"
+	@echo "======"
+	@$(MAKE_TARGET) $1 debug
+	@echo "======"
+endef
+$(foreach T, $(TARGETS), $(eval $(call make-target, \
+	$(T), \
+	debug-$(T), \
 )))
