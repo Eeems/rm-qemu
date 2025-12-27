@@ -3,7 +3,7 @@ set -e
 case "$1" in
 -w | --wait)
   if rm-is-running; then
-    rm-exec shutdown --poweroff
+    rm-exec shutdown --poweroff now
     rm-serial >/dev/null
     timeout 15m rm-wait-stop
     rm-stop-ssh
