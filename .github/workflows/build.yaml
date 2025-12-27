@@ -129,7 +129,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.version }}-logs
+          name: test-logs
           path: |
             /github/home/.local/share/rm-qemu/logs-*.qcow2
             emulator/.data/logs-*.qcow2
