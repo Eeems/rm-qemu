@@ -17,6 +17,7 @@ rm-qemu.AppImage: .image-marker
 	  "${TAG}"
 
 test:: rm-qemu.AppImage
+	VERBOSE=1 \
 	./rm-qemu.AppImage \
 	  ${VERSION} \
 	  true

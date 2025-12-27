@@ -38,9 +38,11 @@ run-ui: all .data/${VERSION}.qcow2
 	  --display
 
 test:: all .data/${VERSION}.qcow2
+	VERBOSE=1 \
 	podman run --rm \
 	  --volume=.data:/data \
 	  --volume=.cache:/cache \
+	  --env VERBOSE \
 	  ${TAG} \
 	  ${VERSION} \
 	  true

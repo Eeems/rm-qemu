@@ -1,8 +1,28 @@
 #!/bin/bash
 set -e
+usage() { echo "Usage: $0 [--help] [--verbose] [--quiet]"; }
+verbose=false
+# shellcheck disable=SC2153
+if [[ "$VERBOSE" == "1" ]]; then
+  verbose=true
+fi
+while [ $# -gt 0 ]; do
+  case "$1" in
+  --help)
+    usage
+    exit
+    ;;
+  --verbose)
+    verbose=true
+    ;;
+  --quiet)
+    verbose=false
+    ;;
+  esac
+  shift
+done
 # shellcheck disable=SC2016
 serial="${STATEDIR:-/run/rm}/busybox-serial"
-monitor="${STATEDIR:-/run/rm}/busybox-monitor"
 if [ -f "$serial" ]; then
   serial-client "$serial" exit
 else
@@ -11,25 +31,14 @@ else
 fi
 echo "Waiting for busybox to stop..."
 if [ -f "$serial" ]; then
-  socat STDIO,ignoreeof UNIX-CONNECT:"$serial" >/dev/null 2>&1
+  if $verbose; then
+    socat STDIO,ignoreeof UNIX-CONNECT:"$serial" 2>&1
+  else
+    socat STDIO,ignoreeof UNIX-CONNECT:"$serial" >/dev/null 2>&1
+  fi
 fi
-tries=10
-signal=15
 image="$(readlink -f "$STATEDIR/busybox-rootfs.qcow2")"
 while lsof "$image" 2>/dev/null | grep -q qemu-system-arm; do
-  tries=$((tries - 1))
-  if [ $tries -le 0 ]; then
-    if [ -f "$monitor" ]; then
-      serial-client "$monitor" q
-    else
-      lsof "$image" 2>/dev/null |
-        grep -q qemu-system-arm |
-        awk '{print 1}' |
-        xargs -r kill -$signal
-      signal=9
-    fi
-    break
-  fi
-  sleep 1
+  sleep 0.1
 done
 rm -f "$STATEDIR/busybox-rootfs.qcow2"
