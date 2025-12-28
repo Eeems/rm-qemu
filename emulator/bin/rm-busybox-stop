@@ -21,23 +21,25 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
+image="$(readlink -f "$STATEDIR/busybox-rootfs.qcow2")"
+if ! lsof "$image" 2>/dev/null | grep -q qemu-system-arm; then
+  echo "Busybox was not running"
+  exit
+fi
 # shellcheck disable=SC2016
 serial="${STATEDIR:-/run/rm}/busybox-serial"
-if [ -f "$serial" ]; then
-  if $verbose; then
-    socat STDIO,ignoreeof UNIX-CONNECT:"$serial" 2>&1 &
-  fi
-  serial-client "$serial" exit
-else
-  echo "Warning: Serial not found, using rm-busybox-exec to kill init"
-  # shellcheck disable=SC2016
-  echo 'kill -9 "$(pgrep -P 1 sh)"' | rm-busybox-exec 2>/dev/null || true
+if [ ! -S "$serial" ]; then
+  echo "Error: busybox serial socket not found"
+  exit 1
 fi
+if $verbose; then
+  socat STDIO,ignoreeof UNIX-CONNECT:"$serial" 2>&1 &
+fi
+serial-client "$serial" exit
 echo "Waiting for busybox to stop..."
-if [ -f "$serial" ]; then
+if [ -S "$serial" ]; then
   socat STDIO,ignoreeof UNIX-CONNECT:"$serial" >/dev/null 2>&1
 fi
-image="$(readlink -f "$STATEDIR/busybox-rootfs.qcow2")"
 while lsof "$image" 2>/dev/null | grep -q qemu-system-arm; do
   sleep 0.1
 done
