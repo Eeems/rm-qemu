@@ -6,3 +6,4 @@
 */artifact/
 *.img
 .image-marker
+*.tar.xz
