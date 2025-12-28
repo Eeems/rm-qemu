@@ -67,7 +67,7 @@ debug:
 	echo "--------"
 	echo "$$(MAKEFLAGS= make hash-debug)"
 	echo "--------"
-	for d in $(DEPENDS);do \
+	for d in $$(MAKEFLAGS= ../tools/get-test-depends .);do \
 	  echo "$$d hashes:"; \
 	  echo "--------"; \
 	  echo "$$(MAKEFLAGS= make -C ../$$d hash-debug)"; \
