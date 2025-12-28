@@ -3,9 +3,19 @@ set -e
 case "$1" in
 -w | --wait)
   if rm-is-running; then
-    rm-exec shutdown --poweroff now
-    rm-serial >/dev/null
+    rm-exec shutdown --poweroff now || true
+    socat STDIO,ignoreeof UNIX-CONNECT: "${STATEDIR:-/run/rm}/serial" >/dev/null 2>&1 || true
+    rm-serial >/dev/null || true
+    set +e
     timeout 15m rm-wait-stop
+    ret=$?
+    if [ $ret -eq 124 ]; then
+      echo "Eror: Timed out waiting for rm to stop"
+      exit 124
+    elif [ $ret -ne 0 ]; then
+      exit $ret
+    fi
+    set -e
     rm-stop-ssh
     rm-stop-serial
   fi
