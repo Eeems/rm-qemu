@@ -40,7 +40,7 @@ echo 'kill -9 "$(pgrep -P 1 sh)" || true' | rm-busybox-exec
 serial-client "$serial" exit
 echo "Waiting for busybox to stop..."
 if [ -S "$serial" ]; then
-  socat STDIO,ignoreeof UNIX-CONNECT:"$serial" >/dev/null 2>&1
+  socat STDIO,ignoreeof UNIX-CONNECT:"$serial" >/dev/null 2>&1 || true
 fi
 while lsof "$image" 2>/dev/null | grep -q qemu-system-arm; do
   sleep 0.1
