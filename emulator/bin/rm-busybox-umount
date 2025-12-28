@@ -1,0 +1,19 @@
+#!/bin/bash
+exec rm-busybox-exec <<EOF
+  set -e
+  cd /mnt
+  sync
+  sync
+  if [ -d boot ] && mountpoint -q boot;then
+    umount boot
+  fi
+  if [ -d rootA ] && mountpoint -q rootA;then
+    umount rootA
+  fi
+  if [ -d rootB ] && mountpoint -q rootB;then
+    umount rootB
+  fi
+  if [ -d home ] && mountpoint -q home;then
+    umount home
+  fi
+EOF
