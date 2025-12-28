@@ -105,5 +105,4 @@ rm-busybox-exec <<EOF
   echo "[General]" > home/.config/remarkable/xochitl.conf
   echo "DeveloperPassword=$(rm-askpass)" >> home/.config/remarkable/xochitl.conf
 EOF
-echo "Stopping busybox..."
 rm-busybox-stop

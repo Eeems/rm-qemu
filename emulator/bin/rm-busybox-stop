@@ -31,6 +31,7 @@ if [ ! -S "$serial" ]; then
   echo "Error: busybox serial socket not found"
   exit 1
 fi
+echo "Waiting for buxybox to stop..."
 if $verbose; then
   socat STDIO,ignoreeof UNIX-CONNECT:"$serial" 2>&1 &
 fi

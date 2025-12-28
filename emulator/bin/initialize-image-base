@@ -86,7 +86,6 @@ rm-busybox-exec <<EOF
 EOF
 rm -rf "$(dirname "$extracted")"
 if $stop; then
-  echo "Stopping busybox..."
   rm-busybox-stop
 fi
 trap - EXIT
