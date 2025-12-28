@@ -29,6 +29,7 @@ if [ -f "$serial" ]; then
   fi
   serial-client "$serial" exit
 else
+  echo "Warning: Serial not found, using rm-busybox-exec to kill init"
   # shellcheck disable=SC2016
   echo 'kill -9 "$(pgrep -P 1 sh)"' | rm-busybox-exec 2>/dev/null || true
 fi
