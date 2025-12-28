@@ -1,4 +1,21 @@
-FROM eeems/remarkable-toolchain:3.1.15-rm2 AS rm2fb-src
+FROM eeems/remarkable-toolchain:3.1.15-rm2 AS libevdev
+
+RUN bash -e <<EOT
+  source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
+  mkdir /libevdev
+  cd /libevdev
+  curl https://www.freedesktop.org/software/libevdev/libevdev-1.12.1.tar.xz -o libevdev.tar.xz
+  echo "1dbba41bc516d3ca7abc0da5b862efe3ea8a7018fa6e9b97ce9d39401b22426c  libevdev.tar.xz" | sha256sum -c
+  tar --strip-components=1 -xf libevdev.tar.xz
+  rm libevdev.tar.xz
+  ./configure --prefix=/usr \$CONFIGURE_FLAGS
+  make -j$(nproc)
+  DESTDIR="\$SDKTARGETSYSROOT" make install
+  cd /
+  rm -rf libevdev
+EOT
+
+FROM libevdev AS rm2fb-src
 # FROM ghcr.io/toltec-dev/toolchain:v3.3 AS rm2fb-src
 
 RUN bash -e <<EOT
@@ -32,10 +49,8 @@ EOT
 FROM rm2fb-src AS rm2fb
 
 RUN bash -e <<EOT
-  # source /opt/x-tools/switch-arm.sh
   source "$(find /opt/codex -name environment-setup-*-remarkable-linux-gnueabi)"
   srcdir=/src
-  sed -i 's/Evdev::Static/evdev/g' libs/rm2fb/CMakeLists.txt
   mkdir build install
   cd build
   TOOLCHAIN_ROOT=/opt/codex/rm11x/3.1.15 \
