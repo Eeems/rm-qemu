@@ -54,7 +54,7 @@ done
 socat STDIO,ignoreeof UNIX-CONNECT:"${STATEDIR:-/run/rm}/serial" >/dev/stderr 2>&1 &
 timeout 15m rm-wait-ssh
 if [ "$#" -eq 0 ]; then
-  echo "Started!" >/dev/stderr
+  echo "Started!"
   rm-exec </dev/stdin >/dev/stdout 2>/dev/stderr
 elif [ "$#" -eq 1 ] && [[ "$1" == "--display" ]]; then
   rm2fb-emu 127.0.0.1 "${RM_EMU_PORT:-8888}"
@@ -63,13 +63,13 @@ else
 fi
 trap - EXIT
 if ! $pause; then
-  echo "Stopping..." >/dev/stderr
+  echo "Stopping..."
   rm-stop --wait
   if rm-has-snapshot running; then
     rm-commit running
   fi
   shrink-image "$(rm-image-path)"
 else
-  echo "Pausing..." >/dev/stderr
+  echo "Pausing..."
   rm-pause
 fi
