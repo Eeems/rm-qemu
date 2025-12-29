@@ -48,8 +48,10 @@ qemu-system-arm \
   virtio-blk-device,drive=hd0 \
   -drive \
   if=none,file=null-co://,format=raw,id=hd0 \
+  -chardev \
+  "socket,id=serial0,path=${STATEDIR}/busybox-serial,server=on,wait=off,logfile=${STATEDIR}/busybox-serial.log" \
   -serial \
-  "unix:$STATEDIR/busybox-serial,server=on,wait=off" \
+  chardev:serial0 \
   -parallel \
   null \
   -display \

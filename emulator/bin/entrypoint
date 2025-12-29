@@ -51,7 +51,10 @@ echo "Waiting for serial connection..."
 while rm-is-running && [ ! -S "${STATEDIR:-/run/rm}/serial" ]; do
   sleep 0.2
 done
-socat STDIO,ignoreeof UNIX-CONNECT:"${STATEDIR:-/run/rm}/serial" >/dev/stderr 2>&1 &
+tail -f "${STATEDIR:-/run/rm}/serial.log" >/dev/stderr 2>&1 &
+tailpid=$!
+# shellcheck disable=SC2064
+trap "rm-pause || true kill -TERM $tailpid" EXIT
 timeout 15m rm-wait-ssh
 if [ "$#" -eq 0 ]; then
   echo "Started!"
@@ -61,7 +64,8 @@ elif [ "$#" -eq 1 ] && [[ "$1" == "--display" ]]; then
 else
   rm-exec "$@"
 fi
-trap - EXIT
+# shellcheck disable=SC2064
+trap "kill -TERM $tailpid" EXIT
 if ! $pause; then
   echo "Stopping..."
   rm-stop --wait
@@ -73,3 +77,7 @@ else
   echo "Pausing..."
   rm-pause
 fi
+set +e
+code="$(trap -p EXIT)"
+trap - EXIT
+eval "${code:9:-6}"

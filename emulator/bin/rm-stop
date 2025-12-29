@@ -4,8 +4,7 @@ case "$1" in
 -w | --wait)
   if rm-is-running; then
     rm-exec shutdown --poweroff now || true
-    socat STDIO,ignoreeof UNIX-CONNECT: "${STATEDIR:-/run/rm}/serial" >/dev/null 2>&1 || true
-    rm-serial >/dev/null || true
+    socat STDOUT UNIX-CONNECT: "${STATEDIR:-/run/rm}/serial" >/dev/null 2>&1 || true
     set +e
     timeout 15m rm-wait-stop
     ret=$?
@@ -17,7 +16,7 @@ case "$1" in
     fi
     set -e
     rm-stop-ssh
-    rm-stop-serial
+    rm -f "${STATEDIR:-/run/rm}/serial.log"
   fi
   ;;
 "")

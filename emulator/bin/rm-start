@@ -52,6 +52,8 @@ args=(
   "user,model=imx.enet,hostfwd=tcp::${RM_SSH_PORT:-2222}-:22,hostfwd=tcp::${RM_EMU_PORT:-8888}-:8888"
   -monitor
   "unix:$STATEDIR/monitor,server=on,wait=off"
+  -chardev
+  "socket,id=serial0,path=${STATEDIR}/serial,server=on,wait=off,logfile=${STATEDIR}/serial.log"
 )
 paused=false
 if rm-is-paused; then
@@ -72,25 +74,14 @@ else
   }
 fi
 start_ssh_socket() {
-  rm -f "${STATEDIR}/ssh"
-  socat UNIX-LISTEN:"${STATEDIR}/ssh",fork TCP-CONNECT:localhost:"${RM_SSH_PORT:-2222}" &
+  socat UNIX-LISTEN:"${STATEDIR}/ssh",fork,unlink-early TCP-CONNECT:localhost:"${RM_SSH_PORT:-2222}" &
   pid=$!
   disown "$pid"
   echo "$pid" >"${STATEDIR}/ssh.pid"
 }
-start_serial_socket() {
-  rm -f "${STATEDIR}/serial"
-  socat UNIX-LISTEN:"${STATEDIR}/serial",fork UNIX-CONNECT:"$1" &
-  pid=$!
-  disown "$pid"
-  echo "$pid" >"${STATEDIR}/serial.pid"
-}
 case "$1" in
 -D | --detached)
-  tmpfile=$(mktemp -u)
   args+=(
-    -chardev
-    "socket,id=serial0,path=$tmpfile,server=on,wait=off"
     -serial
     chardev:serial0
     -parallel
@@ -101,7 +92,6 @@ case "$1" in
   )
   print_args
   start_ssh_socket
-  start_serial_socket "$tmpfile"
   qemu-system-arm "${args[@]}"
   if $paused; then
     rm-monitor commit sd2
