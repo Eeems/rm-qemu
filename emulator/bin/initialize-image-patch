@@ -99,10 +99,10 @@ done
 rm-busybox-exec <<EOF
   set -e
   cd /mnt
-  cp -a rootA/etc/skel/. home/
-  mkdir -p home/.config/remarkable/ home/.log
-  echo "[General]" > home/.config/remarkable/xochitl.conf
-  echo "DeveloperPassword=$(rm-askpass)" >> home/.config/remarkable/xochitl.conf
+  mkdir -p home/root/.config/remarkable/
+  cp -a rootA/etc/skel/. home/root
+  echo "[General]" > home/root/.config/remarkable/xochitl.conf
+  echo "DeveloperPassword=$(rm-askpass)" >> home/root/.config/remarkable/xochitl.conf
   echo "/dev/mmcblk1  /var/log  ext4  defaults,x-systemd.before=systemd-journald.service 0 0" >> rootA/etc/fstab
   echo "/dev/mmcblk1  /var/log  ext4  defaults,x-systemd.before=systemd-journald.service 0 0" >> rootB/etc/fstab
 EOF

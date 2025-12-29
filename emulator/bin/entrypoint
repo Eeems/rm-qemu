@@ -55,7 +55,16 @@ tail -f "${STATEDIR:-/run/rm}/serial.log" >/dev/stderr 2>&1 &
 tailpid=$!
 # shellcheck disable=SC2064
 trap "rm-pause || true kill -TERM $tailpid" EXIT
+set +e
 timeout 15m rm-wait-ssh
+ret=$?
+if [ $ret -eq 124 ];then
+  echo "Error: Timed out waiting for SSH"
+  exit $ret
+elif [ $ret -ne 0 ];then
+  exit $ret
+fi
+set -e
 if [ "$#" -eq 0 ]; then
   echo "Started!"
   rm-exec </dev/stdin >/dev/stdout 2>/dev/stderr

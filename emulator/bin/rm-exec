@@ -5,6 +5,8 @@ args=(
   -o LogLevel=ERROR
   -o HostKeyAlgorithms=+ssh-rsa
   -o PubkeyAcceptedKeyTypes=+ssh-rsa
+  -o BatchMode=yes
+  -o PasswordAuthentication=no
 )
 socket="${STATEDIR:-/run/rm}/ssh"
 if [ -S "$socket" ]; then
@@ -30,4 +32,6 @@ if [ "$#" -ne 0 ]; then
     "'$*'"
   )
 fi
-SSH_ASKPASS="rm-askpass" exec ssh "${args[@]}" </dev/stdin >/dev/stdout 2>/dev/stderr
+SSH_ASKPASS="rm-askpass" \
+SSH_ASKPASS_REQUIRE=force \
+exec ssh "${args[@]}" </dev/stdin >/dev/stdout 2>/dev/stderr

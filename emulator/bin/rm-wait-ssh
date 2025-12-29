@@ -1,6 +1,6 @@
 #!/bin/bash
 usage() {
-  echo "Usage: $0 [--help]" >/dev/stderr
+  echo "Usage: $0 [--help]"
   exit "${1:-0}"
 }
 if [ $# -ge 1 ]; then
@@ -9,14 +9,14 @@ if [ $# -ge 1 ]; then
   fi
   usage 1
 fi
-echo "Waiting for ssh to start..." >/dev/stderr
+echo "Waiting for ssh to start..."
 ret=1
 fail_retry=5
 deny_retry=2
 while [ $ret -ne 0 ]; do
-  output=$(rm-exec true 2>&1)
+  output=$(timeout 2s rm-exec true 2>&1)
   ret=$?
-  if [ $ret -eq 0 ]; then
+  if [ $ret -eq 0 ] || [ $ret -eq 124 ]; then
     break
   fi
   if [[ "$output" == *"root@localhost: Permission denied (publickey)."* ]] ||
@@ -24,9 +24,9 @@ while [ $ret -ne 0 ]; do
     [[ "$output" == *"root@localhost: Permission denied (password)."* ]]; then
     deny_retry=$((deny_retry - 1))
     if [ $deny_retry -lt 0 ]; then
-      echo "Error: Unable to connect with publickey." >/dev/stderr
-      echo "  Please rm-monitor q && rm-ensure-ssh and then try again." >/dev/stderr
-      echo "$output" >/dev/stderr
+      echo "Error: Unable to connect with publickey."
+      echo "  Please rm-monitor q && rm-ensure-ssh and then try again."
+      echo "$output"
       exit 1
     fi
     echo "Warning $ret: Connection denied, retrying..."
@@ -40,19 +40,19 @@ while [ $ret -ne 0 ]; do
     # EOF
     sleep 0.9
   elif [[ "$output" == *"Segmentation fault"* ]] || [ $ret -eq 139 ]; then
-    echo "Error: ssh executable is broken." >/dev/stderr
-    echo "$output" >/dev/stderr
+    echo "Error: ssh executable is broken."
+    echo "$output"
     exit 1
   elif ! rm-is-running; then
-    echo "Error: rm is no longer running" >/dev/stderr
+    echo "Error: rm is no longer running"
     rm-is-running --verbose >/dev/null
     exit 1
   elif [ $ret -ne 255 ]; then
     fail_retry=$((fail_retry - 1))
     if [ $fail_retry -lt 0 ]; then
-      echo "Error $ret: Unable to connect, likely /home/root does not exist" >/dev/stderr
-      echo "  You may need to use rm-serial to login on the serial console to fix things" >/dev/stderr
-      echo "$output" >/dev/stderr
+      echo "Error $ret: Unable to connect, likely /home/root does not exist"
+      echo "  You may need to use rm-serial to login on the serial console to fix things"
+      echo "$output"
       exit 1
     fi
     echo "Warning $ret: Unable to connect, retrying..."
