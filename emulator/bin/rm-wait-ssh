@@ -25,7 +25,7 @@ while [ $ret -ne 0 ]; do
     deny_retry=$((deny_retry - 1))
     if [ $deny_retry -lt 0 ]; then
       echo "Error: Unable to connect with publickey."
-      echo "  Please rm-monitor q && rm-ensure-ssh and then try again."
+      echo "  Please rm-monitor quit && rm-ensure-ssh and then try again."
       echo "$output"
       exit 1
     fi
