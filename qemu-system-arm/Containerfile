@@ -99,3 +99,4 @@ COPY --from=builder \
   /
 
 COPY --from=builder /firmware /firmware
+COPY --from=builder /install/usr/share/qemu /usr/share/qemu
