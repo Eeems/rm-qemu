@@ -11,5 +11,6 @@ RUN apt-get update \
   dosfstools \
   mtools \
   socat \
+  patchelf \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*

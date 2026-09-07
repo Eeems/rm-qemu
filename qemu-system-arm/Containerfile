@@ -55,6 +55,7 @@ RUN <<EOT
 EOT
 
 WORKDIR /qemu
+RUN rm -rf /qemu/build
 
 RUN ./configure \
   --static \
@@ -71,12 +72,15 @@ RUN ./configure \
   --disable-gettext \
   --enable-pie \
   -Ddefault_library=static \
-  LDFLAGS="-static" \
-  CFLAGS="-O2"
+  --extra-cflags="-O2 -march=x86-64 -mtune=generic -mno-avx2 -mno-avx512f -mno-fma -mno-bmi -mno-bmi2 -fno-stack-protector" \
+  --extra-ldflags="-static"
 
+# ponytail: force -march=x86-64 (no AVX2) by patching config-host.mak after meson generates it.
 RUN <<EOT
   set -e
-  make -j $(nproc)
+  sed -i 's|^CFLAGS.*|CFLAGS := -O2 -march=x86-64 -mtune=generic -mno-avx2 -mno-avx512f -mno-fma -mno-bmi -mno-bmi2 -fno-stack-protector|' /qemu/build/config-host.mak 2>/dev/null || true
+  sed -i 's|^CXXFLAGS.*|CXXFLAGS := -O2 -march=x86-64 -mtune=generic -mno-avx2 -mno-avx512f -mno-fma -mno-bmi -mno-bmi2 -fno-stack-protector|' /qemu/build/config-host.mak 2>/dev/null || true
+  make -j $(nproc) CFLAGS="-O2 -march=x86-64 -mtune=generic -mno-avx2 -mno-avx512f -mno-fma -mno-bmi -mno-bmi2 -fno-stack-protector" CXXFLAGS="-O2 -march=x86-64 -mtune=generic -mno-avx2 -mno-avx512f -mno-fma -mno-bmi -mno-bmi2 -fno-stack-protector"
   make -j $(nproc) DESTDIR=/install install
   rm -r build
 EOT
@@ -86,6 +90,8 @@ RUN bash -e <<EOT
   cd /install/usr/share/qemu
   cp edk2-arm-{code,vars}.fd /firmware/
   cp firmware/60-edk2-arm.json /firmware/firmware/
+  # ponytail: copy pc-bios roms (efi-virtio.rom etc.) so -M virt firmware lookup works
+  cp -r /qemu/pc-bios /firmware/
 EOT
 
 FROM scratch
@@ -99,4 +105,4 @@ COPY --from=builder \
   /
 
 COPY --from=builder /firmware /firmware
-COPY --from=builder /install/usr/share/qemu /usr/share/qemu
+COPY --from=builder /install/usr/share/qemu /usr/share/

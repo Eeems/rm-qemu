@@ -1,0 +1,4 @@
+#!/bin/sh
+# ponytail: wrapper — delegate -r to GNU ln, else BusyBox ln (handles missing targets)
+for a in "$@"; do [ "$a" = "-r" ] && exec /usr/bin/gnuln "$@"; done
+exec /bin/ln "$@"
