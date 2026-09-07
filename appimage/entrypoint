@@ -13,9 +13,11 @@ cp \
 
 # Import some helper programs that can be run with sharun
 APPDIR="${APPDIR}" \
+  PATH="/usr/local/bin:${PATH}" \
   DESKTOP="rm-qemu.desktop" \
   ICON=rm-qemu.png \
   MAIN_BIN=appimage-entrypoint \
+  STRACE_MODE=0 \
   _tmp_bin=rm-qemu-bin \
   _tmp_lib=rm-qemu-lib \
   _tmp_share=rm-qemu-share \
@@ -25,6 +27,10 @@ APPDIR="${APPDIR}" \
   /usr/libexec/qemu-bridge-helper \
   /usr/share/qemu/
 
+# ponytail: stub the external hook that upstream repo removed (fix-gnome-csd.hook 404)
+echo '# stub hook - upstream file removed' > "${APPDIR}/bin/fix-gnome-csd.hook"
+chmod +x "${APPDIR}/bin/fix-gnome-csd.hook"
+# ponytail: end stub
 _hook="${APPDIR}/bin/path-mapping-hardcoded.src.hook"
 if [ -f "$_hook" ]; then
   sed -i -e 's|_tmp_bin=""|_tmp_bin="rm-qemu-bin"|' "$_hook"
@@ -61,8 +67,16 @@ cp -a /artifact/. "$APPDIR/share/rm-qemu/artifact/"
 cp -a \
   /usr/local/bin/. \
   "${APPDIR}/bin"
+# ponytail: inject rebuilt binary (quick-sharun puts it at shared/bin/, launcher at bin/ is old)
+cp -a /usr/bin/qemu-system-arm "${APPDIR}/bin/qemu-system-arm"
+chmod +x "${APPDIR}/bin/qemu-system-arm"
+# ponytail: fix shrink-image AFTER all cp -a (both bin/ and shared/bin/ exist)
+sed -i 's/compression_type=zstd/compression_type=zlib/g' "${APPDIR}/bin/shrink-image" 2>/dev/null || true
+sed -i 's/compression_type=zstd/compression_type=zlib/g' "${APPDIR}/shared/bin/shrink-image" 2>/dev/null || true
+sed -i 's/ -c / /g' "${APPDIR}/bin/shrink-image" 2>/dev/null || true
+sed -i 's/ -c / /g' "${APPDIR}/shared/bin/shrink-image" 2>/dev/null || true
+# ponytail: end
 
-# Create AppImage
 APPDIR="${APPDIR}" \
   OUTNAME=rm-qemu.AppImage \
   VERSION="$(date +%Y.%m.%d-%H%M)" \

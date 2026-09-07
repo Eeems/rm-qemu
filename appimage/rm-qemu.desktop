@@ -1,4 +1,5 @@
 [Desktop Entry]
+StartupWMClass=AppRun
 Version=1.0
 Type=Application
 Name=rm-qemu
@@ -7,3 +8,8 @@ Exec=AppRun
 Icon=rm-qemu
 Categories=System;Emulator;
 Terminal=true
+
+X-AppImage-Name=rm-qemu
+X-AppImage-Version=2026.09.03-1008
+X-AppImage-Arch=x86_64
+

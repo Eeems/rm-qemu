@@ -8,12 +8,14 @@ RUN bash -e <<EOT
     gcc \
     xvfb \
     libc6-dev \
+    coreutils \
     wget \
     zsync \
     git \
     make \
     xauth \
-    ca-certificates
+    ca-certificates \
+    patchelf
   apt-get clean
   rm -rf /var/lib/apt/lists/*
 EOT
@@ -34,7 +36,15 @@ RUN <<EOT
   chmod +x /usr/bin/uruntime2appimage
 EOT
 
+# removed ln-wrapper
 COPY entrypoint /usr/bin
 COPY bin/. /usr/local/bin/
+
+# ponytail: sharun runs in the AppDir where BusyBox ln lacks -r. Install GNU ln from coreutils
+# as /usr/bin/gnuln and a shim that delegates -r to gnuln, otherwise to BusyBox ln.
+COPY bin/ln /usr/local/bin/ln
+RUN set -e; \
+  cp /usr/bin/ln /usr/bin/gnuln; \
+  chmod +x /usr/local/bin/ln
 
 ENTRYPOINT [ "/usr/bin/entrypoint" ]
